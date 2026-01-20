@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "764581659241",
+    "project_id": "jaiguru-scheme-735c2",
+    "storage_bucket": "jaiguru-scheme-735c2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:764581659241:android:ca28fad9e5f52564e2d8f8",
+        "android_client_info": {
+          "package_name": "com.brightechsoftware.jaiguruscheme2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAujuNCrAT-AGC0azAvGACqtkihQAkfEeU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
