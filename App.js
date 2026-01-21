@@ -1,22 +1,32 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Button, Platform } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import {
   registerForPushNotificationsAsync,
   setupNotificationListeners,
-  sendTestNotification
-} from './Src/Helper/NotificationHelper'; // adjust path
+} from './Src/Helpers/NotificationHelper';
+
+import StackNavigator from './Src/Navigations/StackNavigator';
+import useFonts from './Src/Utills/Fonts';
 
 export default function App() {
   const [expoPushToken, setExpoPushToken] = useState(null);
 
+  // ✅ LOAD FONTS
+  const fontsLoaded = useFonts();
+
   useEffect(() => {
     const registerToken = async () => {
       const token = await registerForPushNotificationsAsync();
-      if (token) setExpoPushToken(token);
+      if (token) {
+        setExpoPushToken(token);
+        console.log('Expo Push Token:', token);
+      }
     };
-    registerToken();
 
+    registerToken();
     const removeListeners = setupNotificationListeners();
 
     return () => {
@@ -24,35 +34,23 @@ export default function App() {
     };
   }, []);
 
+  // ⛔ Wait until fonts are loaded
+  if (!fontsLoaded) {
+    return null; // or <ActivityIndicator />
+  }
+
   return (
-    <View style={styles.container}>
-      <Text style={{ marginBottom: 20, fontSize: 18, fontWeight: 'bold' }}>
-        Push & Local Notifications Demo
-      </Text>
-      <Text style={{ marginBottom: 30, fontSize: 14, textAlign: 'center' }}>
-        Expo Push Token:{'\n'}
-        {expoPushToken || 'Fetching...'}
-      </Text>
-
-      <Button
-        title="Send Test Local Notification (in 5s)"
-        onPress={() => {
-          console.log('Triggering local notification...');
-          sendTestNotification();
-        }}
-      />
-
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={styles.container}>
+        <StackNavigator />
+        <StatusBar style="auto" />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
   },
 });
