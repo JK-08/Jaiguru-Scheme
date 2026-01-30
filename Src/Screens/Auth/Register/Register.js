@@ -7,7 +7,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ActivityIndicator,
   Switch,
   StyleSheet,
@@ -22,16 +21,18 @@ import {
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+// Import Toast components
+import { useToast, ToastTypes, ToastPositions, ToastAnimationTypes } from '../../../Components/Toast/Toast'; // Adjust path as needed
+
 import useAuth from "../../../Hooks/useRegister";
 import { useCompany } from "../../../Hooks/useCompany";
 import theme from "../../../Utills/AppTheme";
-import { IMAGE_BASE_URL } from "../../../Config/BaseUrl";
+
 import defaultLogo from '../../../Assets/Company/logo.png';
 
 // Configure Google Sign-In
 GoogleSignin.configure({
-  webClientId:
-    "792128292012-161kjb3ap6f2msun0h56d4k8m0kfqs5l.apps.googleusercontent.com",
+  webClientId: "792128292012-161kjb3ap6f2msun0h56d4k8m0kfqs5l.apps.googleusercontent.com",
   offlineAccess: true,
   forceCodeForRefreshToken: true,
 });
@@ -40,12 +41,24 @@ const RegisterScreen = () => {
   const navigation = useNavigation();
   const { company, loading: companyLoading } = useCompany();
   
+  // Initialize toast hook
+  const { showToast, hideToast, Toast } = useToast();
+  
+  // Log company details for debugging
+  useEffect(() => {
+    if (company) {
+      console.log("Company details in RegisterScreen:", {
+        companyName: company.COMPANYNAME,
+        logoUrl: company.CompanyLogoUrl,
+        baseUrl: company.BASEURL,
+        logoField: company.LOGO
+      });
+    }
+  }, [company]);
+
   const [logoError, setLogoError] = useState(false);
   const [logoLoading, setLogoLoading] = useState(true);
-
-  const companyLogoUrl = company?.CompanyLogo 
-    ? `${IMAGE_BASE_URL}${company.CompanyLogo}`
-    : null;
+  const companyLogoUrl = company?.CompanyLogoUrl ?? null;
 
   const { signUp, loginWithGoogle, loading, error, clearError } = useAuth();
 
@@ -85,21 +98,24 @@ const RegisterScreen = () => {
     }
   };
 
-  // Reset logo error when company changes
+  // Reset logo loading state when company changes
   useEffect(() => {
-    if (company?.CompanyLogo) {
+    if (company) {
+      console.log("Company changed, resetting logo state. Logo URL:", company.CompanyLogoUrl);
       setLogoError(false);
       setLogoLoading(true);
     }
-  }, [company?.CompanyLogo]);
+  }, [company]);
 
   const handleImageError = () => {
     console.log("Failed to load company logo from URL:", companyLogoUrl);
+    console.log("Falling back to default logo");
     setLogoError(true);
     setLogoLoading(false);
   };
 
   const handleImageLoad = () => {
+    console.log("Company logo loaded successfully:", companyLogoUrl);
     setLogoLoading(false);
     setLogoError(false);
   };
@@ -135,43 +151,60 @@ const RegisterScreen = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleNormalRegister = async () => {
-    if (!validateForm()) {
-      Alert.alert(
-        "Invalid Form",
-        "Please fix the highlighted errors before continuing",
-      );
-      return;
-    }
+const handleNormalRegister = async () => {
+  if (!validateForm()) {
+    showToast({
+      message: "Please fix the highlighted errors before continuing",
+      title: "Invalid Form",
+      type: ToastTypes.ERROR,
+      duration: 4000,
+      position: ToastPositions.TOP,
+      animationType: ToastAnimationTypes.SLIDE
+    });
+    return;
+  }
 
-    try {
-      clearError();
+  try {
+    clearError();
 
-      const payload = {
-        username: formData.username.trim(),
-        password: formData.password,
-        contactNumber: formData.contactNumber.trim(),
-        email: formData.email.trim().toLowerCase(),
-        hashKey: formData.hashKey || appSignature || "d4riq2SwBaq",
-        ...(showReferral &&
-          formData.referralCode.trim() && {
-            referralCode: formData.referralCode.trim(),
-          }),
-      };
+    const payload = {
+      username: formData.username.trim(),
+      password: formData.password,
+      contactNumber: formData.contactNumber.trim(),
+      email: formData.email.trim().toLowerCase(),
+      hashKey: formData.hashKey || appSignature || "d4riq2SwBaq",
+      ...(showReferral &&
+        formData.referralCode.trim() && {
+          referralCode: formData.referralCode.trim(),
+        }),
+    };
 
-      console.log("Registration payload:", payload);
+    console.log("Registration payload:", payload);
 
-      const result = await signUp(payload);
+    const result = await signUp(payload);
 
-      console.log("Registration result:", result);
+    console.log("Registration response:", result);
+    console.log("Registration result:", result);
 
-      // Check if OTP was sent successfully
-      if (
-        result.errorMessage?.includes("OTP sent") ||
-        result.otp ||
-        result.whatsappLink
-      ) {
-        // Navigate to OTP verification screen with mobile number
+    // Check if OTP was sent successfully (success conditions)
+    if (
+      result?.message?.includes("OTP sent") ||
+      result?.errorMessage?.includes("OTP sent") ||
+      result?.otp ||
+      result?.whatsappLink
+    ) {
+      // Show success toast
+      showToast({
+        message: "OTP sent successfully to your mobile number",
+        title: "Registration Successful",
+        type: ToastTypes.SUCCESS,
+        duration: 3000,
+        position: ToastPositions.TOP,
+        animationType: ToastAnimationTypes.SLIDE
+      });
+
+      // Navigate to OTP verification screen with mobile number
+      setTimeout(() => {
         navigation.navigate("VerifyOTP", {
           mobileNumber: formData.contactNumber.trim(),
           email: formData.email.trim().toLowerCase(),
@@ -182,22 +215,79 @@ const RegisterScreen = () => {
 
         // Clear form
         resetForm();
-      } else {
-        Alert.alert(
-          "Registration Failed",
-          result.errorMessage || "Something went wrong. Please try again.",
-          [{ text: "OK" }],
-        );
+      }, 1500);
+    } else {
+      // Handle different error messages with specific user-friendly messages
+      let errorTitle = "Registration Failed";
+      let errorMessage = "Something went wrong. Please try again.";
+      
+      // Extract error message from response
+      const serverMessage = result?.message || result?.errorMessage || "";
+      
+      // Check for specific error conditions
+      if (serverMessage.toLowerCase().includes("email already exists") || 
+          serverMessage.toLowerCase().includes("email exists")) {
+        errorTitle = "Email Already Registered";
+        errorMessage = "This email address is already registered. Please use a different email or try logging in.";
+      } else if (serverMessage.toLowerCase().includes("username exists") || 
+                 serverMessage.toLowerCase().includes("username already")) {
+        errorTitle = "Username Taken";
+        errorMessage = "This username is already taken. Please choose a different username.";
+      } else if (serverMessage.toLowerCase().includes("mobile number") || 
+                 serverMessage.toLowerCase().includes("contact") || 
+                 serverMessage.toLowerCase().includes("phone")) {
+        errorTitle = "Mobile Number Exists";
+        errorMessage = "This mobile number is already registered. Please use a different number or try logging in.";
+      } else if (serverMessage.toLowerCase().includes("invalid") || 
+                 serverMessage.toLowerCase().includes("invalid data")) {
+        errorTitle = "Invalid Data";
+        errorMessage = "Please check your information and try again.";
+      } else if (serverMessage) {
+        // Use the server message if it exists
+        errorMessage = serverMessage;
       }
-    } catch (err) {
-      console.log("Registration error:", err.message);
-      Alert.alert(
-        "Registration Failed",
-        err.message || "Something went wrong. Please try again.",
-        [{ text: "OK" }],
-      );
+
+      showToast({
+        message: errorMessage,
+        title: errorTitle,
+        type: ToastTypes.ERROR,
+        duration: 4000,
+        position: ToastPositions.TOP,
+        animationType: ToastAnimationTypes.SLIDE
+      });
     }
-  };
+  } catch (err) {
+    console.log("Registration error:", err.message);
+    
+    let errorTitle = "Registration Failed";
+    let errorMessage = err.message || "Something went wrong. Please try again.";
+    
+    // Also check error message in catch block
+    if (errorMessage.toLowerCase().includes("email already exists") || 
+        errorMessage.toLowerCase().includes("email exists")) {
+      errorTitle = "Email Already Registered";
+      errorMessage = "This email address is already registered. Please use a different email or try logging in.";
+    } else if (errorMessage.toLowerCase().includes("username exists") || 
+               errorMessage.toLowerCase().includes("username already")) {
+      errorTitle = "Username Taken";
+      errorMessage = "This username is already taken. Please choose a different username.";
+    } else if (errorMessage.toLowerCase().includes("mobile number") || 
+               errorMessage.toLowerCase().includes("contact") || 
+               errorMessage.toLowerCase().includes("phone")) {
+      errorTitle = "Mobile Number Exists";
+      errorMessage = "This mobile number is already registered. Please use a different number or try logging in.";
+    }
+
+    showToast({
+      message: errorMessage,
+      title: errorTitle,
+      type: ToastTypes.ERROR,
+      duration: 4000,
+      position: ToastPositions.TOP,
+      animationType: ToastAnimationTypes.SLIDE
+    });
+  }
+};
 
   const handleGoogleSignIn = async () => {
     try {
@@ -218,33 +308,64 @@ const RegisterScreen = () => {
       console.log("Google ID Token:", idToken ? "Token received" : "No token");
 
       if (!idToken) {
-        Alert.alert(
-          "Error",
-          "Failed to get authentication token. Please try again.",
-        );
+        showToast({
+          message: "Failed to get authentication token. Please try again.",
+          title: "Error",
+          type: ToastTypes.ERROR,
+          duration: 4000,
+          position: ToastPositions.TOP,
+          animationType: ToastAnimationTypes.SLIDE
+        });
         return;
       }
+
+      // Show loading toast for Google sign in
+      showToast({
+        message: "Signing in with Google...",
+        title: "Please wait",
+        type: ToastTypes.INFO,
+        duration: 0, // Show until manually hidden
+        position: ToastPositions.TOP,
+        animationType: ToastAnimationTypes.SLIDE,
+        showProgress: true,
+        progress: 0
+      });
 
       // Call your API with the token
       console.log("Calling loginWithGoogle API...");
       const result = await loginWithGoogle({ idToken });
       console.log("Google Login Response:", result);
 
+      // Hide the loading toast
+      hideToast();
+
       // Check if contactNumber is null or empty
       if (!result.contactNumber || result.contactNumber === null) {
+        // Show toast for contact verification
+        showToast({
+          message: "Please verify your contact number to continue",
+          title: "Contact Verification Required",
+          type: ToastTypes.INFO,
+          duration: 3000,
+          position: ToastPositions.TOP,
+          animationType: ToastAnimationTypes.SLIDE
+        });
+
         // User doesn't have contact number, navigate to contact verification
         console.log("Navigating to GoogleContactVerification");
-        navigation.navigate("GoogleContactVerification", {
-          googleData: {
-            userId: result.id,
-            email: result.email,
-            name: result.username,
-            picture: result.picture,
-            referralCode: result.referralCode,
-            token: result.token,
-            socialMedia: result.socialMedia,
-          },
-        });
+        setTimeout(() => {
+          navigation.navigate("GoogleContactVerification", {
+            googleData: {
+              userId: result.id,
+              email: result.email,
+              name: result.username,
+              picture: result.picture,
+              referralCode: result.referralCode,
+              token: result.token,
+              socialMedia: result.socialMedia,
+            },
+          });
+        }, 1000);
       } else {
         // User already has contact number, login successful
         await AsyncStorage.setItem("authToken", result.token);
@@ -261,9 +382,21 @@ const RegisterScreen = () => {
           }),
         );
 
-        console.log("Google login successful, navigating to Home");
-        // Navigate to home
-        navigation.replace("Home");
+        // Show success toast
+        showToast({
+          message: "Welcome back! Redirecting to MPIN verification...",
+          title: "Login Successful",
+          type: ToastTypes.SUCCESS,
+          duration: 2000,
+          position: ToastPositions.TOP,
+          animationType: ToastAnimationTypes.BOUNCE
+        });
+
+        console.log("Google login successful, navigating to Mpin verification");
+        // Navigate to MpinVerify after a short delay
+        setTimeout(() => {
+          navigation.replace("MpinVerify");
+        }, 1500);
       }
     } catch (error) {
       console.log("Full Google Sign-In Error:", error);
@@ -286,7 +419,18 @@ const RegisterScreen = () => {
           "Server returned an unexpected response. Please contact support.";
       }
 
-      Alert.alert("Error", errorMessage);
+      // Hide any loading toast
+      hideToast();
+      
+      // Show error toast
+      showToast({
+        message: errorMessage,
+        title: "Error",
+        type: ToastTypes.ERROR,
+        duration: 4000,
+        position: ToastPositions.TOP,
+        animationType: ToastAnimationTypes.SLIDE
+      });
     } finally {
       setGoogleLoading(false);
     }
@@ -359,7 +503,7 @@ const RegisterScreen = () => {
                     resizeMode="contain"
                     onLoad={handleImageLoad}
                     onError={handleImageError}
-                    defaultSource={defaultLogo} // Fallback while loading
+                    defaultSource={defaultLogo}
                   />
                 ) : (
                   /* Show local image when API fails or no logo URL */
@@ -378,7 +522,6 @@ const RegisterScreen = () => {
           )}
         </View>
 
-        {/* Rest of your existing JSX remains exactly the same */}
         {/* Header */}
         <View style={styles.headerContainer}>
           <Text style={styles.title}>Create Account</Text>
@@ -398,7 +541,7 @@ const RegisterScreen = () => {
           </View>
         )}
 
-        {/* Registration Form - All the form fields remain exactly as they were */}
+        {/* Registration Form */}
         <View style={styles.formContainer}>
           {/* Username */}
           <View style={styles.fieldContainer}>
@@ -623,6 +766,9 @@ const RegisterScreen = () => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Toast Component */}
+      <Toast />
     </KeyboardAvoidingView>
   );
 };
@@ -656,7 +802,6 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 20,
-    // backgroundColor: theme.COLORS.backgroundLight,
   },
   loadingContainer: {
     position: 'absolute',

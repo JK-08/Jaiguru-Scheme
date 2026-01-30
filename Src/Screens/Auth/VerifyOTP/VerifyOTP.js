@@ -19,7 +19,15 @@ import Header from "../../../Components/CommonHeader/CommonHeader";
 import useAuth from "../../../Hooks/useRegister";
 import theme from "../../../Utills/AppTheme";
 import { saveAuthData } from "../../../Utills/AsynchStorageHelper";
-import { showToast } from "../../../Components/Toast/Toast"; // Assuming you have this utility
+import { 
+  ToastComponent, 
+  ToastTypes, 
+  ToastPositions,
+  ToastAnimationTypes,
+  useToast 
+} from "../../../Components/Toast/Toast";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 const { width, height } = Dimensions.get("window");
 
@@ -38,7 +46,7 @@ const VerifyOTPScreen = () => {
   } = route.params || {};
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [resendTimer, setResendTimer] = useState(20);
+  const [resendTimer, setResendTimer] = useState(30);
   const [otpLoading, setOtpLoading] = useState(false);
   const [autoCompleteOtp, setAutoCompleteOtp] = useState("");
   const [waitingForOtp, setWaitingForOtp] = useState(true);
@@ -46,11 +54,15 @@ const VerifyOTPScreen = () => {
   const [autoVerifyTimer, setAutoVerifyTimer] = useState(20);
   const [smsListenerReady, setSmsListenerReady] = useState(false);
   const [appHash, setAppHash] = useState([]);
+  const [hasShownSMSToast, setHasShownSMSToast] = useState(false); // Track if SMS toast shown
 
   const inputRefs = useRef([]);
   const { message, timeoutError, startListener, stopListener } = useOtpVerify({
     numberOfDigits: 6,
   });
+
+  // Initialize Toast system
+  const { showToast, Toast } = useToast();
 
   // -------------------- TIMER --------------------
   useEffect(() => {
@@ -96,7 +108,15 @@ const VerifyOTPScreen = () => {
         setOtp(detectedOtp.split(""));
         setWaitingForOtp(false);
         setShowFullScreenLoader(false);
-        showToast("OTP detected automatically!");
+        
+        // Show success toast for auto-detection
+        showToast({
+          message: "OTP detected automatically!",
+          type: ToastTypes.SUCCESS,
+          duration: 2000,
+          position: ToastPositions.TOP,
+          animationType: ToastAnimationTypes.SCALE
+        });
 
         setTimeout(() => {
           handleOTPVerification();
@@ -110,10 +130,20 @@ const VerifyOTPScreen = () => {
     if (smsListenerReady && Platform.OS === "android") {
       setShowFullScreenLoader(true);
 
+      
+      
+
       const timer = setTimeout(() => {
         setWaitingForOtp(false);
         setShowFullScreenLoader(false);
-        showToast("You can enter OTP manually");
+        
+        // Show timeout toast
+        showToast({
+          message: "You can enter OTP manually",
+          type: ToastTypes.WARNING,
+          duration: 3000,
+          position: ToastPositions.TOP
+        });
       }, 20000);
 
       return () => clearTimeout(timer);
@@ -123,7 +153,12 @@ const VerifyOTPScreen = () => {
   // -------------------- HANDLE TIMEOUT --------------------
   useEffect(() => {
     if (timeoutError) {
-      showToast("OTP detection timeout. Please enter it manually.");
+      showToast({
+        message: "OTP detection timeout. Please enter it manually.",
+        type: ToastTypes.WARNING,
+        duration: 3000,
+        position: ToastPositions.TOP
+      });
       setWaitingForOtp(false);
       setShowFullScreenLoader(false);
     }
@@ -132,14 +167,21 @@ const VerifyOTPScreen = () => {
   // -------------------- AUTO VERIFY TIMER (20 seconds) --------------------
   useEffect(() => {
     if (waitingForOtp && smsListenerReady && Platform.OS === "android") {
-      setAutoVerifyTimer(20);
+      setAutoVerifyTimer(30);
       const interval = setInterval(() => {
         setAutoVerifyTimer((prev) => {
           if (prev <= 1) {
             clearInterval(interval);
             setWaitingForOtp(false);
             setShowFullScreenLoader(false);
-            showToast("You can enter OTP manually");
+            
+            showToast({
+              message: "You can enter OTP manually",
+              type: ToastTypes.INFO,
+              duration: 3000,
+              position: ToastPositions.TOP
+            });
+            
             return 0;
           }
           return prev - 1;
@@ -167,11 +209,27 @@ const VerifyOTPScreen = () => {
           }
         } catch (error) {
           console.error("❌ Error initializing SMS listener:", error);
+          
+          showToast({
+            message: "SMS auto-detection unavailable. Enter OTP manually.",
+            type: ToastTypes.WARNING,
+            duration: 4000,
+            position: ToastPositions.TOP
+          });
+          
           setWaitingForOtp(false);
           setSmsListenerReady(false);
           setShowFullScreenLoader(false);
         }
       } else {
+        // iOS - show info toast
+        showToast({
+          message: "iOS: Please enter OTP manually",
+          type: ToastTypes.INFO,
+          duration: 3000,
+          position: ToastPositions.TOP
+        });
+        
         setWaitingForOtp(false);
         setSmsListenerReady(false);
         setShowFullScreenLoader(false);
@@ -223,12 +281,41 @@ const VerifyOTPScreen = () => {
     setOtp(["", "", "", "", "", ""]);
     setAutoCompleteOtp("");
     inputRefs.current[0]?.focus();
+    
+    // Show toast for cleared OTP
+    showToast({
+      message: "OTP cleared",
+      type: ToastTypes.INFO,
+      duration: 1500,
+      position: ToastPositions.BOTTOM
+    });
   };
+
+  const navigateAfterOtp = async () => {
+  try {
+    const hasMpin = await AsyncStorage.getItem("hasMpin");
+
+    if (hasMpin === "true") {
+      navigation.replace("MpinVerify");
+    } else {
+      navigation.replace("MpinCreate");
+    }
+  } catch (error) {
+    console.log("MPIN check error:", error);
+    navigation.replace("MpinCreate"); // safe fallback
+  }
+};
+
 
   const handleOTPVerification = async () => {
     const otpValue = otp.join("");
     if (otpValue.length !== 6) {
-      showToast("Please enter 6-digit OTP");
+      showToast({
+        message: "Please enter 6-digit OTP",
+        type: ToastTypes.WARNING,
+        duration: 2000,
+        position: ToastPositions.TOP
+      });
       return;
     }
 
@@ -307,17 +394,35 @@ const VerifyOTPScreen = () => {
         );
       }
 
-      showToast("OTP verified successfully!");
+      // Show success toast with premium style
+      showToast({
+        message: "OTP verified successfully!",
+        type: ToastTypes.PREMIUM,
+        duration: 2000,
+        position: ToastPositions.TOP,
+        animationType: ToastAnimationTypes.BOUNCE
+      });
+      
       stopListener && stopListener();
       setShowFullScreenLoader(false);
 
       // Navigate to Home
-      setTimeout(() => {
-        navigation.replace("Home");
-      }, 500);
+      // Navigate based on MPIN status
+setTimeout(() => {
+  navigateAfterOtp();
+}, 500);
+
     } catch (err) {
       console.log("❌ Verification error:", err);
-      showToast(err.message || "Invalid OTP. Please check and try again.");
+      
+      // Show error toast
+      showToast({
+        message: err.message || "Invalid OTP. Please check and try again.",
+        type: ToastTypes.ERROR,
+        duration: 3000,
+        position: ToastPositions.TOP
+      });
+      
       clearOtp();
       setShowFullScreenLoader(false);
     } finally {
@@ -329,7 +434,14 @@ const VerifyOTPScreen = () => {
     if (resendTimer > 0 || showFullScreenLoader) return;
 
     try {
-      showToast("OTP resent successfully!");
+      // Show success toast for resend
+      showToast({
+        message: "OTP resent successfully!",
+        type: ToastTypes.SUCCESS,
+        duration: 2000,
+        position: ToastPositions.TOP
+      });
+      
       setResendTimer(20);
       clearOtp();
 
@@ -340,7 +452,14 @@ const VerifyOTPScreen = () => {
       }
     } catch (error) {
       console.error("Resend OTP error:", error);
-      showToast("Failed to resend OTP. Try again.");
+      
+      // Show error toast
+      showToast({
+        message: "Failed to resend OTP. Try again.",
+        type: ToastTypes.ERROR,
+        duration: 3000,
+        position: ToastPositions.TOP
+      });
     }
   };
 
@@ -508,6 +627,9 @@ const VerifyOTPScreen = () => {
           </View>
         </View>
       </ScrollView>
+
+      {/* Toast Component */}
+      <Toast />
 
       {/* FULL SCREEN LOADER */}
       {showFullScreenLoader && (

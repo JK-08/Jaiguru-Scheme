@@ -62,14 +62,15 @@ const OnboardingScreen = ({ navigation }) => {
   const completeOnboarding = async () => {
     try {
       // Mark onboarding as completed
-      await AsyncStorage.setItem("hasSeenOnboarding", "true");
+     AsyncStorage.setItem('hasSeenOnboarding', 'true');
 
-      // Navigate to Register screen
-      navigation.replace("Register");
+
+      // Navigate to Login screen
+      navigation.replace("Login");
     } catch (error) {
       console.error("Error completing onboarding:", error);
       // Fallback navigation
-      navigation.replace("Register");
+      navigation.replace("RegLoginister");
     }
   };
 

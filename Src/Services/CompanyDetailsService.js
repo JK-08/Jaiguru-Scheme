@@ -3,7 +3,7 @@ import { API_BASE_URL } from "../Config/BaseUrl";
 export const getCompanyDetails = async () => {
   try {
     const url = `${API_BASE_URL}/company/all`;
-    console.log("Fetching company details from:", url);
+    // console.log("Fetching company details from:", url);
 
     const response = await fetch(url);
 

@@ -92,6 +92,21 @@ export const getAuthToken = async () => {
 };
 
 /**
+ * Get a specific user field
+ * Usage: getUserField('email')
+ */
+export const getUserField = async (field) => {
+  try {
+    const userData = await getUserData();
+    return userData ? userData[field] ?? null : null;
+  } catch (error) {
+    console.error('getUserField error:', error);
+    return null;
+  }
+};
+
+
+/**
  * Get logged-in user data
  */
 export const getUserData = async () => {
@@ -242,5 +257,6 @@ export default {
   checkFirstLaunch,
   saveAppSettings,
   getAppSettings,
+  getUserField,
   STORAGE_KEYS,
 };

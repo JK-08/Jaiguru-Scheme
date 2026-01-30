@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View,ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,9 +8,13 @@ import OnboardingScreen from '../Screens/Onboard/OnboardingScreen';
 import HomeScreen from '../Screens/Home/HomeScreen';
 import RegisterScreen from '../Screens/Auth/Register/Register';
 import LoginScreen from '../Screens/Auth/Login/Login';
+import MpinVerifyScreen from '../Screens/Auth/VerifyMpin/VerifyMpin';
+import MpinCreateScreen from '../Screens/Auth/CreateMpin/CreateMpin';
+import ForgotMpin from '../Screens/Auth/ResetMpin/ResetMpin';
 import VerifyOTPScreen from '../Screens/Auth/VerifyOTP/VerifyOTP';
 import GoogleContactVerificationScreen from '../Screens/Auth/GoogleVerifyOTP/GoogleEnterMobile';
-import AsynchStorageHelper from '../Utills/AsynchStorageHelper';
+import MemberCreation from '../Screens/MemberCreation/MemberCreation';
+import SideBar from '../Components/Sidebar/Sidebar';
 
 const Stack = createNativeStackNavigator();
 
@@ -20,49 +24,40 @@ export default function StackNavigator() {
 
   React.useEffect(() => {
     const init = async () => {
-    
       try {
+        // Only for debugging
+// await AsyncStorage.clear();
 
-        AsyncStorage.clear(); // For testing purposes only, remove in production
-        // Check if onboarding was completed
         const hasSeenOnboarding = await AsyncStorage.getItem('hasSeenOnboarding');
-        
-        // Check if user is logged in
-        const userToken = await AsyncStorage.getItem('authToken');
+        const token = await AsyncStorage.getItem('authToken');
         const userDataStr = await AsyncStorage.getItem('userData');
-        let isLoggedIn = false;
-        
-        if (userToken && userDataStr) {
-          try {
-            const userData = JSON.parse(userDataStr);
-            // Additional validation if needed
-            isLoggedIn = !!userToken && !!userData.id;
-          } catch (e) {
-            console.log('Error parsing user data:', e);
-            isLoggedIn = false;
-          }
-        }
+        const hasMpin = await AsyncStorage.getItem('hasMpin');
 
-        console.log('Navigation initialization:', {
+        console.log('Navigation State:', {
           hasSeenOnboarding,
-          hasToken: !!userToken,
-          isLoggedIn
+          
+          token,
+          hasMpin,
         });
 
-        // Determine initial route based on app state
-        if (!hasSeenOnboarding) {
-          // First time user - show onboarding
-          setInitialRoute('Onboarding');
-        } else if (isLoggedIn) {
-          // User is already logged in - go directly to home
-          setInitialRoute('Home');
-        } else {
-          // Returning user but not logged in - go to login
-          setInitialRoute('Login');
+        let isLoggedIn = false;
+
+        if (token && userDataStr) {
+          const userData = JSON.parse(userDataStr);
+          isLoggedIn = !!userData?.id;
         }
-      } catch (e) {
-        console.error('Error initializing navigation:', e);
-        // Fallback to onboarding on error
+
+        // 🔀 FINAL FLOW
+        if (!hasSeenOnboarding) {
+          setInitialRoute('Onboarding');
+        } else if (!isLoggedIn) {
+          setInitialRoute('Login');
+        } else {
+          setInitialRoute('MpinVerify');
+        }
+
+      } catch (error) {
+        console.log('Navigation error:', error);
         setInitialRoute('Onboarding');
       } finally {
         setIsLoading(false);
@@ -72,11 +67,10 @@ export default function StackNavigator() {
     init();
   }, []);
 
-  // Show loading screen while determining initial route
   if (isLoading || !initialRoute) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
-        <ActivityIndicator size="large" color="#D4AF37" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
       </View>
     );
   }
@@ -88,14 +82,16 @@ export default function StackNavigator() {
         screenOptions={{ headerShown: false }}
       >
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="VerifyOTP" component={VerifyOTPScreen} />
-        <Stack.Screen
-          name="GoogleContactVerification"
-          component={GoogleContactVerificationScreen}
-        />
+        <Stack.Screen name="GoogleContactVerification" component={GoogleContactVerificationScreen} />
+        <Stack.Screen name="MpinCreate" component={MpinCreateScreen} />
+        <Stack.Screen name="MpinVerify" component={MpinVerifyScreen} />
+        <Stack.Screen name="ForgotMpin" component={ForgotMpin} />
         <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="MemberCreation" component={MemberCreation} />
+        <Stack.Screen name="Sidebar" component={SideBar} />
       </Stack.Navigator>
     </NavigationContainer>
   );
