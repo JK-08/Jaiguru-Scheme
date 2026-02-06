@@ -20,6 +20,7 @@ const isVersionLower = (current, target) => {
 export const checkForAppUpdate = async () => {
   try {
     const localVersion = Application.nativeApplicationVersion;
+    console.log("Installed version:", localVersion);
 
     /* ----------------------------------
        1️⃣ OTA UPDATE (ONLY IN PROD)
@@ -27,6 +28,7 @@ export const checkForAppUpdate = async () => {
     if (!__DEV__ && Updates.isEnabled) {
       const otaUpdate = await Updates.checkForUpdateAsync();
       if (otaUpdate.isAvailable) {
+        console.log("OTA update available, fetching...");
         await Updates.fetchUpdateAsync();
         await Updates.reloadAsync();
         return;
@@ -37,15 +39,16 @@ export const checkForAppUpdate = async () => {
        2️⃣ PLAY STORE VERSION CHECK
     ----------------------------------- */
     const response = await fetch(
-      "https://raw.githubusercontent.com/JK-08/Jaiguru-Scheme/Dev/app-version.json"
+      "https://raw.githubusercontent.com/JK-08/Jaiguru-Scheme/Dev/app-version.json?ts=" +
+        Date.now()
     );
-
-    const text = await response.text();
-    console.log("Version config response:", text);
 
     if (!response.ok) {
       throw new Error("Failed to fetch version config");
     }
+
+    const text = await response.text();
+    console.log("Version config response:", text);
 
     let config;
     try {
@@ -55,42 +58,43 @@ export const checkForAppUpdate = async () => {
     }
 
     if (Platform.OS === "android") {
-      const {
-        latestVersion,
-        minSupportedVersion,
-        playStoreUrl
-      } = config.android;
+      const { latestVersion, minSupportedVersion, playStoreUrl } = config.android;
+      console.log("Latest version:", latestVersion, "Min supported:", minSupportedVersion);
 
       // 🚨 FORCE UPDATE
       if (isVersionLower(localVersion, minSupportedVersion)) {
         Alert.alert(
           "Update Required 🚨",
-          "Please update the app to continue using Jaiguru DigiGold.",
+          `Your version (${localVersion}) is no longer supported.\nPlease update to version ${minSupportedVersion} or higher to continue using Jaiguru DigiGold.`,
           [
             {
-              text: "Update Now",
-              onPress: () => Linking.openURL(playStoreUrl)
-            }
+              text: "Update",
+              onPress: () => Linking.openURL(playStoreUrl),
+            },
           ],
-          { cancelable: false }
+          { cancelable: false } // User cannot dismiss
         );
         return;
       }
 
-      // 🚀 OPTIONAL UPDATE
+      // ✨ OPTIONAL UPDATE
       if (isVersionLower(localVersion, latestVersion)) {
         Alert.alert(
-          "Update Available 🚀",
-          "A newer version is available for a better experience.",
+          "New Version Available ✨",
+          `A new version (${latestVersion}) is available.\nYou're using ${localVersion}.`,
           [
             { text: "Later", style: "cancel" },
             {
               text: "Update",
-              onPress: () => Linking.openURL(playStoreUrl)
-            }
+              onPress: () => Linking.openURL(playStoreUrl),
+            },
           ]
         );
+        return;
       }
+
+      // ✅ App is up to date
+      console.log("App is up to date. Installed:", localVersion);
     }
   } catch (error) {
     console.log("Version check failed:", error.message || error);
