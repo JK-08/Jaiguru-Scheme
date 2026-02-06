@@ -13,6 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import HomeHeaderRedesigned from '../../Components/MainHeader/MainHeader';
 import SliderComponent from '../../Components/Slider/Slider';
 import SchemeDetailsCard from '../../Components/SchemeDetailsCard/SchemeDetailsCard';
+import SchemesList from '../../Components/SchemeCard/SchemeCard';
 import { useNavigation } from '@react-navigation/native';
 
 const HomeScreen = () => {
@@ -54,6 +55,7 @@ const HomeScreen = () => {
         <SliderComponent />
 
         <SchemeDetailsCard />
+        <SchemesList />
 
         {/* Welcome Section */}
         <View style={styles.section}>

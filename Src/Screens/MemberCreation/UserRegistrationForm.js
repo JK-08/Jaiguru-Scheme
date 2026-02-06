@@ -17,7 +17,7 @@ import CommonHeader from "../../Components/CommonHeader/CommonHeader";
 // Storage key for saving form data
 const FORM_STORAGE_KEY = "@user_registration_form_data";
 
-export default function UserRegistrationForm() {
+export default function UserRegistrationForm({onSubmit}) {
   const [formData, setFormData] = useState({
     // Document Details
     aadharNumber: "",
@@ -45,7 +45,6 @@ export default function UserRegistrationForm() {
 
   const [errors, setErrors] = useState({});
   const [focusedField, setFocusedField] = useState(null);
-  const [aadharVerificationStatus, setAadharVerificationStatus] = useState(null);
   const [hasPreviousData, setHasPreviousData] = useState(false);
 
   const maritalStatusOptions = ["Single", "Married"];
@@ -69,14 +68,11 @@ export default function UserRegistrationForm() {
         setFormData(parsedData);
         setHasPreviousData(true);
         
-        // Check if Aadhar was previously verified
-        if (parsedData.aadharNumber) {
-          // You might want to store verification status separately
-          // For now, we'll reset it and user needs to verify again
-          setAadharVerificationStatus(null);
+        // Validate loaded Aadhar if it exists
+        if (parsedData.aadharNumber && parsedData.aadharNumber.replace(/\s/g, "").length === 12) {
+          validateAadharNumber(parsedData.aadharNumber);
         }
-        
-        console.log("Loaded saved form data:", parsedData);
+     
       }
     } catch (error) {
       console.error("Error loading saved form data:", error);
@@ -131,9 +127,8 @@ export default function UserRegistrationForm() {
                 nomineeMobile: "",
               });
               
-              // Reset errors and verification status
+              // Reset errors
               setErrors({});
-              setAadharVerificationStatus(null);
               setHasPreviousData(false);
               
               console.log("Form data cleared");
@@ -152,9 +147,6 @@ export default function UserRegistrationForm() {
     setFormData((prev) => ({ ...prev, [field]: "" }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: null }));
-    }
-    if (field === "aadharNumber") {
-      setAadharVerificationStatus(null);
     }
   };
 
@@ -205,43 +197,105 @@ export default function UserRegistrationForm() {
     return inv[c] === 0;
   };
 
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: null }));
+  // Validate Aadhar number automatically
+  const validateAadharNumber = (aadharNumber) => {
+    const cleanedAadhar = aadharNumber.replace(/\s/g, "");
+    
+    if (cleanedAadhar === "") {
+      setErrors((prev) => ({ ...prev, aadharNumber: null }));
+      return;
     }
-    if (field === "aadharNumber") {
-      setAadharVerificationStatus(null);
-    }
-  };
-
-  const validateAadharNumber = () => {
-    const cleanedAadhar = formData.aadharNumber.replace(/\s/g, "");
     
     if (!/^\d{12}$/.test(cleanedAadhar)) {
       setErrors((prev) => ({
         ...prev,
-        aadharNumber: "Please enter a valid 12-digit Aadhar number",
+        aadharNumber: "Aadhar must be 12 digits",
       }));
-      setAadharVerificationStatus("invalid");
       return;
     }
 
-    const isValid = verhoeffCheck(formData.aadharNumber);
+    const isValid = verhoeffCheck(aadharNumber);
     
     if (isValid) {
-      setAadharVerificationStatus("verified");
       setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors.aadharNumber;
         return newErrors;
       });
     } else {
-      setAadharVerificationStatus("invalid");
       setErrors((prev) => ({
         ...prev,
         aadharNumber: "Invalid Aadhar number. Please check and try again.",
       }));
+    }
+  };
+
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    
+    // Clear error for this field if it exists
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: null }));
+    }
+    
+    // Automatically validate Aadhar as user types
+    if (field === "aadharNumber") {
+      if (value.replace(/\s/g, "").length === 12) {
+        // Validate when user has entered full 12 digits
+        validateAadharNumber(value);
+      }
+    }
+    
+    // Validate PAN format automatically
+    if (field === "panNumber" && value !== "") {
+      if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(value)) {
+        setErrors((prev) => ({ ...prev, panNumber: "Invalid PAN format (e.g., ABCDE1234F)" }));
+      } else {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.panNumber;
+          return newErrors;
+        });
+      }
+    }
+    
+    // Validate mobile numbers automatically
+    if ((field === "mobileNumber" || field === "nomineeMobile") && value !== "") {
+      if (!/^\d{10}$/.test(value)) {
+        setErrors((prev) => ({ ...prev, [field]: `${field === 'mobileNumber' ? 'Mobile' : 'Nominee mobile'} must be 10 digits` }));
+      } else {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[field];
+          return newErrors;
+        });
+      }
+    }
+    
+    // Validate email automatically
+    if (field === "emailAddress" && value !== "") {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        setErrors((prev) => ({ ...prev, emailAddress: "Invalid email format" }));
+      } else {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.emailAddress;
+          return newErrors;
+        });
+      }
+    }
+    
+    // Validate pincode automatically
+    if (field === "pincode" && value !== "") {
+      if (!/^\d{6}$/.test(value)) {
+        setErrors((prev) => ({ ...prev, pincode: "Pincode must be 6 digits" }));
+      } else {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.pincode;
+          return newErrors;
+        });
+      }
     }
   };
 
@@ -253,11 +307,11 @@ export default function UserRegistrationForm() {
       newErrors.aadharNumber = "Aadhar number is required";
     } else if (!/^\d{12}$/.test(formData.aadharNumber.replace(/\s/g, ""))) {
       newErrors.aadharNumber = "Aadhar must be 12 digits";
-    } else if (aadharVerificationStatus !== "verified") {
-      newErrors.aadharNumber = "Please verify your Aadhar number";
+    } else if (!verhoeffCheck(formData.aadharNumber)) {
+      newErrors.aadharNumber = "Invalid Aadhar number";
     }
 
-    // PAN validation
+    // PAN validation - only if provided
     if (formData.panNumber && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panNumber)) {
       newErrors.panNumber = "Invalid PAN format (e.g., ABCDE1234F)";
     }
@@ -305,25 +359,15 @@ export default function UserRegistrationForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+const handleSubmit = () => {
     if (validateForm()) {
-      console.log("Form submitted:", formData);
-      // Handle form submission
-      Alert.alert(
-        "Success",
-        "Registration form submitted successfully!",
-        [
-          {
-            text: "OK",
-            onPress: () => {
-              // Optionally clear form after successful submission
-              // clearFormData();
-            },
-          },
-        ]
-      );
+
+      Alert.alert("Success", "Registration form submitted successfully!");
+      
+      // Call parent callback
+      if (onSubmit) onSubmit(formData);
     }
-  };
+  };  
 
   const formatAadhar = (text) => {
     const cleaned = text.replace(/\s/g, "");
@@ -387,7 +431,13 @@ export default function UserRegistrationForm() {
             }
           }}
           onFocus={() => setFocusedField(field)}
-          onBlur={() => setFocusedField(null)}
+          onBlur={() => {
+            setFocusedField(null);
+            // Validate on blur for Aadhar if not already validated
+            if (field === "aadharNumber" && formData.aadharNumber.replace(/\s/g, "").length === 12) {
+              validateAadharNumber(formData.aadharNumber);
+            }
+          }}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
           maxLength={maxLength}
@@ -486,47 +536,8 @@ export default function UserRegistrationForm() {
           {renderInput("Aadhar Number", "aadharNumber", "XXXX XXXX XXXX", {
             mandatory: true,
             keyboardType: "numeric",
-            maxLength: 14,
+            maxLength: 14, // 12 digits + 2 spaces
           })}
-
-          {/* Aadhar Verification Button and Status */}
-          <View style={styles.verificationContainer}>
-            {aadharVerificationStatus === null && formData.aadharNumber.length >= 12 && (
-              <TouchableOpacity
-                style={styles.verifyButton}
-                onPress={validateAadharNumber}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.verifyButtonText}>Verify Aadhar</Text>
-              </TouchableOpacity>
-            )}
-
-            {aadharVerificationStatus === "verified" && (
-              <View style={styles.statusContainerSuccess}>
-                <View style={styles.statusIconSuccessContainer}>
-                  <Text style={styles.statusIconSuccess}>✓</Text>
-                </View>
-                <Text style={styles.statusTextSuccess}>Aadhar Verified Successfully</Text>
-              </View>
-            )}
-
-            {aadharVerificationStatus === "invalid" && (
-              <View style={styles.statusContainerError}>
-                <View style={styles.statusIconErrorContainer}>
-                  <Text style={styles.statusIconError}>✗</Text>
-                </View>
-                <View style={styles.statusErrorContent}>
-                  <Text style={styles.statusTextError}>Invalid Aadhar Number</Text>
-                  <TouchableOpacity
-                    style={styles.retryButton}
-                    onPress={validateAadharNumber}
-                  >
-                    <Text style={styles.retryButtonText}>Retry</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-          </View>
 
           {renderInput("PAN Number", "panNumber", "ABCDE1234F", {
             mandatory: false,
@@ -648,13 +659,13 @@ export default function UserRegistrationForm() {
             <Text style={styles.clearAllButtonText}>Clear Errors</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity
-            style={styles.submitButton}
-            onPress={handleSubmit}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.submitButtonText}>Submit Registration</Text>
-          </TouchableOpacity>
+         <TouchableOpacity
+      style={styles.submitButton}
+      onPress={handleSubmit}
+      activeOpacity={0.8}
+    >
+      <Text style={styles.submitButtonText}>Submit Registration</Text>
+    </TouchableOpacity>
         </View>
 
         {/* Bottom Spacing */}
@@ -825,97 +836,6 @@ const styles = StyleSheet.create({
   maritalStatusTextActive: {
     color: COLORS.white,
     ...FONTS.bodyMedium,
-  },
-
-  /* ---------- Aadhaar Verification ---------- */
-  verificationContainer: {
-    marginBottom: SIZES.padding.md,
-  },
-  verifyButton: {
-    backgroundColor: COLORS.primary,
-    paddingVertical: SIZES.padding.sm,
-    borderRadius: SIZES.radius.input,
-    alignItems: "center",
-    justifyContent: "center",
-    ...SHADOWS.xs,
-  },
-  verifyButtonText: {
-    color: COLORS.white,
-    ...FONTS.bodyMedium,
-  },
-
-  statusContainerSuccess: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.successLight,
-    padding: SIZES.padding.sm,
-    borderRadius: SIZES.radius.input,
-    borderWidth: 1,
-    borderColor: COLORS.success,
-  },
-  statusIconSuccessContainer: {
-    width: SIZES.icon.sm,
-    height: SIZES.icon.sm,
-    borderRadius: SIZES.radius.full,
-    backgroundColor: COLORS.success,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: SIZES.padding.sm,
-  },
-  statusIconSuccess: {
-    color: COLORS.white,
-    fontSize: SIZES.font.xs,
-    fontWeight: "bold",
-  },
-  statusTextSuccess: {
-    color: COLORS.successDark,
-    ...FONTS.bodySmall,
-    flex: 1,
-  },
-
-  statusContainerError: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.errorLight,
-    padding: SIZES.padding.sm,
-    borderRadius: SIZES.radius.input,
-    borderWidth: 1,
-    borderColor: COLORS.error,
-  },
-  statusIconErrorContainer: {
-    width: SIZES.icon.sm,
-    height: SIZES.icon.sm,
-    borderRadius: SIZES.radius.full,
-    backgroundColor: COLORS.error,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: SIZES.padding.sm,
-  },
-  statusIconError: {
-    color: COLORS.white,
-    fontSize: SIZES.font.xs,
-    fontWeight: "bold",
-  },
-  statusErrorContent: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  statusTextError: {
-    color: COLORS.errorDark,
-    ...FONTS.bodySmall,
-  },
-  retryButton: {
-    paddingHorizontal: SIZES.padding.md,
-    paddingVertical: SIZES.padding.xs,
-    backgroundColor: COLORS.error,
-    borderRadius: SIZES.radius.xs,
-    marginLeft: SIZES.padding.sm,
-  },
-  retryButtonText: {
-    color: COLORS.white,
-    ...FONTS.caption,
   },
 
   /* ---------- Layout ---------- */

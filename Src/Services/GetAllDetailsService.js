@@ -1,12 +1,11 @@
 // import { API_BASE_URL } from "../Config/BaseUrl";
 import { getUserData } from "../Utills/AsynchStorageHelper"; // adjust path if needed
-
+import { API_BASE_URL } from "../Config/BaseUrl";
 /**
  * Fetch account details using phone number from AsyncStorage
  */
 export async function fetchAccountByPhone({ signal } = {}) {
 
-  const API_BASE_URL=`https://scheme.bmgjewellers.com/v1/api`;
   const userData = await getUserData();
 
   if (!userData?.contactNumber && !userData?.mobile) {

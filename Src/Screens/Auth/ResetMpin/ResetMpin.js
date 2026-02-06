@@ -102,50 +102,54 @@ const ForgotMpin = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   }, []);
 
-  const handleMpinChange = useCallback((text, index, type) => {
-    if (isLocked) return;
+const handleMpinChange = useCallback((text, index, type) => {
+  if (isLocked) return;
 
-    const numericText = text.replace(/[^0-9]/g, "").slice(0, 1);
-    
-    if (type === "new") {
-      const updatedNewMpin = [...newMpin];
-      updatedNewMpin[index] = numericText;
-      setNewMpin(updatedNewMpin);
+  const numericText = text.replace(/[^0-9]/g, "").slice(0, 1);
 
-      if (numericText && index < 3) {
-        setTimeout(() => {
-          newMpinRefs.current[index + 1]?.focus();
-        }, 50);
-      }
+  if (type === "new") {
+    const updatedNewMpin = [...newMpin];
+    updatedNewMpin[index] = numericText;
+    setNewMpin(updatedNewMpin);
 
-      if (numericText && index === 3) {
-        const mpinString = updatedNewMpin.join("");
-        validateMpin(mpinString);
-        setTimeout(() => {
-          setActiveSection("confirm");
-          confirmMpinRefs.current[0]?.focus();
-        }, 100);
-      }
-    } else {
-      const updatedConfirmMpin = [...confirmMpin];
-      updatedConfirmMpin[index] = numericText;
-      setConfirmMpin(updatedConfirmMpin);
+    if (numericText && index < 3) {
+      setTimeout(() => {
+        newMpinRefs.current[index + 1]?.focus();
+      }, 50);
+    }
 
-      if (numericText && index < 3) {
-        setTimeout(() => {
-          confirmMpinRefs.current[index + 1]?.focus();
-        }, 50);
-      }
+    if (numericText && index === 3) {
+      const mpinString = updatedNewMpin.join("");
+      validateMpin(mpinString);
+      setTimeout(() => {
+        setActiveSection("confirm");
+        confirmMpinRefs.current[0]?.focus();
+      }, 100);
+    }
+  } else {
+    const updatedConfirmMpin = [...confirmMpin];
+    updatedConfirmMpin[index] = numericText;
+    setConfirmMpin(updatedConfirmMpin);
 
-      if (numericText && index === 3) {
-        const newMpinString = newMpin.join("");
-        const confirmMpinString = updatedConfirmMpin.join("");
-        if (newMpinString === confirmMpinString) {
-          setTimeout(() => handleSubmit(), 100);
-        }
+    // <-- Debugging log for Confirm MPIN entry
+    console.log("Confirm MPIN Entered:", updatedConfirmMpin.join(""));
+
+    if (numericText && index < 3) {
+      setTimeout(() => {
+        confirmMpinRefs.current[index + 1]?.focus();
+      }, 50);
+    }
+
+    if (numericText && index === 3) {
+      const newMpinString = newMpin.join("");
+      const confirmMpinString = updatedConfirmMpin.join("");
+      if (newMpinString === confirmMpinString) {
+        setTimeout(() => handleSubmit(), 100);
       }
     }
-  }, [newMpin, confirmMpin, isLocked, validateMpin]);
+  }
+}, [newMpin, confirmMpin, isLocked, validateMpin]);
+
 
   const handleKeyPress = useCallback((e, index, type) => {
     if (e.nativeEvent.key === "Backspace") {
