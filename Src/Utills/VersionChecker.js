@@ -2,6 +2,10 @@ import * as Application from "expo-application";
 import * as Updates from "expo-updates";
 import { Alert, Linking, Platform } from "react-native";
 
+/**
+ * Compare semantic versions (e.g. 1.1.1)
+ * Returns true if current < target
+ */
 const isVersionLower = (current, target) => {
   const c = current.split(".").map(Number);
   const t = target.split(".").map(Number);
@@ -33,25 +37,22 @@ export const checkForAppUpdate = async () => {
        2️⃣ PLAY STORE VERSION CHECK
     ----------------------------------- */
     const response = await fetch(
-  "https://raw.githubusercontent.com/jk-08/app-config/main/app-version.json"
-);
+      "https://raw.githubusercontent.com/JK-08/Jaiguru-Scheme/Dev/app-version.json"
+    );
 
-const text = await response.text();
-console.log("Version config response:", text);
+    const text = await response.text();
+    console.log("Version config response:", text);
 
-// 🚨 Guard against non-JSON
-if (!response.ok) {
-  throw new Error("Failed to fetch version config");
-}
+    if (!response.ok) {
+      throw new Error("Failed to fetch version config");
+    }
 
-let config;
-try {
-  config = JSON.parse(text);
-} catch (e) {
-  throw new Error("Invalid JSON in app-version.json");
-}
-
-    // const config = await response.json();
+    let config;
+    try {
+      config = JSON.parse(text);
+    } catch {
+      throw new Error("Invalid JSON in app-version.json");
+    }
 
     if (Platform.OS === "android") {
       const {
@@ -92,6 +93,6 @@ try {
       }
     }
   } catch (error) {
-    console.log("Version check failed:", error);
+    console.log("Version check failed:", error.message || error);
   }
 };
