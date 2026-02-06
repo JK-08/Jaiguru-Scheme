@@ -28,11 +28,21 @@ const MpinVerifyScreen = () => {
   const [locked, setLocked] = useState(false);
   const [lockTime, setLockTime] = useState(0);
   const [focusedIndex, setFocusedIndex] = useState(null);
+  const [blockAutoSubmit, setBlockAutoSubmit] = useState(false);
 
   const mpinRefs = useRef([]);
   const timerRef = useRef(null);
   const MAX_ATTEMPTS = 5;
   const LOCK_DURATION = 60; // 1 minute in seconds
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, []);
 
   // Handle lock timer
   useEffect(() => {
@@ -70,98 +80,139 @@ const MpinVerifyScreen = () => {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   }, []);
 
-  const handleMpinChange = useCallback((text, index) => {
-    if (locked) return;
+  const handleSubmit = useCallback(
+    async (mpinValue = null) => {
+      if (locked || loading) return;
 
-    // Only allow numbers
-    const numericText = text.replace(/[^0-9]/g, "").slice(0, 1);
-    
-    const newMpin = [...mpin];
-    newMpin[index] = numericText;
-    setMpin(newMpin);
+      const mpinString = mpinValue || mpin.join("");
 
-    if (numericText && index < 3) {
-      setTimeout(() => {
+      if (mpinString.length !== 4) return;
+
+      try {
+        await verifyMpin(mpinString);
+
+        resetMpin();
+        setAttempts(0);
+        setBlockAutoSubmit(false);
+
+        showToast({
+          message: "MPIN verified successfully!",
+          type: ToastTypes.SUCCESS,
+          duration: 2000,
+          position: ToastPositions.TOP,
+        });
+
+        setTimeout(() => {
+         navigation.reset({
+  index: 0,
+  routes: [{ name: 'MainDrawer' }],
+});
+
+        }, 300);
+      } catch (err) {
+        // 🔑 MPIN NOT CREATED
+        if (err?.code === "MPIN_NOT_FOUND") {
+          // Don't reset immediately - wait for user action
+          setBlockAutoSubmit(true);
+          
+          Alert.alert(
+            "MPIN Not Found",
+            "You have not created an MPIN yet. Do you want to create one now?",
+            [
+              { 
+                text: "Cancel", 
+                style: "cancel",
+                onPress: () => {
+                  // Reset only when user cancels
+                  resetMpin();
+                  setAttempts(0);
+                  mpinRefs.current[0]?.focus();
+                }
+              },
+              {
+                text: "Create MPIN",
+                onPress: () => {
+                  // Reset state first
+                  resetMpin();
+                  setAttempts(0);
+                  // Use setTimeout to ensure Alert is dismissed before navigation
+                  setTimeout(() => {
+                    navigation.navigate("MpinCreate");
+                  }, 100);
+                },
+              },
+            ],
+            { cancelable: false }
+          );
+
+          return;
+        }
+
+        // ❌ INVALID MPIN
+        const newAttempts = attempts + 1;
+        setAttempts(newAttempts);
+
+        // Check if account should be locked
+        if (newAttempts >= MAX_ATTEMPTS) {
+          setLocked(true);
+          setLockTime(LOCK_DURATION);
+          showToast({
+            message: `Too many attempts! Account locked for ${LOCK_DURATION} seconds`,
+            type: ToastTypes.ERROR,
+            duration: 3000,
+            position: ToastPositions.TOP,
+          });
+        } else {
+          showToast({
+            message: `Invalid MPIN! ${MAX_ATTEMPTS - newAttempts} attempts remaining`,
+            type: ToastTypes.ERROR,
+            duration: 2000,
+            position: ToastPositions.TOP,
+          });
+        }
+
+        resetMpin();
+        mpinRefs.current[0]?.focus();
+      }
+    },
+    [
+      locked,
+      loading,
+      mpin,
+      attempts,
+      verifyMpin,
+      navigation,
+      showToast,
+    ]
+  );
+
+  const handleMpinChange = useCallback(
+    (text, index) => {
+      if (locked || blockAutoSubmit) return;
+
+      const numericText = text.replace(/[^0-9]/g, "").slice(0, 1);
+
+      const newMpin = [...mpin];
+      newMpin[index] = numericText;
+      setMpin(newMpin);
+
+      if (numericText && index < 3) {
         mpinRefs.current[index + 1]?.focus();
-      }, 50);
-    }
+      }
 
-    if (numericText && index === 3) {
-      const mpinString = newMpin.join("");
-      setTimeout(() => handleSubmit(mpinString), 100);
-    }
-  }, [locked, mpin]);
+      if (numericText && index === 3) {
+        const mpinString = newMpin.join("");
+        setTimeout(() => handleSubmit(mpinString), 150);
+      }
+    },
+    [locked, mpin, handleSubmit, blockAutoSubmit]
+  );
 
   const handleKeyPress = useCallback((e, index) => {
     if (e.nativeEvent.key === "Backspace" && !mpin[index] && index > 0) {
       mpinRefs.current[index - 1]?.focus();
     }
   }, [mpin]);
-
-  const handleSubmit = useCallback(async (mpinValue = null) => {
-    if (locked) return;
-
-    const mpinString = mpinValue || mpin.join("");
-
-    if (mpinString.length !== 4) {
-      showToast({
-        message: "Please enter a 4-digit MPIN",
-        type: ToastTypes.WARNING,
-        duration: 3000,
-        position: ToastPositions.TOP,
-      });
-      return;
-    }
-
-    try {
-      await verifyMpin(mpinString);
-      
-      // Success
-      resetMpin();
-      setAttempts(0);
-
-      showToast({
-        message: "MPIN verified successfully!",
-        type: ToastTypes.SUCCESS,
-        duration: 2000,
-        position: ToastPositions.TOP,
-      });
-
-      setTimeout(() => {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "Home" }],
-        });
-      }, 500);
-    } catch (err) {
-      const newAttempts = attempts + 1;
-      setAttempts(newAttempts);
-
-      if (newAttempts >= MAX_ATTEMPTS) {
-        setLocked(true);
-        setLockTime(LOCK_DURATION);
-
-        showToast({
-          title: "Account Locked",
-          message: `Too many failed attempts. Please wait ${LOCK_DURATION / 60} minute${LOCK_DURATION > 60 ? 's' : ''}.`,
-          type: ToastTypes.ERROR,
-          duration: 5000,
-          position: ToastPositions.TOP,
-        });
-      } else {
-        resetMpin();
-        setTimeout(() => mpinRefs.current[0]?.focus(), 100);
-
-        showToast({
-          title: "Invalid MPIN",
-          message: `Incorrect MPIN. ${MAX_ATTEMPTS - newAttempts} attempt${MAX_ATTEMPTS - newAttempts > 1 ? "s" : ""} remaining.`,
-          type: ToastTypes.WARNING,
-          duration: 4000,
-          position: ToastPositions.TOP,
-        });
-      }
-    }
-  }, [locked, mpin, attempts, verifyMpin, showToast, navigation]);
 
   const handleForgotMpin = useCallback(() => {
     if (locked) return;
@@ -170,7 +221,15 @@ const MpinVerifyScreen = () => {
       "Forgot MPIN?",
       "Do you want to reset your MPIN?",
       [
-        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Cancel", 
+          style: "cancel",
+          onPress: () => {
+            // Reset focus to first input
+            resetMpin();
+            mpinRefs.current[0]?.focus();
+          }
+        },
         {
           text: "Reset MPIN",
           style: "destructive",
@@ -181,6 +240,10 @@ const MpinVerifyScreen = () => {
               duration: 2000,
               position: ToastPositions.TOP,
             });
+            
+            // Reset state before navigation
+            resetMpin();
+            setAttempts(0);
             
             setTimeout(() => {
               navigation.navigate("ForgotMpin");
@@ -227,20 +290,21 @@ const MpinVerifyScreen = () => {
               secureTextEntry={!showMpin}
               textAlign="center"
               caretHidden={false}
-              editable={!locked}
-              selectTextOnFocus={!locked}
+              editable={!locked && !blockAutoSubmit}
+              selectTextOnFocus={!locked && !blockAutoSubmit}
               contextMenuHidden={true}
               autoComplete="off"
               importantForAutofill="no"
-              pointerEvents={locked ? "none" : "auto"}
+              pointerEvents={locked || blockAutoSubmit ? "none" : "auto"}
             />
           </TouchableOpacity>
         ))}
+        
       </View>
     );
-  }, [mpin, showMpin, locked, focusedIndex, handleMpinChange, handleKeyPress, handleToggleVisibility]);
+  }, [mpin, showMpin, locked, blockAutoSubmit, focusedIndex, handleMpinChange, handleKeyPress, handleToggleVisibility]);
 
-  const isSubmitDisabled = loading || locked || mpin.some(digit => digit === "");
+  const isSubmitDisabled = loading || locked || blockAutoSubmit || mpin.some(digit => digit === "");
 
   return (
     <SafeAreaView style={COMMON_STYLES.containerBlue}>
@@ -314,6 +378,8 @@ const MpinVerifyScreen = () => {
             <Text style={styles.sectionSubtitle}>
               {locked 
                 ? "Please wait for the timer to complete"
+                : blockAutoSubmit
+                ? "Please select an option from the alert"
                 : "Enter the MPIN you created earlier"}
             </Text>
             {renderMpinInputs()}
@@ -347,9 +413,9 @@ const MpinVerifyScreen = () => {
           {/* Action Buttons */}
           <View style={styles.actionButtons}>
             <TouchableOpacity
-              style={[styles.forgotButton, locked && styles.buttonDisabled]}
+              style={[styles.forgotButton, (locked || blockAutoSubmit) && styles.buttonDisabled]}
               onPress={handleForgotMpin}
-              disabled={locked}
+              disabled={locked || blockAutoSubmit}
               activeOpacity={0.7}
             >
               <Icon name="key-outline" size={SIZES.icon.sm} color={COLORS.primary} />
@@ -376,9 +442,11 @@ const MpinVerifyScreen = () => {
               ) : (
                 <>
                   <Text style={styles.buttonText}>
-                    {locked ? "Account Locked" : "Verify & Continue"}
+                    {locked ? "Account Locked" : 
+                     blockAutoSubmit ? "Please Wait..." :
+                     "Verify & Continue"}
                   </Text>
-                  {!locked && !loading && (
+                  {!locked && !loading && !blockAutoSubmit && (
                     <Icon
                       name="arrow-right"
                       size={SIZES.icon.md}

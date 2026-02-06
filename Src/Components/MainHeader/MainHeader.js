@@ -1,5 +1,4 @@
-// components/HomeHeaderRedesigned.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,18 +7,37 @@ import {
   TouchableOpacity,
   StatusBar,
   ActivityIndicator,
-} from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useCompany } from '../../Hooks/useCompany';
-import { useTodayRate } from '../../Hooks/useTodayRate';
-import { COLORS, SIZES, FONTS, SHADOWS, moderateScale } from '../../Utills/AppTheme';
-import { useNavigation } from '@react-navigation/native';
+} from "react-native";
+import Icon from "react-native-vector-icons/MaterialIcons";
+import { useCompany } from "../../Hooks/useCompany";
+import { useTodayRate } from "../../Hooks/useTodayRate";
+import {
+  COLORS,
+  SIZES,
+  FONTS,
+  SHADOWS,
+  moderateScale,
+} from "../../Utills/AppTheme";
+import { useNavigation, DrawerActions } from "@react-navigation/native";
 
-const HomeHeaderRedesigned = ({ onMenuPress, onNotificationPress, onLogoPress }) => {
-  const { company, loading: companyLoading, error: companyError } = useCompany();
+const HomeHeaderRedesigned = ({
+  onMenuPress,
+  onNotificationPress,
+  onLogoPress,
+}) => {
+  const {
+    company,
+    loading: companyLoading,
+    error: companyError,
+  } = useCompany();
   const { rates, loading: ratesLoading, error: ratesError } = useTodayRate();
   const [currentTime, setCurrentTime] = useState(new Date());
-const navigation = useNavigation();
+  const navigation = useNavigation();
+
+  const handleMenuPress = () => {
+    navigation.dispatch(DrawerActions.openDrawer());
+  };
+
   // Update time every minute
   useEffect(() => {
     const timer = setInterval(() => {
@@ -31,36 +49,34 @@ const navigation = useNavigation();
 
   // Format time to 12-hour format
   const formatTime = (date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
       hour12: true,
     });
-  };
-
-  const HandleSideBarOpen = () => { 
-    navigation.navigate('Sidebar');
   };
 
   return (
     <View style={styles.container}>
       <StatusBar backgroundColor={COLORS.primary} barStyle="light-content" />
-      
+
       {/* Top Row: Menu Icon, Logo & Company Name, Notification */}
       <View style={styles.topRow}>
-        {/* Left: Menu Icon */}
-       
-         <TouchableOpacity
+        {/* Right: Notification Icon */}
+        <TouchableOpacity
           style={styles.iconButton}
           onPress={onNotificationPress}
           activeOpacity={0.7}
         >
-          <Icon name="notifications-none" size={SIZES.icon.lg} color={COLORS.white} />
+          <Icon
+            name="notifications-none"
+            size={SIZES.icon.lg}
+            color={COLORS.white}
+          />
           <View style={styles.notificationBadge}>
             <Text style={styles.badgeText}>3</Text>
           </View>
         </TouchableOpacity>
-
         {/* Center: Logo and Company Name */}
         <TouchableOpacity
           style={styles.centerContainer}
@@ -80,33 +96,40 @@ const navigation = useNavigation();
                 />
               ) : (
                 <View style={[styles.logo, styles.defaultLogo]}>
-                  <Icon name="business" size={SIZES.icon.lg} color={COLORS.goldPrimary} />
+                  <Icon
+                    name="business"
+                    size={SIZES.icon.lg}
+                    color={COLORS.goldPrimary}
+                  />
                 </View>
               )}
               <View style={styles.companyTextContainer}>
                 <Text style={styles.companyName} numberOfLines={1}>
-                  {company.COMPANY1NAME || company.COMPA1NYID || 'Jaiguru Jewellers'}
+                  {company.COMPANY1NAME ||
+                    company.COMPA1NYID ||
+                    "Jaiguru Jewellers"}
                 </Text>
               </View>
             </View>
           ) : companyError ? (
             <View style={styles.errorContainer}>
-              <Icon name="error-outline" size={SIZES.icon.md} color={COLORS.errorLight} />
+              <Icon
+                name="error-outline"
+                size={SIZES.icon.md}
+                color={COLORS.errorLight}
+              />
               <Text style={styles.errorText}>Failed to load</Text>
             </View>
           ) : null}
         </TouchableOpacity>
-
-        {/* Right: Notification Icon */}
-
-         <TouchableOpacity
+        {/* Left: Menu Icon */}
+        <TouchableOpacity
           style={styles.iconButton}
-          onPress={HandleSideBarOpen}
+          onPress={handleMenuPress} // Fixed: Using drawer open method
           activeOpacity={0.7}
         >
           <Icon name="menu" size={SIZES.icon.lg} color={COLORS.white} />
         </TouchableOpacity>
-       
       </View>
 
       {/* Bottom Row: Gold & Silver Rates with Updated Time */}
@@ -114,7 +137,11 @@ const navigation = useNavigation();
         {/* Gold Rate Card */}
         <View style={styles.rateCard}>
           <View style={styles.rateHeader}>
-            <Icon name="trending-up" size={SIZES.icon.md} color={COLORS.goldPrimary} />
+            <Icon
+              name="trending-up"
+              size={SIZES.icon.md}
+              color={COLORS.goldPrimary}
+            />
             <Text style={styles.rateLabel}>GOLD</Text>
           </View>
           {ratesLoading ? (
@@ -123,7 +150,7 @@ const navigation = useNavigation();
             <Text style={styles.rateError}>N/A</Text>
           ) : (
             <Text style={styles.rateValue}>
-              ₹{rates?.GOLDRATE?.toLocaleString('en-IN') || '--'}
+              ₹{rates?.GOLDRATE?.toLocaleString("en-IN") || "--"}
             </Text>
           )}
           <Text style={styles.rateUnit}>per gram</Text>
@@ -135,7 +162,11 @@ const navigation = useNavigation();
         {/* Silver Rate Card */}
         <View style={styles.rateCard}>
           <View style={styles.rateHeader}>
-            <Icon name="trending-up" size={SIZES.icon.md} color={COLORS.gray300} />
+            <Icon
+              name="trending-up"
+              size={SIZES.icon.md}
+              color={COLORS.gray300}
+            />
             <Text style={styles.rateLabel}>SILVER</Text>
           </View>
           {ratesLoading ? (
@@ -144,7 +175,7 @@ const navigation = useNavigation();
             <Text style={styles.rateError}>N/A</Text>
           ) : (
             <Text style={[styles.rateValue, styles.silverValue]}>
-              ₹{rates?.SILVERRATE?.toLocaleString('en-IN') || '--'}
+              ₹{rates?.SILVERRATE?.toLocaleString("en-IN") || "--"}
             </Text>
           )}
           <Text style={styles.rateUnit}>per gram</Text>
@@ -154,7 +185,11 @@ const navigation = useNavigation();
       {/* Last Updated Time */}
       {rates && !ratesLoading && (
         <View style={styles.updateTimeContainer}>
-          <Icon name="schedule" size={moderateScale(12)} color={COLORS.whiteOpacity70} />
+          <Icon
+            name="schedule"
+            size={moderateScale(12)}
+            color={COLORS.whiteOpacity70}
+          />
           <Text style={styles.updateTimeText}>
             Updated: Today {formatTime(currentTime)}
           </Text>
@@ -174,9 +209,9 @@ const styles = StyleSheet.create({
     ...SHADOWS.blueStrong,
   },
   topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: SIZES.padding.lg,
     marginBottom: SIZES.margin.xs,
   },
@@ -185,18 +220,18 @@ const styles = StyleSheet.create({
     height: moderateScale(44),
     borderRadius: 22,
     backgroundColor: COLORS.whiteOpacity20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   centerContainer: {
     flex: 1,
     marginHorizontal: SIZES.margin.md,
-    alignItems: 'center',
+    alignItems: "center",
   },
   logoWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   logo: {
     width: moderateScale(50),
@@ -207,13 +242,13 @@ const styles = StyleSheet.create({
     borderColor: COLORS.goldOpacity30,
   },
   defaultLogo: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   companyTextContainer: {
     marginLeft: SIZES.margin.sm,
     flex: 1,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   companyName: {
     ...FONTS.h5,
@@ -225,9 +260,9 @@ const styles = StyleSheet.create({
     color: COLORS.whiteOpacity70,
   },
   errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   errorText: {
     ...FONTS.bodySmall,
@@ -235,15 +270,15 @@ const styles = StyleSheet.create({
     marginLeft: SIZES.margin.xs,
   },
   notificationBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: moderateScale(-4),
     right: moderateScale(-4),
     backgroundColor: COLORS.error,
     borderRadius: SIZES.radius.full,
     width: moderateScale(18),
     height: moderateScale(18),
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 2,
     borderColor: COLORS.primary,
   },
@@ -254,9 +289,9 @@ const styles = StyleSheet.create({
     fontWeight: FONTS.weight.bold,
   },
   ratesContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginHorizontal: SIZES.margin.lg,
     backgroundColor: COLORS.blueOpacity30,
     borderRadius: SIZES.radius.lg,
@@ -265,11 +300,11 @@ const styles = StyleSheet.create({
   },
   rateCard: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   rateHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: SIZES.margin.xs,
   },
   rateLabel: {
@@ -297,7 +332,7 @@ const styles = StyleSheet.create({
   rateError: {
     ...FONTS.bodySmall,
     color: COLORS.errorLight,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
   divider: {
     width: 1,
@@ -306,9 +341,9 @@ const styles = StyleSheet.create({
     marginHorizontal: SIZES.margin.md,
   },
   updateTimeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: SIZES.margin.xs,
     paddingHorizontal: SIZES.padding.lg,
   },

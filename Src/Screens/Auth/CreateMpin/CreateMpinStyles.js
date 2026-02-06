@@ -1,473 +1,477 @@
 import { StyleSheet, Dimensions, Platform } from "react-native";
-import theme from "../../../Utills/AppTheme";
 
-const {
-  COLORS,
-  SIZES,
-  FONTS,
-  COMMON_STYLES,
-  SHADOWS,
-  moderateScale,
-  verticalScale,
-  scale,
-  BREAKPOINTS,
-} = theme;
+const { width, height } = Dimensions.get("window");
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+// Responsive sizing helpers
+const scaleSize = (size) => (width / 375) * size;
+const moderateScale = (size, factor = 0.5) => size + (scaleSize(size) - size) * factor;
 
-// Responsive breakpoints
-const isSmallScreen = SCREEN_WIDTH < 375;
-const isMediumScreen = SCREEN_WIDTH >= 375 && SCREEN_WIDTH < 768;
-const isLargeScreen = SCREEN_WIDTH >= 768;
-const isTablet = SCREEN_WIDTH >= 768;
-
-// Responsive calculations
-const getResponsiveValue = (value, multiplier = 1) => {
-  const base = moderateScale(value);
-  if (isTablet) return base * 1.2 * multiplier;
-  if (isSmallScreen) return base * 0.9 * multiplier;
-  return base * multiplier;
+// Colors from your theme (with fallbacks)
+const COLORS = {
+  backgroundBlue: "#F8F9FA",
+  white: "#FFFFFF",
+  primary: "#007AFF",
+  error: "#FF3B30",
+  success: "#34C759",
+  textBlueDark: "#1F2937",
+  textSecondary: "#6B7280",
+  textTertiary: "#9CA3AF",
+  gray100: "#F3F4F6",
+  gray200: "#E5E7EB",
+  borderLight: "#E5E7EB",
+  inputBackground: "#FFFFFF",
+  inputBorder: "#E5E7EB",
+  goldPrimary: "#FFD700",
 };
 
-const getPaddingHorizontal = () => {
-  if (isTablet) return SIZES.padding.xxl;
-  if (isSmallScreen) return SIZES.padding.md;
-  return SIZES.padding.lg;
+const SIZES = {
+  padding: {
+    container: moderateScale(20),
+    md: moderateScale(12),
+    lg: moderateScale(16),
+    xl: moderateScale(24),
+  },
+  margin: {
+    sm: moderateScale(8),
+    md: moderateScale(12),
+    lg: moderateScale(16),
+    xl: moderateScale(24),
+  },
+  radius: {
+    md: moderateScale(10),
+    lg: moderateScale(12),
+    button: moderateScale(12),
+  },
 };
 
-const getSpacing = (base) => {
-  if (isTablet) return verticalScale(base * 1.5);
-  if (isSmallScreen) return verticalScale(base * 0.8);
-  return verticalScale(base);
+const FONTS = {
+  family: {
+    regular: "System",
+    medium: "System",
+    semiBold: "System",
+    bold: "System",
+  },
 };
 
 const styles = StyleSheet.create({
   // ============================================
   // 🎯 CONTAINER & LAYOUT
   // ============================================
-  keyboardView: {
+  container: {
     flex: 1,
     backgroundColor: COLORS.backgroundBlue,
-  },
-  
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: getSpacing(40),
-    backgroundColor: COLORS.backgroundBlue,
-    minHeight: SCREEN_HEIGHT,
   },
 
-  responsiveContainer: {
+  keyboardView: {
     flex: 1,
-    maxWidth: isTablet ? 600 : "100%",
-    alignSelf: "center",
-    width: "100%",
+  },
+
+  content: {
+    flex: 1,
+    justifyContent: "space-between",
   },
 
   // ============================================
   // 🎯 HEADER
   // ============================================
-  headerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: getPaddingHorizontal(),
-    paddingVertical: getSpacing(16),
+  header: {
     backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
+    paddingHorizontal: SIZES.padding.container,
+    paddingTop: Platform.OS === "ios" ? SIZES.padding.md : SIZES.padding.lg,
+    paddingBottom: SIZES.padding.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: COLORS.borderLight,
-    ...SHADOWS.sm,
-  },
-  
-  backButton: {
-    width: getResponsiveValue(40),
-    height: getResponsiveValue(40),
-    borderRadius: SIZES.radius.md,
-    backgroundColor: COLORS.backgroundSecondary,
-    justifyContent: "center",
-    alignItems: "center",
-    ...SHADOWS.xs,
-  },
-  
-  headerTitleContainer: {
-    flex: 1,
-    alignItems: "center",
-    marginLeft: isSmallScreen ? -SIZES.margin.sm : -SIZES.margin.md,
-  },
-  
-  headerTitle: {
-    fontSize: getResponsiveValue(18),
-    fontFamily: FONTS.family.semiBold,
-    color: COLORS.textBlueDark,
-    textAlign: "center",
-    lineHeight: getResponsiveValue(22),
-  },
-  
-  headerSubtitle: {
-    fontSize: getResponsiveValue(12),
-    fontFamily: FONTS.family.regular,
-    color: COLORS.textTertiary,
-    marginTop: getSpacing(4),
-    textAlign: "center",
-  },
-  
-  headerRight: {
-    width: getResponsiveValue(40),
   },
 
-  // ============================================
-  // 🎯 PREMIUM CARD (REDUCED HEIGHT)
-  // ============================================
-premiumCard: {
-  backgroundColor: COLORS.white,
-  borderRadius: getResponsiveValue(16),
-  marginHorizontal: getPaddingHorizontal(),
-  marginTop: getSpacing(14),
-  marginBottom: getSpacing(8),
-  paddingHorizontal: getResponsiveValue(16),
-  paddingTop: getResponsiveValue(14),
-  paddingBottom: getResponsiveValue(10),
-  ...SHADOWS.md,
-  borderWidth: 1,
-  borderColor: COLORS.goldLight,
-},
-
-
-  mainTitle: {
-    fontSize: getResponsiveValue(16), // Reduced from 20
-    fontFamily: FONTS.family.semiBold,
-    color: COLORS.textBlueDark,
-    textAlign: "center",
-    marginBottom: getSpacing(4), // Reduced margin
-    lineHeight: getResponsiveValue(20),
-  },
-  
-  subtitle: {
-    fontSize: getResponsiveValue(12), // Reduced from 14
-    fontFamily: FONTS.family.regular,
-    color: COLORS.textSecondary,
-    textAlign: "center",
-    lineHeight: getResponsiveValue(16),
-    paddingHorizontal: isSmallScreen ? 0 : getSpacing(10), // Reduced padding
-  },
-
-  // ============================================
-  // 🎯 INPUT SECTIONS
-  // ============================================
-  section: {
-    backgroundColor: COLORS.white,
-    borderRadius: getResponsiveValue(12),
-    marginHorizontal: getPaddingHorizontal(),
-    marginBottom: getSpacing(16), // Reduced margin
-    padding: getResponsiveValue(16),
-    ...SHADOWS.sm,
-  },
-  
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: getSpacing(8),
-  },
-  
-  sectionIcon: {
-    marginRight: getSpacing(8),
-  },
-  
-  sectionTitle: {
-    fontSize: getResponsiveValue(16),
-    fontFamily: FONTS.family.semiBold,
-    color: COLORS.textBlueDark,
-    flex: 1,
-  },
-  
-  sectionSubtitle: {
-    fontSize: getResponsiveValue(12),
-    fontFamily: FONTS.family.regular,
-    color: COLORS.textTertiary,
-    marginBottom: getSpacing(16),
-    lineHeight: getResponsiveValue(16),
-  },
-
-  // ============================================
-  // 🎯 MPIN INPUTS (FIXED CLICK ISSUES)
-  // ============================================
-  mpinContainer: {
+  headerTop: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    position: "relative",
-    paddingRight: getResponsiveValue(45), // Adjusted for visibility button
+    marginBottom: SIZES.margin.md,
   },
-  
-  mpinDigitContainer: {
-    width: getResponsiveValue(60),
-    height: getResponsiveValue(60),
-    borderRadius: getResponsiveValue(12),
-    backgroundColor: COLORS.inputBackground,
-    borderWidth: 2,
-    borderColor: COLORS.inputBorder,
-    justifyContent: "center",
-    alignItems: "center",
-    ...SHADOWS.xs,
-    overflow: "hidden", // Ensures touch works properly
-  },
-  
-  mpinDigitContainerFocused: {
-    borderColor: COLORS.primary,
-    backgroundColor: COLORS.white,
-    ...SHADOWS.blue,
-    borderWidth: 3, // Thicker border for focus
-    transform: [{ scale: 1.05 }], // Slight zoom effect
-  },
-  
-  mpinDigitContainerFilled: {
-    backgroundColor: COLORS.primaryPale,
-  },
-  
-  mpinDigitInput: {
-    fontSize: getResponsiveValue(28), // Slightly larger for better visibility
-    fontFamily: FONTS.family.bold,
-    color: COLORS.textBlueDark,
-    letterSpacing: getResponsiveValue(2),
-    width: "100%",
-    height: "100%",
-    textAlign: "center",
-    padding: 0,
-    margin: 0,
-  },
-  
-  visibilityButton: {
-    position: "absolute",
-    right: getResponsiveValue(0),
-    padding: getResponsiveValue(8),
-    backgroundColor: COLORS.primaryPale,
+
+  backButton: {
+    width: moderateScale(40),
+    height: moderateScale(40),
     borderRadius: SIZES.radius.md,
-    width: getResponsiveValue(44),
-    height: getResponsiveValue(44),
+    backgroundColor: COLORS.gray100,
     justifyContent: "center",
     alignItems: "center",
-    ...SHADOWS.xs,
-    zIndex: 10, // Ensure button is above inputs
+  },
+
+  headerTitle: {
+    fontSize: moderateScale(18),
+    fontFamily: FONTS.family.semiBold,
+    color: COLORS.textBlueDark,
+    fontWeight: "600",
+  },
+
+  headerSpacer: {
+    width: moderateScale(40),
+  },
+
+  // Progress Bar
+  progressContainer: {
+    alignItems: "center",
+  },
+
+  progressBar: {
+    width: "100%",
+    height: moderateScale(6),
+    backgroundColor: COLORS.gray200,
+    borderRadius: moderateScale(3),
+    overflow: "hidden",
+    marginBottom: moderateScale(8),
+  },
+
+  progressFill: {
+    height: "100%",
+    backgroundColor: COLORS.primary,
+    borderRadius: moderateScale(3),
+  },
+
+  progressText: {
+    fontSize: moderateScale(12),
+    fontFamily: FONTS.family.medium,
+    color: COLORS.textSecondary,
+    fontWeight: "500",
   },
 
   // ============================================
-  // 🎯 MESSAGES
+  // 🎯 MAIN CONTENT
+  // ============================================
+  mainContent: {
+    flex: 1,
+    paddingHorizontal: SIZES.padding.container,
+    paddingTop: SIZES.padding.xl,
+    justifyContent: "flex-start",
+  },
+
+  iconContainer: {
+    width: moderateScale(80),
+    height: moderateScale(80),
+    borderRadius: moderateScale(40),
+    backgroundColor: `${COLORS.primary}15`,
+    justifyContent: "center",
+    alignItems: "center",
+    alignSelf: "center",
+    marginBottom: SIZES.margin.lg,
+  },
+
+  title: {
+    fontSize: moderateScale(24),
+    fontFamily: FONTS.family.bold,
+    color: COLORS.textBlueDark,
+    textAlign: "center",
+    marginBottom: moderateScale(8),
+    fontWeight: "700",
+  },
+
+  subtitle: {
+    fontSize: moderateScale(14),
+    fontFamily: FONTS.family.regular,
+    color: COLORS.textSecondary,
+    textAlign: "center",
+    marginBottom: SIZES.margin.xl,
+    paddingHorizontal: moderateScale(20),
+    lineHeight: moderateScale(20),
+  },
+
+  // ============================================
+  // 🎯 MPIN INPUTS
+  // ============================================
+  inputSection: {
+    marginBottom: SIZES.margin.xl,
+  },
+
+  mpinContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
+  },
+
+  mpinDigitWrapper: {
+    width: moderateScale(60),
+    height: moderateScale(70),
+    marginHorizontal: moderateScale(6),
+    borderRadius: SIZES.radius.lg,
+    backgroundColor: COLORS.inputBackground,
+    borderWidth: moderateScale(2),
+    borderColor: COLORS.inputBorder,
+    justifyContent: "center",
+    alignItems: "center",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+
+  mpinDigitWrapperFocused: {
+    borderColor: COLORS.primary,
+    borderWidth: moderateScale(3),
+    backgroundColor: COLORS.white,
+    transform: [{ scale: 1.05 }],
+    ...Platform.select({
+      ios: {
+        shadowColor: COLORS.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
+  },
+
+  mpinDigitWrapperFilled: {
+    backgroundColor: `${COLORS.primary}10`,
+    borderColor: COLORS.primary,
+  },
+
+  mpinDigitInput: {
+    width: "100%",
+    height: "100%",
+    fontSize: moderateScale(28),
+    fontFamily: FONTS.family.bold,
+    color: COLORS.textBlueDark,
+    textAlign: "center",
+    padding: 0,
+    fontWeight: "700",
+  },
+
+  dotIndicator: {
+    position: "absolute",
+    width: moderateScale(12),
+    height: moderateScale(12),
+    borderRadius: moderateScale(6),
+    backgroundColor: COLORS.primary,
+  },
+
+  visibilityButton: {
+    position: "absolute",
+    right: 0,
+    padding: moderateScale(10),
+    backgroundColor: `${COLORS.primary}10`,
+    borderRadius: SIZES.radius.md,
+    width: moderateScale(44),
+    height: moderateScale(44),
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  // ============================================
+  // 🎯 ERROR & MESSAGES
   // ============================================
   errorContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.error + "10",
-    padding: getResponsiveValue(12),
+    backgroundColor: `${COLORS.error}10`,
+    padding: SIZES.padding.md,
     borderRadius: SIZES.radius.md,
-    marginHorizontal: getPaddingHorizontal(),
-    marginBottom: getSpacing(12),
-    borderLeftWidth: 4,
+    marginBottom: SIZES.margin.md,
+    borderLeftWidth: moderateScale(4),
     borderLeftColor: COLORS.error,
   },
-  
+
   errorText: {
-    fontSize: getResponsiveValue(12),
+    fontSize: moderateScale(12),
     fontFamily: FONTS.family.medium,
     color: COLORS.error,
-    marginLeft: getSpacing(8),
+    marginLeft: moderateScale(8),
     flex: 1,
-    lineHeight: getResponsiveValue(16),
+    lineHeight: moderateScale(16),
+    fontWeight: "500",
   },
-  
-  successContainer: {
+
+  // ============================================
+  // 🎯 SECURITY TIPS
+  // ============================================
+  tipsContainer: {
+    backgroundColor: `${COLORS.primary}08`,
+    padding: SIZES.padding.lg,
+    borderRadius: SIZES.radius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: `${COLORS.primary}20`,
+  },
+
+  tipItem: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.success + "10",
-    padding: getResponsiveValue(12),
-    borderRadius: SIZES.radius.md,
-    marginHorizontal: getPaddingHorizontal(),
-    marginBottom: getSpacing(12),
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.success,
-  },
-  
-  successText: {
-    fontSize: getResponsiveValue(12),
-    fontFamily: FONTS.family.medium,
-    color: COLORS.successDark,
-    marginLeft: getSpacing(8),
-    flex: 1,
-    lineHeight: getResponsiveValue(16),
+    marginBottom: moderateScale(8),
   },
 
-  // ============================================
-  // 🎯 INFO BOX
-  // ============================================
-  infoBox: {
-    flexDirection: "row",
-    backgroundColor: COLORS.blueOpacity10,
-    borderRadius: getResponsiveValue(12),
-    marginHorizontal: getPaddingHorizontal(),
-    marginBottom: getSpacing(20),
-    padding: getResponsiveValue(14), // Reduced padding
-    borderWidth: 1,
-    borderColor: COLORS.primaryPale,
-  },
-  
-  infoIcon: {
-    marginTop: getSpacing(2),
-  },
-  
-  infoContent: {
-    flex: 1,
-    marginLeft: getSpacing(10), // Reduced margin
-  },
-  
-  infoTitle: {
-    fontSize: getResponsiveValue(13), // Reduced size
-    fontFamily: FONTS.family.semiBold,
-    color: COLORS.textBlueDark,
-    marginBottom: getSpacing(6), // Reduced margin
-  },
-  
-  infoList: {
-    marginTop: getSpacing(2),
-  },
-  
-  infoListItem: {
-    flexDirection: "row",
-    alignItems: "flex-start", // Changed to flex-start for better alignment
-    marginBottom: getSpacing(4), // Reduced margin
-  },
-  
-  infoText: {
-    fontSize: getResponsiveValue(11), // Reduced size
+  tipText: {
+    fontSize: moderateScale(12),
     fontFamily: FONTS.family.regular,
-    color: COLORS.textBlueDark,
-    marginLeft: getSpacing(6), // Reduced margin
-    lineHeight: getResponsiveValue(14),
+    color: COLORS.textSecondary,
+    marginLeft: moderateScale(8),
     flex: 1,
+    lineHeight: moderateScale(16),
   },
 
   // ============================================
-  // 🎯 ACTION BUTTONS
+  // 🎯 FOOTER ACTIONS
   // ============================================
-  actionButtonsContainer: {
-    paddingHorizontal: getPaddingHorizontal(),
+  footer: {
+    paddingHorizontal: SIZES.padding.container,
+    paddingBottom: Platform.select({
+      ios: moderateScale(10),
+      android: SIZES.padding.lg,
+    }),
+    backgroundColor: COLORS.white,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: COLORS.borderLight,
   },
-  
+
+  actionButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: SIZES.padding.md,
+  },
+
+  secondaryButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: moderateScale(10),
+    paddingHorizontal: moderateScale(16),
+    borderRadius: SIZES.radius.md,
+    backgroundColor: `${COLORS.primary}10`,
+  },
+
+  secondaryButtonText: {
+    fontSize: moderateScale(14),
+    fontFamily: FONTS.family.semiBold,
+    color: COLORS.primary,
+    marginLeft: moderateScale(6),
+    fontWeight: "600",
+  },
+
+  clearButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: moderateScale(10),
+    paddingHorizontal: moderateScale(16),
+    borderRadius: SIZES.radius.md,
+    backgroundColor: COLORS.gray100,
+  },
+
+  clearButtonText: {
+    fontSize: moderateScale(14),
+    fontFamily: FONTS.family.medium,
+    color: COLORS.textTertiary,
+    marginLeft: moderateScale(6),
+    fontWeight: "500",
+  },
+
   submitButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: SIZES.radius.button,
-    paddingVertical: getSpacing(16),
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: getSpacing(12),
-    ...SHADOWS.md,
+    backgroundColor: COLORS.goldPrimary || COLORS.primary,
+    paddingVertical: moderateScale(16),
+    borderRadius: SIZES.radius.button,
+    marginTop: SIZES.margin.sm,
+    ...Platform.select({
+      ios: {
+        shadowColor: COLORS.goldPrimary || COLORS.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
   },
-  
-  buttonGold: {
-    backgroundColor: COLORS.goldPrimary,
-  },
-  
-  buttonDisabled: {
-    backgroundColor: COLORS.gray400,
+
+  submitButtonDisabled: {
     opacity: 0.6,
   },
-  
-  buttonLoading: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+
+  submitButtonText: {
+    fontSize: moderateScale(16),
+    fontFamily: FONTS.family.bold,
+    color: COLORS.white,
+    marginLeft: moderateScale(8),
+    fontWeight: "700",
   },
-  
-  loadingIcon: {
-    marginRight: getSpacing(8),
-  },
-  
-  buttonContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  
-  cancelButton: {
-    backgroundColor: COLORS.transparent,
-    borderRadius: SIZES.radius.button,
-    paddingVertical: getSpacing(16),
-    alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: COLORS.border,
-  },
-  
-  cancelButtonText: {
-    fontSize: getResponsiveValue(14),
-    fontFamily: FONTS.family.semiBold,
-    color: COLORS.textSecondary,
+   mpinDigitWrapperError: {
+    borderColor: COLORS.error,
+    backgroundColor: `${COLORS.error}10`,
   },
 
-  // ============================================
-  // 🎯 RESPONSIVE ADJUSTMENTS
-  // ============================================
-  // Tablet specific styles
-  tabletAdjustments: {
-    premiumCard: {
-      marginHorizontal: getPaddingHorizontal() * 1.2,
-      padding: getResponsiveValue(20),
-      minHeight: getResponsiveValue(180),
-    },
-    iconCircle: {
-      width: getResponsiveValue(80),
-      height: getResponsiveValue(80),
-    },
-    mpinDigitContainer: {
-      width: getResponsiveValue(70),
-      height: getResponsiveValue(70),
-    },
+  loadingContainer: {
+    marginTop: SIZES.margin.lg,
+    padding: SIZES.padding.md,
+    backgroundColor: COLORS.gray100,
+    borderRadius: SIZES.radius.md,
+    alignItems: 'center',
   },
 
-  // Small screen adjustments
-  smallScreenAdjustments: {
-    premiumCard: {
-      marginHorizontal: getPaddingHorizontal() * 0.8,
-      padding: getResponsiveValue(14),
-      minHeight: getResponsiveValue(120),
+  loadingText: {
+    fontSize: moderateScale(14),
+    fontFamily: FONTS.family.medium,
+    color: COLORS.primary,
+  },
+
+});
+
+// Responsive adjustments
+const responsiveStyles = StyleSheet.create({
+  // Small screens
+  smallScreen: {
+    mpinDigitWrapper: {
+      width: moderateScale(50),
+      height: moderateScale(60),
+      marginHorizontal: moderateScale(4),
     },
-    iconCircle: {
-      width: getResponsiveValue(50),
-      height: getResponsiveValue(50),
+    mpinDigitInput: {
+      fontSize: moderateScale(24),
     },
-    mpinDigitContainer: {
-      width: getResponsiveValue(48),
-      height: getResponsiveValue(48),
+    title: {
+      fontSize: moderateScale(20),
     },
-    visibilityButton: {
-      right: getResponsiveValue(-40),
+    iconContainer: {
+      width: moderateScale(70),
+      height: moderateScale(70),
+    },
+  },
+  
+  // Tablet/Large screens
+  largeScreen: {
+    content: {
+      maxWidth: moderateScale(600),
+      alignSelf: "center",
+      width: "100%",
+    },
+    mpinDigitWrapper: {
+      width: moderateScale(70),
+      height: moderateScale(80),
+      marginHorizontal: moderateScale(8),
+    },
+    mpinDigitInput: {
+      fontSize: moderateScale(32),
+    },
+    iconContainer: {
+      width: moderateScale(100),
+      height: moderateScale(100),
+    },
+    errorText: {
+      fontSize: moderateScale(11),
     },
   },
 });
 
-// Create responsive style variations
-export const getResponsiveStyles = () => {
-  const responsiveStyles = { ...styles };
-
-  if (isTablet) {
-    // Merge tablet adjustments
-    Object.keys(responsiveStyles.tabletAdjustments).forEach(key => {
-      if (responsiveStyles[key]) {
-        responsiveStyles[key] = {
-          ...responsiveStyles[key],
-          ...responsiveStyles.tabletAdjustments[key]
-        };
-      }
-    });
-  } else if (isSmallScreen) {
-    // Merge small screen adjustments
-    Object.keys(responsiveStyles.smallScreenAdjustments).forEach(key => {
-      if (responsiveStyles[key]) {
-        responsiveStyles[key] = {
-          ...responsiveStyles[key],
-          ...responsiveStyles.smallScreenAdjustments[key]
-        };
-      }
-    });
-  }
-
-  return responsiveStyles;
-};
-
+// Export both for conditional usage
+export { responsiveStyles };
 export default styles;

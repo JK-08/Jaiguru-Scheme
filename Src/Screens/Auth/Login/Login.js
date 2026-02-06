@@ -11,6 +11,8 @@ import {
   ActivityIndicator,
   StyleSheet,
   Image,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -18,7 +20,7 @@ import {
   GoogleSignin,
   statusCodes,
 } from "@react-native-google-signin/google-signin";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from "expo-linear-gradient"; // Add this import
 
 import useAuth from "../../../Hooks/useRegister";
 import { useCompany } from "../../../Hooks/useCompany";
@@ -26,9 +28,18 @@ import theme from "../../../Utills/AppTheme";
 import defaultLogo from "../../../Assets/Company/logo.png";
 import { useToast } from "../../../Components/Toast/Toast";
 
+// Import AsyncStorage Helper
+import AsyncStorageHelper, {
+  saveAuthData,
+  getAuthSession,
+  getMpinStatus,
+  debugAsyncStorage,
+} from "../../../Utills/AsynchStorageHelper";
+
+// ✅ Configure Google Sign-In
 GoogleSignin.configure({
   webClientId:
-    "792128292012-161kjb3ap6f2msun0h56d4k8m0kfqs5l.apps.googleusercontent.com",
+    '792128292012-161kjb3ap6f2msun0h56d4k8m0kfqs5l.apps.googleusercontent.com',
   offlineAccess: true,
   forceCodeForRefreshToken: true,
 });
@@ -49,6 +60,15 @@ const LoginScreen = () => {
     password: "",
   });
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [touched, setTouched] = useState({
+    contactOrEmailOrUsername: false,
+    password: false,
+  });
+  const [errors, setErrors] = useState({
+    contactOrEmailOrUsername: "",
+    password: "",
+  });
 
   // Reset logo loading state when company changes
   useEffect(() => {
@@ -72,15 +92,60 @@ const LoginScreen = () => {
     }
   }, [error]);
 
-  // Debug: Log company data when it loads
+  // Debug AsyncStorage on mount
   useEffect(() => {
-    if (company) {
-      console.log("=== COMPANY DATA LOADED ===");
-      console.log("Company Name:", company.CompanyName);
-      console.log("Company Logo URL:", company.CompanyLogoUrl);
-      console.log("Full Company Data:", JSON.stringify(company, null, 2));
+    console.log("=== LOGIN SCREEN MOUNTED ===");
+    debugAsyncStorage();
+  }, []);
+
+  // ✅ Validation functions similar to first code
+  const isValidEmailOrPhone = (value) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^[6-9]\d{9}$/;
+    return emailRegex.test(value) || phoneRegex.test(value.replace(/\D/g, ""));
+  };
+
+  const validateField = (fieldName, value) => {
+    const newErrors = { ...errors };
+
+    switch (fieldName) {
+      case "contactOrEmailOrUsername":
+        if (!value.trim()) {
+          newErrors.contactOrEmailOrUsername = "Please enter email or phone number";
+        } else if (!isValidEmailOrPhone(value)) {
+          newErrors.contactOrEmailOrUsername =
+            "Please enter a valid email or phone number";
+        } else {
+          newErrors.contactOrEmailOrUsername = "";
+        }
+        break;
+
+      case "password":
+        if (!value.trim()) {
+          newErrors.password = "Please enter password";
+        } else if (value.length < 6) {
+          newErrors.password = "Password must be at least 6 characters";
+        } else {
+          newErrors.password = "";
+        }
+        break;
+
+      default:
+        break;
     }
-  }, [company]);
+
+    setErrors(newErrors);
+  };
+
+  const handleFieldChange = (fieldName, value) => {
+    setFormData((prev) => ({ ...prev, [fieldName]: value }));
+    if (touched[fieldName]) validateField(fieldName, value);
+  };
+
+  const handleFieldBlur = (fieldName) => {
+    setTouched((prev) => ({ ...prev, [fieldName]: true }));
+    validateField(fieldName, formData[fieldName]);
+  };
 
   const handleImageError = () => {
     console.log("Failed to load company logo from URL:", companyLogoUrl);
@@ -94,41 +159,29 @@ const LoginScreen = () => {
   };
 
   const validateInput = () => {
-    const { contactOrEmailOrUsername, password } = formData;
+    // Set all fields as touched
+    setTouched({
+      contactOrEmailOrUsername: true,
+      password: true,
+    });
 
-    if (!contactOrEmailOrUsername || !password) {
+    // Validate all fields
+    validateField("contactOrEmailOrUsername", formData.contactOrEmailOrUsername);
+    validateField("password", formData.password);
+
+    // Check for errors
+    const hasErrors =
+      Object.values(errors).some((error) => error !== "") ||
+      !formData.contactOrEmailOrUsername ||
+      !formData.password;
+
+    if (hasErrors) {
       showToast({
-        message: "Please fill in all fields",
+        message: "Please fix all errors before submitting",
         type: "warning",
-        title: "Validation Error",
         duration: 3000,
-        position: "top",
       });
       return false;
-    }
-
-    // Check if input is a contact number (10 digits)
-    if (/^\d+$/.test(contactOrEmailOrUsername)) {
-      if (!/^\d{10}$/.test(contactOrEmailOrUsername)) {
-        showToast({
-          message: "Please enter a valid 10-digit contact number",
-          type: "warning",
-          title: "Invalid Contact",
-          duration: 3000,
-        });
-        return false;
-      }
-    } else if (contactOrEmailOrUsername.includes("@")) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(contactOrEmailOrUsername)) {
-        showToast({
-          message: "Please enter a valid email address",
-          type: "warning",
-          title: "Invalid Email",
-          duration: 3000,
-        });
-        return false;
-      }
     }
 
     return true;
@@ -137,34 +190,32 @@ const LoginScreen = () => {
   const navigateAfterLogin = async () => {
     try {
       console.log("=== NAVIGATE AFTER LOGIN STARTED ===");
-      
-      // Read and log all AsyncStorage data
-      const allKeys = await AsyncStorage.getAllKeys();
-      console.log("All AsyncStorage keys:", allKeys);
-      
-      const multiData = await AsyncStorage.multiGet(allKeys);
-      console.log("=== ASYNC STORAGE CONTENTS ===");
-      multiData.forEach(([key, value]) => {
-        console.log(`${key}:`, value);
+
+      // Check auth session using helper
+      const authSession = await getAuthSession();
+      console.log("Auth session check:", {
+        isAuthenticated: authSession.isAuthenticated,
+        userId: authSession.user?.userId || authSession.user?.userid,
+        username: authSession.user?.username,
+        loginType: authSession.user?.loginType,
       });
-      
-      const hasMpin = await AsyncStorage.getItem("hasMpin");
-      console.log("hasMpin value:", hasMpin);
-      
-      const authToken = await AsyncStorage.getItem("authToken");
-      console.log("authToken exists:", !!authToken);
-      
-      const userDataString = await AsyncStorage.getItem("userData");
-      if (userDataString) {
-        const userData = JSON.parse(userDataString);
-        console.log("User Data from AsyncStorage:", userData);
-        console.log("User ID:", userData.id || userData._id);
-        console.log("User Email:", userData.email);
-        console.log("User Contact:", userData.contactNumber || userData.phone);
-        console.log("Username:", userData.username || userData.name);
+
+      if (!authSession.isAuthenticated) {
+        console.log("User not authenticated, redirecting to login");
+        showToast({
+          message: "Session expired. Please login again.",
+          type: "error",
+          title: "Session Error",
+          duration: 3000,
+        });
+        return;
       }
 
-      if (hasMpin === "true") {
+      // Check MPIN status
+      const hasMpin = await getMpinStatus();
+      console.log("MPIN status:", hasMpin);
+
+      if (hasMpin) {
         console.log("Navigating to MpinVerify");
         navigation.replace("MpinVerify");
       } else {
@@ -172,20 +223,161 @@ const LoginScreen = () => {
         navigation.replace("MpinCreate");
       }
     } catch (error) {
-      console.log("MPIN check failed:", error);
+      console.log("Navigation error:", error);
       console.log("Error details:", error.message);
-      console.log("Error stack:", error.stack);
+      showToast({
+        message: "Error checking login status",
+        type: "error",
+        title: "Error",
+        duration: 3000,
+      });
       navigation.replace("MpinCreate");
     }
   };
 
+  // ✅ UPDATED COMMON LOGIN SUCCESS HANDLER (similar to first code)
+  const handleLoginSuccess = async (result, loginType = "normal") => {
+    console.log(`=== ${loginType.toUpperCase()} LOGIN SUCCESS ===`);
+    console.log("Raw API Response:", JSON.stringify(result, null, 2));
+
+    // Normalize the response data
+    const normalizedData = {
+      ...result,
+      loginType: loginType === "google" ? "GOOGLE" : "NORMAL",
+      contactNumber: result.contactNumber || result.contact || "",
+    };
+
+    // Save auth data using helper
+    const saveResult = await saveAuthData(normalizedData);
+
+    if (!saveResult.success) {
+      throw new Error(saveResult.error || "Failed to save auth data");
+    }
+
+    // Show success toast
+    showToast({
+      message: "Login successful! Redirecting...",
+      type: "success",
+      title: `Welcome${loginType === "google" ? " via Google" : ""}!`,
+      duration: 2000,
+      animationType: "bounce",
+    });
+
+    // Navigate after delay
+    setTimeout(() => {
+      navigateAfterLogin();
+    }, 1500);
+  };
+
+  // ✅ UPDATED GOOGLE LOGIN HANDLER (similar to first code)
+const handleGoogleSignIn = async () => {
+  try {
+    setGoogleLoading(true);
+    clearError();
+
+    console.log("=== GOOGLE SIGN-IN STARTED ===");
+
+    showToast({
+      message: "Connecting to Google...",
+      type: "progress",
+      title: "Google Sign In",
+      showProgress: true,
+      progress: 30,
+    });
+
+    // 1️⃣ Ensure Play Services
+  await GoogleSignin.hasPlayServices({
+  showPlayServicesUpdateDialog: true,
+});
+
+try {
+  await GoogleSignin.signOut();
+} catch (e) {
+  // ignore
+}
+
+const userInfo = await GoogleSignin.signIn();
+console.log("Google User Info:", userInfo);
+
+const { idToken } = await GoogleSignin.getTokens();
+
+
+    if (!idToken) {
+      throw new Error("ID token missing from Google");
+    }
+
+    console.log("Google ID Token received");
+
+    showToast({
+      message: "Authenticating with server...",
+      type: "progress",
+      title: "Google Sign In",
+      showProgress: true,
+      progress: 70,
+    });
+
+    // 5️⃣ Call backend
+    const result = await loginWithGoogle({ idToken });
+
+    console.log("=== GOOGLE LOGIN API RESPONSE ===");
+    console.log(result);
+
+    hideToast();
+
+    if (!result.contactNumber) {
+      navigation.navigate("GoogleContactVerification", {
+        googleData: {
+          userId: result.id,
+          email: result.email,
+          username: result.username,
+          picture: result.picture,
+          token: result.token,
+          isLogin: true,
+        },
+      });
+    } else {
+      await handleLoginSuccess(result, "google");
+    }
+  } catch (error) {
+    console.log("=== GOOGLE SIGN-IN ERROR ===");
+    console.log("Error Code:", error.code);
+    console.log("Error Message:", error.message);
+    console.log("Full Error:", JSON.stringify(error, null, 2));
+
+    hideToast();
+
+    let errorMessage = "Google Sign-In failed";
+
+    if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+      errorMessage = "Google sign-in cancelled";
+    } else if (error.code === statusCodes.IN_PROGRESS) {
+      errorMessage = "Sign-in already in progress";
+    } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+      errorMessage = "Google Play Services unavailable";
+    } else if (error.code === "12500") {
+      errorMessage = "Google configuration error (SHA-1 / OAuth)";
+    }
+
+    showToast({
+      message: errorMessage,
+      type: "error",
+      title: "Google Sign In Failed",
+      duration: 5000,
+    });
+  } finally {
+    setGoogleLoading(false);
+  }
+};
+
+
+  // ✅ NORMAL LOGIN HANDLER
   const handleLogin = async () => {
     if (!validateInput()) return;
 
     try {
       clearError();
 
-      console.log("=== LOGIN ATTEMPT STARTED ===");
+      console.log("=== NORMAL LOGIN STARTED ===");
       console.log("Form Data:", formData);
 
       // Show loading toast
@@ -200,85 +392,37 @@ const LoginScreen = () => {
 
       const result = await login(formData);
 
-      console.log("=== LOGIN API RESPONSE ===");
-      console.log("Full Response:", JSON.stringify(result, null, 2));
-      console.log("Result type:", typeof result);
+      console.log("=== NORMAL LOGIN API RESPONSE ===");
+      console.log("Response keys:", Object.keys(result));
       console.log("Has token:", !!result.token);
-      console.log("Success flag:", result.success);
-      console.log("Status:", result.status);
-      console.log("Message:", result.message);
-      console.log("User data present:", !!result.user);
+      console.log("Has ID:", !!result.id);
 
       // Hide loading toast
       hideToast();
 
-      // Check for success - based on your response structure
-      if (
-        result.token ||
-        result.success === true ||
-        result.status === "success"
-      ) {
-        // Show success toast
-        showToast({
-          message: "Login successful! Redirecting...",
-          type: "success",
-          title: "Welcome back!",
-          duration: 2000,
-          animationType: "bounce",
-        });
-
-        // Store auth token
-        if (result.token) {
-          await AsyncStorage.setItem("authToken", result.token);
-          console.log("Auth token stored:", result.token.substring(0, 20) + "...");
-        } else {
-          console.warn("No token received in response");
-        }
-
-        // Store user data
-        const userData = result.user || result;
-        console.log("User data to store:", userData);
-        
-        // Log specific user fields
-        console.log("User ID:", userData.id || userData._id);
-        console.log("User Email:", userData.email);
-        console.log("Username:", userData.username || userData.name);
-        console.log("Contact:", userData.contactNumber || userData.phone);
-        
-        await AsyncStorage.setItem("userData", JSON.stringify(userData));
-        console.log("User data stored in AsyncStorage");
-
-        // Verify storage
-        const storedUserData = await AsyncStorage.getItem("userData");
-        console.log("Verification - Retrieved user data:", storedUserData ? JSON.parse(storedUserData) : "No data");
-
-        // Navigate after a short delay for toast visibility
-        setTimeout(() => {
-          navigateAfterLogin();
-        }, 1500);
+      // Check for success
+      if (result.token) {
+        await handleLoginSuccess(result, "normal");
       } else {
-        // Show the server message directly without modification
+        // Handle specific error messages
         const serverMessage =
           result?.message ||
           result?.errorMessage ||
           "Login failed. Please try again.";
 
-        console.log("Login failed. Server message:", serverMessage);
-
-        // Special handling for Google account detected message
+        // Special handling for Google account detected
         if (
           serverMessage.toLowerCase().includes("google account detected") ||
           serverMessage.toLowerCase().includes("login via google") ||
           serverMessage.toLowerCase().includes("registered with google")
         ) {
-          // Show an alert instead of toast for this specific case
           Alert.alert(
             "Google Account Detected",
-            "You have previously registered with Google. You don't have a password set for this account.\n\nPlease choose an option:",
+            "You have previously registered with Google. Please choose an option:",
             [
               {
                 text: "Login with Google",
-                onPress: handleGoogleLogin,
+                onPress: handleGoogleSignIn,
                 style: "default",
               },
               {
@@ -291,10 +435,9 @@ const LoginScreen = () => {
                 style: "cancel",
               },
             ],
-            { cancelable: true },
+            { cancelable: true }
           );
         } else {
-          // For all other error messages, show normal toast
           showToast({
             message: serverMessage,
             type: "error",
@@ -305,15 +448,12 @@ const LoginScreen = () => {
         }
       }
     } catch (err) {
-      console.log("=== LOGIN ERROR CATCH BLOCK ===");
+      console.log("=== NORMAL LOGIN ERROR ===");
       console.log("Error:", err);
-      console.log("Error message:", err.message);
-      console.log("Error stack:", err.stack);
-      
+
       hideToast();
 
       const errorMessage = err.message || "Login failed. Please try again.";
-
       showToast({
         message: errorMessage,
         type: "error",
@@ -323,183 +463,6 @@ const LoginScreen = () => {
         animationType: "slide",
       });
     }
-  };
-
-  const handleGoogleLogin = async () => {
-    try {
-      setGoogleLoading(true);
-      clearError();
-
-      console.log("=== GOOGLE LOGIN STARTED ===");
-
-      // Show loading toast for Google login
-      showToast({
-        message: "Connecting to Google...",
-        type: "progress",
-        title: "Google Sign In",
-        showProgress: true,
-        progress: 30,
-      });
-
-      await GoogleSignin.hasPlayServices({
-        showPlayServicesUpdateDialog: true,
-      });
-
-      const userInfo = await GoogleSignin.signIn();
-      console.log("Google Sign-In User Info:", userInfo);
-      console.log("Google ID Token:", userInfo.data?.idToken ? "Present" : "Missing");
-
-      const idToken = userInfo.data?.idToken || userInfo.idToken;
-
-      if (!idToken) {
-        hideToast();
-        console.error("No ID token received from Google");
-        showToast({
-          message: "Failed to get authentication token. Please try again.",
-          type: "error",
-          title: "Google Error",
-          duration: 4000,
-        });
-        return;
-      }
-
-      // Update toast progress
-      showToast({
-        message: "Authenticating with server...",
-        type: "progress",
-        title: "Google Sign In",
-        showProgress: true,
-        progress: 70,
-      });
-
-      console.log("Calling loginWithGoogle API with ID token...");
-      const result = await loginWithGoogle({ idToken });
-
-      console.log("=== GOOGLE LOGIN API RESPONSE ===");
-      console.log("Full Response:", JSON.stringify(result, null, 2));
-      console.log("Token:", result.token ? "Present" : "Missing");
-      console.log("Contact Number:", result.contactNumber);
-      console.log("Requires Contact Verification:", result.requiresContactVerification);
-
-      hideToast();
-
-      // Check if contact verification is needed
-      if (
-        !result.contactNumber ||
-        result.contactNumber === null ||
-        result.contactNumber === "" ||
-        result.requiresContactVerification
-      ) {
-        console.log("Contact verification needed, navigating to verification screen");
-        
-        showToast({
-          message: "Please verify your contact number to continue",
-          type: "info",
-          title: "Contact Verification",
-          duration: 3000,
-        });
-
-        navigation.navigate("GoogleContactVerification", {
-          googleData: {
-            userId: result.id,
-            email: result.email,
-            name: result.username,
-            picture: result.picture,
-            referralCode: result.referralCode,
-            token: result.token,
-            socialMedia: result.socialMedia,
-            isLogin: true,
-            existingUser: result.existingUser || false,
-          },
-        });
-      } else {
-        showToast({
-          message: "Google login successful!",
-          type: "success",
-          title: "Welcome!",
-          duration: 2000,
-          animationType: "scale",
-        });
-
-        // Store data in AsyncStorage
-        console.log("=== STORING GOOGLE LOGIN DATA ===");
-        
-        if (result.token) {
-          await AsyncStorage.setItem("authToken", result.token);
-          console.log("Google auth token stored");
-        }
-
-        const userDataToStore = {
-          id: result.id,
-          username: result.username,
-          email: result.email,
-          contactNumber: result.contactNumber,
-          picture: result.picture,
-          referralCode: result.referralCode,
-          socialMedia: result.socialMedia,
-          ...(result.userData || {}),
-        };
-
-        console.log("User data to store:", userDataToStore);
-        await AsyncStorage.setItem("userData", JSON.stringify(userDataToStore));
-        console.log("User data stored successfully");
-
-        // Verify storage
-        const storedToken = await AsyncStorage.getItem("authToken");
-        const storedUserData = await AsyncStorage.getItem("userData");
-        console.log("Verification - Token stored:", !!storedToken);
-        console.log("Verification - User data stored:", !!storedUserData);
-
-        setTimeout(() => {
-          navigateAfterLogin();
-        }, 1500);
-      }
-    } catch (error) {
-      console.log("=== GOOGLE SIGN-IN ERROR ===");
-      console.log("Error Code:", error.code);
-      console.log("Error Message:", error.message);
-      console.log("Full Error:", error);
-
-      hideToast();
-
-      let errorMessage = "Google Sign-In failed. Please try again.";
-
-      switch (error.code) {
-        case statusCodes.SIGN_IN_CANCELLED:
-          errorMessage = "Sign in cancelled by user";
-          break;
-        case statusCodes.IN_PROGRESS:
-          errorMessage = "Sign in already in progress";
-          break;
-        case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-          errorMessage = "Google Play Services not available or outdated";
-          break;
-        default:
-          if (error.message?.includes("JSON Parse error")) {
-            errorMessage =
-              "Server error. Please check your internet connection or try again later.";
-          } else if (error.message?.includes("User not found")) {
-            errorMessage =
-              "No account found with this Google account. Please register first.";
-          }
-          break;
-      }
-
-      showToast({
-        message: errorMessage,
-        type: "error",
-        title: "Google Sign In Failed",
-        duration: 5000,
-        position: "bottom",
-        showCloseButton: true,
-      });
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
-
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const navigateToForgotPassword = () => {
@@ -524,196 +487,236 @@ const LoginScreen = () => {
     navigation.navigate("Register");
   };
 
-  // Debug function to check AsyncStorage
-  const debugAsyncStorage = async () => {
-    try {
-      console.log("=== DEBUG: ASYNC STORAGE CHECK ===");
-      const keys = await AsyncStorage.getAllKeys();
-      console.log("Total keys:", keys.length);
-      
-      const items = await AsyncStorage.multiGet(keys);
-      items.forEach(([key, value]) => {
-        console.log(`Key: ${key}`);
-        console.log(`Value: ${value}`);
-        console.log(`Length: ${value ? value.length : 0}`);
-        console.log('---');
-      });
-    } catch (error) {
-      console.log("Debug AsyncStorage error:", error);
-    }
-  };
-
-  // Call debug on component mount
-  useEffect(() => {
-    console.log("=== LOGIN SCREEN MOUNTED ===");
-    debugAsyncStorage();
-  }, []);
-
   const isLoading = loading || googleLoading;
 
+  const RequiredLabel = ({ children }) => (
+    <Text style={styles.label}>
+      {children}
+      <Text style={styles.requiredStar}> *</Text>
+    </Text>
+  );
+
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 20 : 0}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 20 : 0}
       >
-        {/* Company Logo Section */}
-        <View style={styles.logoContainer}>
-          {companyLoading ? (
-            <ActivityIndicator size="small" color={theme.COLORS.primary} />
-          ) : (
-            <View style={styles.imageContainer}>
-              {logoLoading && !logoError && (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator
-                    size="small"
-                    color={theme.COLORS.primary}
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Company Logo Section */}
+          <View style={styles.logoContainer}>
+            {companyLoading ? (
+              <ActivityIndicator size="small" color={theme.COLORS.primary} />
+            ) : (
+              <View style={styles.imageContainer}>
+                {logoLoading && !logoError && (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator
+                      size="small"
+                      color={theme.COLORS.primary}
+                    />
+                  </View>
+                )}
+
+                {!logoError && companyLogoUrl ? (
+                  <Image
+                    source={{ uri: companyLogoUrl }}
+                    style={styles.logo}
+                    resizeMode="contain"
+                    onLoad={handleImageLoad}
+                    onError={handleImageError}
+                    defaultSource={defaultLogo}
                   />
-                </View>
-              )}
-
-              {!logoError && companyLogoUrl ? (
-                <Image
-                  source={{ uri: companyLogoUrl }}
-                  style={styles.logo}
-                  resizeMode="contain"
-                  onLoad={handleImageLoad}
-                  onError={handleImageError}
-                  defaultSource={defaultLogo}
-                />
-              ) : (
-                <Image
-                  source={defaultLogo}
-                  style={styles.logo}
-                  resizeMode="contain"
-                  onLoad={() => {
-                    setLogoLoading(false);
-                    setLogoError(false);
-                  }}
-                />
-              )}
-            </View>
-          )}
-        </View>
-
-        {/* Header */}
-        <View style={styles.headerContainer}>
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>Sign in to your account</Text>
-        </View>
-
-        {/* Login Form */}
-        <View style={styles.formContainer}>
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Contact, Email or Username *</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.contactOrEmailOrUsername}
-              onChangeText={(value) =>
-                handleInputChange("contactOrEmailOrUsername", value)
-              }
-              placeholder="Enter contact number, email or username"
-              placeholderTextColor={theme.COLORS.textTertiary}
-              autoCapitalize="none"
-              editable={!isLoading}
-            />
-            <Text style={styles.hintText}>
-              Enter your 10-digit contact number, email address, or username
-            </Text>
+                ) : (
+                  <Image
+                    source={defaultLogo}
+                    style={styles.logo}
+                    resizeMode="contain"
+                    onLoad={() => {
+                      setLogoLoading(false);
+                      setLogoError(false);
+                    }}
+                  />
+                )}
+              </View>
+            )}
           </View>
 
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Password *</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.password}
-              onChangeText={(value) => handleInputChange("password", value)}
-              placeholder="Enter your password"
-              placeholderTextColor={theme.COLORS.textTertiary}
-              secureTextEntry
-              editable={!isLoading}
-            />
-            <TouchableOpacity
-              style={styles.forgotPassword}
-              onPress={navigateToForgotPassword}
-              disabled={isLoading}
-            >
-              <Text
+          {/* Header */}
+          <View style={styles.headerContainer}>
+            <Text style={styles.title}>Welcome Back</Text>
+            <Text style={styles.subtitle}>Sign in to your account</Text>
+          </View>
+
+          {/* Login Form */}
+          <View style={styles.formContainer}>
+            {/* Email/Phone Field */}
+            <View style={styles.fieldContainer}>
+              <RequiredLabel>Contact, Email or Username</RequiredLabel>
+              <TextInput
                 style={[
-                  styles.forgotPasswordText,
-                  isLoading && { opacity: 0.5 },
+                  styles.input,
+                  errors.contactOrEmailOrUsername && styles.inputError,
                 ]}
+                value={formData.contactOrEmailOrUsername}
+                onChangeText={(value) =>
+                  handleFieldChange("contactOrEmailOrUsername", value)
+                }
+                onBlur={() => handleFieldBlur("contactOrEmailOrUsername")}
+                placeholder="Enter contact number, email or username"
+                placeholderTextColor={theme.COLORS.textTertiary}
+                autoCapitalize="none"
+                editable={!isLoading}
+              />
+              {errors.contactOrEmailOrUsername ? (
+                <Text style={styles.errorText}>
+                  {errors.contactOrEmailOrUsername}
+                </Text>
+              ) : (
+                <Text style={styles.hintText}>
+                  Enter your 10-digit contact number, email address, or username
+                </Text>
+              )}
+            </View>
+
+            {/* Password Field */}
+            <View style={styles.fieldContainer}>
+              <RequiredLabel>Password</RequiredLabel>
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={[
+                    styles.passwordInput,
+                    errors.password && styles.inputError,
+                  ]}
+                  value={formData.password}
+                  onChangeText={(value) => handleFieldChange("password", value)}
+                  onBlur={() => handleFieldBlur("password")}
+                  placeholder="Enter your password"
+                  placeholderTextColor={theme.COLORS.textTertiary}
+                  secureTextEntry={!showPassword}
+                  editable={!isLoading}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={styles.eyeIconContainer}
+                  disabled={isLoading}
+                >
+                  <Icon
+                    name={showPassword ? "eye-off" : "eye"}
+                    size={20}
+                    color={theme.COLORS.textSecondary}
+                  />
+                </TouchableOpacity>
+              </View>
+              {errors.password ? (
+                <Text style={styles.errorText}>{errors.password}</Text>
+              ) : (
+                <TouchableOpacity
+                  style={styles.forgotPassword}
+                  onPress={navigateToForgotPassword}
+                  disabled={isLoading}
+                >
+                  <Text
+                    style={[
+                      styles.forgotPasswordText,
+                      isLoading && { opacity: 0.5 },
+                    ]}
+                  >
+                    Forgot Password?
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Login Button */}
+            <TouchableOpacity
+              onPress={handleLogin}
+              disabled={isLoading}
+              style={[styles.loginButton, isLoading && styles.buttonDisabled]}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={["#FFD700", "#FFC400"]} // Gold gradient
+                style={styles.buttonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
               >
-                Forgot Password?
-              </Text>
+                {loading ? (
+                  <ActivityIndicator color={theme.COLORS.white} size="small" />
+                ) : (
+                  <Text style={styles.loginButtonText}>Sign In</Text>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+
+            {/* Divider */}
+            <View style={styles.dividerContainer}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>OR</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Google Sign In Button */}
+            <TouchableOpacity
+              onPress={handleGoogleSignIn}
+              disabled={isLoading}
+              style={[styles.googleButton, isLoading && styles.buttonDisabled]}
+              activeOpacity={0.8}
+            >
+              {googleLoading ? (
+                <ActivityIndicator
+                  color={theme.COLORS.textPrimary}
+                  size="small"
+                />
+              ) : (
+                <View style={styles.googleButtonContent}>
+                  <Icon name="google" size={20} color="#DB4437" />
+                  <Text style={styles.googleButtonText}>
+                    Sign in with Google
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
 
-          {/* Login Button */}
-          <TouchableOpacity
-            onPress={handleLogin}
-            disabled={isLoading}
-            style={[styles.loginButton, isLoading && styles.buttonDisabled]}
-            activeOpacity={0.8}
-          >
-            {loading ? (
-              <ActivityIndicator color={theme.COLORS.white} size="small" />
-            ) : (
-              <Text style={styles.loginButtonText}>Sign In</Text>
-            )}
-          </TouchableOpacity>
-
-          {/* Divider */}
-          <View style={styles.dividerContainer}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>OR</Text>
-            <View style={styles.dividerLine} />
+          {/* Register Link */}
+          <View style={styles.registerContainer}>
+            <Text style={styles.registerText}>Don't have an account? </Text>
+            <TouchableOpacity
+              onPress={navigateToRegister}
+              disabled={isLoading}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={[styles.registerLink, isLoading && { opacity: 0.5 }]}
+              >
+                Sign Up
+              </Text>
+            </TouchableOpacity>
           </View>
+        </ScrollView>
 
-          {/* Google Sign In */}
-          <TouchableOpacity
-            onPress={handleGoogleLogin}
-            disabled={isLoading}
-            style={[styles.googleButton, isLoading && styles.buttonDisabled]}
-            activeOpacity={0.8}
-          >
-            {googleLoading ? (
-              <ActivityIndicator
-                color={theme.COLORS.textPrimary}
-                size="small"
-              />
-            ) : (
-              <>
-                <Icon name="google" size={20} color="#DB4437" />
-                <Text style={styles.googleButtonText}>Sign in with Google</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        {/* Register Link */}
-        <View style={styles.registerContainer}>
-          <Text style={styles.registerText}>Don't have an account? </Text>
-          <TouchableOpacity
-            onPress={navigateToRegister}
-            disabled={isLoading}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.registerLink, isLoading && { opacity: 0.5 }]}>
-              Sign Up
+        {/* Loading Overlay */}
+        {(loading || googleLoading) && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color={theme.COLORS.primary} />
+            <Text style={styles.loadingText}>
+              {googleLoading
+                ? "Signing in with Google..."
+                : "Processing login..."}
             </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+          </View>
+        )}
 
-      {/* Toast Component */}
-      <Toast />
-    </KeyboardAvoidingView>
+        {/* Toast Component */}
+        <Toast />
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -728,7 +731,6 @@ const styles = StyleSheet.create({
     paddingTop: theme.SIZES.sm,
     paddingBottom: theme.SIZES.xl,
   },
-  // Logo Section
   logoContainer: {
     alignItems: "center",
     justifyContent: "center",
@@ -757,14 +759,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     zIndex: 1,
   },
-  companyName: {
-    marginTop: theme.SIZES.sm,
-    ...theme.FONTS.h4,
-    color: theme.COLORS.primary,
-    textAlign: "center",
-    fontWeight: "bold",
-  },
-  // Header
   headerContainer: {
     alignItems: "center",
     marginBottom: theme.SIZES.lg,
@@ -795,6 +789,9 @@ const styles = StyleSheet.create({
     color: theme.COLORS.textPrimary,
     marginBottom: theme.SIZES.xs,
   },
+  requiredStar: {
+    color: theme.COLORS.error,
+  },
   input: {
     ...theme.COMMON_STYLES.input.default,
     borderColor: theme.COLORS.gray300,
@@ -802,6 +799,35 @@ const styles = StyleSheet.create({
     fontFamily: theme.FONTS.family.regular,
     color: theme.COLORS.textPrimary,
     height: theme.SIZES.input.height,
+  },
+  inputError: {
+    borderColor: theme.COLORS.error,
+    borderWidth: 1,
+  },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: theme.COLORS.gray300,
+    borderRadius: theme.SIZES.radius.sm,
+    height: theme.SIZES.input.height,
+    paddingHorizontal: theme.SIZES.sm,
+  },
+  passwordInput: {
+    flex: 1,
+    fontSize: theme.SIZES.font.md,
+    fontFamily: theme.FONTS.family.regular,
+    color: theme.COLORS.textPrimary,
+    paddingVertical: 0,
+    height: "100%",
+  },
+  eyeIconContainer: {
+    padding: theme.SIZES.xs,
+  },
+  errorText: {
+    ...theme.FONTS.caption,
+    color: theme.COLORS.error,
+    marginTop: theme.SIZES.xs,
   },
   hintText: {
     ...theme.FONTS.caption,
@@ -818,13 +844,15 @@ const styles = StyleSheet.create({
     color: theme.COLORS.goldPrimary,
   },
   loginButton: {
-    backgroundColor: theme.COLORS.goldPrimary,
     borderRadius: theme.SIZES.radius.button,
     height: theme.SIZES.button.height.lg,
+    marginTop: theme.SIZES.md,
+    overflow: "hidden", // Important for gradient
+  },
+  buttonGradient: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: theme.SIZES.md,
-    ...theme.SHADOWS.gold,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -832,6 +860,7 @@ const styles = StyleSheet.create({
   loginButtonText: {
     ...theme.FONTS.buttonLarge,
     color: theme.COLORS.primary,
+    fontWeight: "bold",
   },
   dividerContainer: {
     flexDirection: "row",
@@ -859,23 +888,15 @@ const styles = StyleSheet.create({
     borderColor: theme.COLORS.gray300,
     ...theme.SHADOWS.sm,
   },
+  googleButtonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   googleButtonText: {
     ...theme.FONTS.bodyMedium,
     color: theme.COLORS.textPrimary,
     marginLeft: theme.SIZES.sm,
-  },
-  // Debug button styles (only in development)
-  debugButton: {
-    backgroundColor: '#666',
-    borderRadius: theme.SIZES.radius.button,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: theme.SIZES.md,
-  },
-  debugButtonText: {
-    color: theme.COLORS.white,
-    fontSize: 12,
   },
   registerContainer: {
     flexDirection: "row",
@@ -890,6 +911,22 @@ const styles = StyleSheet.create({
   registerLink: {
     ...theme.FONTS.bodyBold,
     color: theme.COLORS.goldPrimary,
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+  },
+  loadingText: {
+    ...theme.FONTS.body,
+    color: theme.COLORS.white,
+    marginTop: theme.SIZES.sm,
   },
 });
 

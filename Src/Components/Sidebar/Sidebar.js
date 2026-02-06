@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, memo, useEffect } from "react";
+import React, { useState, useMemo, useCallback, memo, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -10,20 +10,22 @@ import {
   Animated,
   Platform,
   ActivityIndicator,
+  Image,
+  Easing,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { COLORS, FONTS, SIZES, SHADOWS } from "../../Utills/AppTheme";
 import {
   getAuthSession,
   getUserData,
   clearAuthData,
-  getUserField,
+  getUserId,
+  debugAsyncStorage,
 } from "../../Utills/AsynchStorageHelper";
+import { COLORS, FONTS, SIZES, SHADOWS } from "../../Utills/AppTheme";
 
-// Menu items data
+// Menu items data - Add more items as needed
 const MENU_ITEMS = [
   {
     key: "home",
@@ -33,29 +35,17 @@ const MENU_ITEMS = [
     badge: 0,
   }, 
   {
-    key: "profile",
-    label: "Profile",
-    icon: "person",
-    route: "Profile",
+    key: "resetmpin",
+    label: "Reset MPIN",
+    icon: "lock-reset",
+    route: "ResetMPIN",
     badge: 0,
   },
   {
-    key: "settings",
-    label: "Settings",
-    icon: "settings",
-    route: "Settings",
-    badge: 0,
-    subItems: [
-      { label: "Reset MPIN", route: "ResetMPIN" },
-      { label: "Notifications", route: "Notifications" },
-      { label: "Privacy", route: "Privacy" },
-    ],
-  },
-  {
-    key: "support",
-    label: "Help & Support",
-    icon: "support-agent",
-    route: "Support",
+    key: "membercreation",
+    label: "Create Member",
+    icon: "person-add",
+    route: "MemberCreation",
     badge: 0,
   },
 ];
@@ -87,7 +77,7 @@ const SubItem = memo(({ subItem, onPress }) => (
 
 SubItem.displayName = "SubItem";
 
-// Enhanced DrawerItem Component with performance optimizations
+// Enhanced DrawerItem Component
 const DrawerItem = memo(
   ({ item, isActive, onPress, showSubItems, onToggleSubItems }) => {
     const scaleAnim = React.useRef(new Animated.Value(1)).current;
@@ -154,7 +144,6 @@ const DrawerItem = memo(
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Sub Items with conditional rendering */}
         {hasSubItems && showSubItems && (
           <View style={styles.subItemsContainer}>
             {item.subItems.map((subItem, index) => (
@@ -173,67 +162,65 @@ const DrawerItem = memo(
 
 DrawerItem.displayName = "DrawerItem";
 
-// Main SideBar Component
-const SideBar = ({ navigation, activeRoute, onClose }) => {
+// User Avatar Component with Fallback
+const UserAvatar = memo(({ user, size = 60 }) => {
+  if (user.picture && user.picture !== "") {
+    return (
+      <Image
+        source={{ uri: user.picture }}
+        style={[styles.avatarImage, { width: size, height: size }]}
+        resizeMode="cover"
+        defaultSource={require("../../Assets/Icons/avatar.jpg")}
+      />
+    );
+  }
+
+  // Fallback to colored initials
+  return (
+    <View
+      style={[
+        styles.avatarFallback,
+        { 
+          width: size, 
+          height: size, 
+          backgroundColor: user.avatarColor 
+        },
+      ]}
+    >
+      <Text style={styles.avatarText}>
+        {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+      </Text>
+    </View>
+  );
+});
+
+UserAvatar.displayName = "UserAvatar";
+
+// Main SideBar Component with RTL animation
+const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }) => {
   const { width, height } = Dimensions.get("window");
   const insets = useSafeAreaInsets();
   const isLandscape = width > height;
 
+  // Animation values for slide in from right
+  const slideAnim = useRef(new Animated.Value(width)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
+  const overlayAnim = useRef(new Animated.Value(0)).current;
+
   const [expandedItems, setExpandedItems] = useState(new Set());
   const [user, setUser] = useState({
+    id: null,
     name: "",
     email: "",
-    mobileNumber: "",
-    role: "User",
+    contactNumber: "",
+    picture: "",
+    referralCode: "",
+    loginType: "",
     avatarColor: "#4A90E2",
     isLoading: true,
   });
 
-
-  // Fetch user data from AsyncStorage on component mount
-useEffect(() => {
-  const fetchUserData = async () => {
-    try {
-      const session = await getAuthSession();
-
-      if (session?.isAuthenticated && session?.userData) {
-        const { username, email, contactNumber } = session.userData;
-
-        setUser({
-          name: username || "User",
-          email: email || "",
-          mobileNumber: contactNumber || "",
-          role: "User",
-          avatarColor: "#4A90E2",
-          isLoading: false,
-        });
-      } else {
-        setUser({
-          name: "Kirubakaran",
-          email: "kirubakarantestuser08@gmail.com",
-          mobileNumber: "9790429938",
-          role: "User",
-          avatarColor: "#4A90E2",
-          isLoading: false,
-        });
-      }
-    } catch (error) {
-      console.error("Error loading user session:", error);
-      setUser({
-        name: "Error",
-        email: "",
-        mobileNumber: "",
-        role: "Error",
-        avatarColor: "#4A90E2",
-        isLoading: false,
-      });
-    }
-  };
-
-  fetchUserData();
-}, []);
-
-  // Calculate sidebar width (memoized for performance)
+  // Calculate sidebar width
   const sidebarWidth = useMemo(() => {
     if (isLandscape) {
       return Math.min(width * 0.4, 350);
@@ -241,63 +228,116 @@ useEffect(() => {
     return Math.min(width * 0.85, 400);
   }, [width, isLandscape]);
 
-  // Optimized toggle function
-  const toggleSubItems = useCallback((key) => {
-    setExpandedItems((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(key)) {
-        newSet.delete(key);
-      } else {
-        newSet.add(key);
-      }
-      return newSet;
-    });
-  }, []);
-
-  // Optimized navigation handler
-  const handleNavigate = useCallback(
-    (route) => {
-      navigation.navigate(route);
-      // Close drawer on navigation (optional)
-      if (onClose) {
-        onClose();
-      }
-    },
-    [navigation, onClose],
-  );
-
-  // Handle logout
-  const handleLogout = useCallback(async () => {
-    try {
-      await clearAuthData();
-
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Login" }],
-      });
-
-      console.log("Logout successful");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  }, [navigation]);
-
-  // Handle edit profile
-  const handleEditProfile = useCallback(() => {
-    navigation.navigate("EditProfile");
-    if (onClose) {
-      onClose();
-    }
-  }, [navigation, onClose]);
-
-  // Handle back/close
-  const handleBack = useCallback(() => {
-    if (onClose) {
-      onClose();
+  // Animate sidebar when component mounts or visibility changes
+  useEffect(() => {
+    if (isVisible) {
+      // Slide in from right
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(overlayAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: false,
+        }),
+      ]).start();
     } else {
-      navigation.goBack();
+      // Slide out to right
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: sidebarWidth,
+          duration: 250,
+          easing: Easing.in(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 0,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(overlayAnim, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: false,
+        }),
+      ]).start();
     }
-  }, [navigation, onClose]);
+  }, [isVisible, slideAnim, opacityAnim, overlayAnim, sidebarWidth]);
+
+  // Fetch user data from AsyncStorage
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        console.log("=== SIDEBAR: FETCHING USER DATA ===");
+        
+        // Method 1: Get user data directly
+        const userData = await getUserData();
+        console.log("User data from getUserData():", userData);
+        
+        // Method 2: Get auth session
+        const session = await getAuthSession();
+        console.log("Auth session:", session);
+        
+        // Method 3: Get user ID separately
+        const userId = await getUserId();
+        console.log("User ID from getUserId():", userId);
+        
+        // Debug all AsyncStorage
+        await debugAsyncStorage();
+
+        // Use the data we have
+        const userInfo = userData || session?.user || {};
+        
+        console.log("Extracted user info:", {
+          id: userInfo.userId || userInfo.userid,
+          username: userInfo.username,
+          email: userInfo.email,
+          contactNumber: userInfo.contactNumber,
+          picture: userInfo.picture,
+          loginType: userInfo.loginType,
+          referralCode: userInfo.referralCode,
+        });
+
+        // Set user data with proper fallbacks
+        setUser({
+          id: userInfo.userId || userInfo.userid || userId,
+          name: userInfo.username || userInfo.name || "User",
+          email: userInfo.email || "",
+          contactNumber: userInfo.contactNumber || userInfo.mobileNumber || "",
+          picture: userInfo.picture || "",
+          referralCode: userInfo.referralCode || "",
+          loginType: userInfo.loginType || "normal",
+          avatarColor: getAvatarColor(userInfo.username || userInfo.name || "User"),
+          isLoading: false,
+        });
+
+      } catch (error) {
+        console.error("Error loading user data:", error);
+        setUser({
+          id: null,
+          name: "Guest User",
+          email: "",
+          contactNumber: "",
+          picture: "",
+          referralCode: "",
+          loginType: "unknown",
+          avatarColor: "#4A90E2",
+          isLoading: false,
+        });
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   // Function to generate avatar color based on name
   const getAvatarColor = useCallback((name) => {
@@ -322,156 +362,240 @@ useEffect(() => {
     return colors[Math.abs(hash) % colors.length];
   }, []);
 
-  // Update avatar color when name changes
-  useEffect(() => {
-    if (user.name && !user.isLoading) {
-      setUser((prev) => ({
-        ...prev,
-        avatarColor: getAvatarColor(prev.name),
-      }));
+  // Optimized toggle function
+  const toggleSubItems = useCallback((key) => {
+    setExpandedItems((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(key)) {
+        newSet.delete(key);
+      } else {
+        newSet.add(key);
+      }
+      return newSet;
+    });
+  }, []);
+
+  // Optimized navigation handler
+  const handleNavigate = useCallback(
+    (route) => {
+      // Close drawer first
+      if (onClose) {
+        onClose();
+      }
+      // Then navigate
+      navigation.navigate(route);
+    },
+    [navigation, onClose],
+  );
+
+  // Handle logout
+  const handleLogout = useCallback(async () => {
+    try {
+      // Clear all auth data
+      await clearAuthData();
+      
+      // Close drawer first
+      if (onClose) {
+        onClose();
+      }
+      
+      // Navigate to Login screen
+      navigation.getParent()?.navigate('Login');
+      
+      console.log("Logout successful");
+    } catch (error) {
+      console.error("Logout error:", error);
     }
-  }, [user.name, user.isLoading, getAvatarColor]);
+  }, [navigation, onClose]);
+
+  // Handle edit profile
+  const handleEditProfile = useCallback(() => {
+    // Close drawer first
+    if (onClose) {
+      onClose();
+    }
+    // Navigate to EditProfile
+    navigation.navigate("EditProfile", { user });
+  }, [navigation, onClose, user]);
+
+  // Handle back/close
+  const handleBack = useCallback(() => {
+    if (onClose) {
+      onClose();
+    }
+  }, [onClose]);
+
+  // Handle overlay press to close drawer
+  const handleOverlayPress = useCallback(() => {
+    if (onClose) {
+      onClose();
+    }
+  }, [onClose]);
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          width: "100%",
-          paddingTop: insets.top,
-          paddingBottom: insets.bottom,
-        },
-      ]}
-    >
-      <StatusBar
-        backgroundColor={COLORS.primary}
-        barStyle="light-content"
-        translucent={Platform.OS === "android"}
-      />
-
-      {/* Header with Back and Edit Icons */}
-      <View style={styles.header}>
+    <>
+      {/* Overlay background */}
+      <Animated.View 
+        style={[
+          styles.overlay,
+          {
+            opacity: overlayAnim,
+          }
+        ]}
+      >
         <TouchableOpacity
-          style={styles.headerButton}
-          onPress={handleBack}
-          activeOpacity={0.7}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Icon name="arrow-back" size={24} color={COLORS.primary} />
-        </TouchableOpacity>
+          style={styles.overlayTouchable}
+          activeOpacity={1}
+          onPress={handleOverlayPress}
+        />
+      </Animated.View>
 
+      {/* Sidebar */}
+      <Animated.View
+        style={[
+          styles.container,
+          {
+            width: sidebarWidth,
+            paddingTop: insets.top,
+            paddingBottom: insets.bottom,
+            transform: [{ translateX: slideAnim }],
+            opacity: opacityAnim,
+          },
+        ]}
+      >
+        <StatusBar
+          backgroundColor={COLORS.primary}
+          barStyle="light-content"
+          translucent={Platform.OS === "android"}
+        />
 
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={handleEditProfile}
-          activeOpacity={0.7}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Icon name="edit" size={24} color={COLORS.primary} />
-        </TouchableOpacity>
-      </View>
+        {/* Header with Back and Edit Icons */}
+        <View style={styles.header}>
+          
 
-      {/* User Profile Section */}
-      <View style={styles.profileSection}>
-        <LinearGradient
-          colors={[COLORS.primary, COLORS.secondary]}
-          style={styles.profileGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          {user.isLoading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={COLORS.white} />
-              <Text style={styles.loadingText}>Loading user data...</Text>
-            </View>
-          ) : (
-            <View style={styles.profileContent}>
-              <View
-                style={[styles.avatar, { backgroundColor: user.avatarColor }]}
-              >
-                <Text style={styles.avatarText}>
-                  {user.name ? user.name.charAt(0).toUpperCase() : "U"}
-                </Text>
+          
+        </View>
+
+        {/* User Profile Section */}
+        <View style={styles.profileSection}>
+          <LinearGradient
+            colors={[COLORS.primary, COLORS.secondary]}
+            style={styles.profileGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            {user.isLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={COLORS.white} />
+                <Text style={styles.loadingText}>Loading user data...</Text>
               </View>
-              <View style={styles.profileInfo}>
-                <Text style={styles.profileName} numberOfLines={1}>
-                  {user.name}
-                </Text>
-                <Text style={styles.profileEmail} numberOfLines={1}>
-                  {user.email}
-                </Text>
-                {user.mobileNumber ? (
-                  <Text style={styles.profileMobile} numberOfLines={1}>
-                    <Icon
-                      name="phone"
-                      size={12}
-                      color="rgba(255, 255, 255, 0.8)"
-                    />{" "}
-                    {user.mobileNumber}
+            ) : (
+              <View style={styles.profileContent}>
+                <UserAvatar user={user} size={70} />
+                
+                <View style={styles.profileInfo}>
+                  <View style={styles.nameRow}>
+                    <Text style={styles.profileName} numberOfLines={1}>
+                      {user.name}
+                    </Text>
+                    {user.loginType === "GOOGLE" && (
+                      <Icon 
+                        name="verified" 
+                        size={16} 
+                        color={COLORS.success} 
+                        style={styles.verifiedIcon}
+                      />
+                    )}
+                  </View>
+                  
+                  <Text style={styles.profileEmail} numberOfLines={1}>
+                    {user.email}
                   </Text>
-                ) : null}
-                <View style={styles.roleBadge}>
-                  <Text style={styles.roleText}>{user.role}</Text>
+                  
+                  {user.contactNumber ? (
+                    <View style={styles.contactRow}>
+                      <Icon
+                        name="phone"
+                        size={12}
+                        color="rgba(255, 255, 255, 0.8)"
+                      />
+                      <Text style={styles.profileMobile} numberOfLines={1}>
+                        {user.contactNumber}
+                      </Text>
+                    </View>
+                  ) : null}
                 </View>
               </View>
-            </View>
-          )}
-        </LinearGradient>
-      </View>
-
-      {/* Scrollable Menu Items */}
-      <ScrollView
-        style={styles.menuContainer}
-        contentContainerStyle={styles.menuContentContainer}
-        showsVerticalScrollIndicator={false}
-        bounces={true}
-        overScrollMode="never"
-      >
-        {MENU_ITEMS.map((item) => (
-          <DrawerItem
-            key={item.key}
-            item={item}
-            isActive={activeRoute === item.route}
-            onPress={handleNavigate}
-            showSubItems={expandedItems.has(item.key)}
-            onToggleSubItems={toggleSubItems}
-          />
-        ))}
-      </ScrollView>
-
-      {/* Footer Section */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.footerButton}
-          onPress={handleLogout}
-          activeOpacity={0.7}
-        >
-          <Icon name="logout" size={SIZES.icon.md} color={COLORS.error} />
-          <Text style={styles.footerButtonText}>Logout</Text>
-        </TouchableOpacity>
-
-        <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>v1.2.0</Text>
-          <View style={styles.statusDot} />
-          <Text style={styles.versionText}>Online</Text>
+            )}
+          </LinearGradient>
         </View>
-      </View>
-    </View>
+
+        {/* Scrollable Menu Items */}
+        <ScrollView
+          style={styles.menuContainer}
+          contentContainerStyle={styles.menuContentContainer}
+          showsVerticalScrollIndicator={false}
+          bounces={true}
+          overScrollMode="never"
+        >
+          {MENU_ITEMS.map((item) => (
+            <DrawerItem
+              key={item.key}
+              item={item}
+              isActive={activeRoute === item.route}
+              onPress={handleNavigate}
+              showSubItems={expandedItems.has(item.key)}
+              onToggleSubItems={toggleSubItems}
+            />
+          ))}
+        </ScrollView>
+
+        {/* Footer Section */}
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={styles.footerButton}
+            onPress={handleLogout}
+            activeOpacity={0.7}
+          >
+            <Icon name="logout" size={SIZES.icon.md} color={COLORS.error} />
+            <Text style={styles.footerButtonText}>Logout</Text>
+          </TouchableOpacity>
+
+          <View style={styles.versionContainer}>
+            <Text style={styles.versionText}>v1.2.0</Text>
+            <View style={styles.statusDot} />
+            <Text style={styles.versionText}>Online</Text>
+          </View>
+        </View>
+      </Animated.View>
+    </>
   );
 };
 
 export default memo(SideBar);
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-    position: "absolute",
-    right: 0,
+  overlay: {
+    position: 'absolute',
     top: 0,
+    left: 0,
+    right: 0,
     bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 999,
+  },
+  overlayTouchable: {
+    flex: 1,
+  },
+  container: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: COLORS.white,
     ...SHADOWS.large,
     zIndex: 1000,
+    elevation: 5,
   },
   header: {
     flexDirection: "row",
@@ -491,11 +615,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: COLORS.lightGray,
   },
-  headerTitle: {
-    ...FONTS.h3,
-    color: COLORS.text,
-    fontWeight: "600",
-  },
   profileSection: {
     marginHorizontal: SIZES.margin.lg,
     marginVertical: SIZES.margin.lg,
@@ -506,7 +625,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    minHeight: 140,
+    minHeight: 160,
   },
   profileGradient: {
     padding: SIZES.padding.lg,
@@ -526,10 +645,13 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     marginTop: SIZES.margin.sm,
   },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+  avatarImage: {
+    borderRadius: 35,
+    borderWidth: 3,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+  avatarFallback: {
+    borderRadius: 35,
     justifyContent: "center",
     alignItems: "center",
     marginRight: SIZES.margin.lg,
@@ -544,37 +666,36 @@ const styles = StyleSheet.create({
   profileInfo: {
     flex: 1,
   },
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
   profileName: {
     ...FONTS.h3,
     color: COLORS.white,
-    marginBottom: 4,
     fontWeight: "600",
+    flex: 1,
+  },
+  verifiedIcon: {
+    marginLeft: 4,
   },
   profileEmail: {
     ...FONTS.body,
-    color: "rgba(255, 255, 255, 0.8)",
+    color: "rgba(255, 255, 255, 0.9)",
     fontSize: 13,
-    marginBottom: 4,
+    marginBottom: 6,
+  },
+  contactRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
   },
   profileMobile: {
     ...FONTS.body,
     color: "rgba(255, 255, 255, 0.8)",
     fontSize: 12,
-    marginBottom: 8,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  roleBadge: {
-    backgroundColor: "rgba(255, 255, 255, 0.25)",
-    paddingHorizontal: SIZES.padding.sm,
-    paddingVertical: 4,
-    borderRadius: SIZES.radius.sm,
-    alignSelf: "flex-start",
-  },
-  roleText: {
-    ...FONTS.caption,
-    color: COLORS.white,
-    fontWeight: "600",
+    marginLeft: 4,
   },
   menuContainer: {
     flex: 1,

@@ -1,15 +1,32 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   createMpin,
   verifyMpin,
   resetMpinWithOld,
   resetMpinDirect,
-} from '../Services/MpinService';
+} from "../Services/MpinService";
 
 export const useMpin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
+
+  const normalizeError = (err) => {
+    // Default error shape
+    const normalizedError = {
+      message: err?.message || "Something went wrong",
+      status: err?.status,
+      code: err?.code,
+    };
+
+    // 🔑 MPIN NOT FOUND (from your current service)
+    if (err?.message === "MPIN not found") {
+      normalizedError.code = "MPIN_NOT_FOUND";
+      normalizedError.status = 404;
+    }
+
+    return normalizedError;
+  };
 
   const handleRequest = async (apiCall) => {
     try {
@@ -17,14 +34,15 @@ export const useMpin = () => {
       setError(null);
       setMessage(null);
 
-      const responseText = await apiCall(); // fetch returns text
-      setMessage(responseText || 'Success');
+      const responseText = await apiCall();
+      setMessage(responseText || "Success");
 
       return responseText;
     } catch (err) {
-      const apiMessage = err?.message || 'Something went wrong';
-      setError(apiMessage);
-      throw err; // 🔥 rethrow so screen-level handling works
+      const normalizedError = normalizeError(err);
+
+      setError(normalizedError.message);
+      throw normalizedError; // 🔥 always throw normalized error
     } finally {
       setLoading(false);
     }
