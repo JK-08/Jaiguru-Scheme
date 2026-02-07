@@ -13,24 +13,35 @@ const useAuth = () => {
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+const handleApi = async (apiFn, successCallback = null) => {
+  setLoading(true);
+  setError(null);
 
-  const handleApi = async (apiFn, successCallback = null) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await apiFn();
-      if (successCallback) {
-        successCallback(result);
-      }
-      return result;
-    } catch (err) {
-      const errorMessage = err.message || 'Something went wrong';
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const result = await apiFn();
+    if (successCallback) successCallback(result);
+    return result;
+
+  } catch (err) {
+    // 👇 Extract backend error PROPERLY
+    const backendError =
+      err?.response?.data?.error ||
+      err?.response?.data?.message ||
+      err?.message ||
+      'Something went wrong';
+
+    setError(backendError);
+
+    // 👇 IMPORTANT: return error object instead of throwing
+    return {
+      error: backendError,
+      status: err?.response?.status,
+    };
+
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Normal Signup
   const signUp = (payload) =>

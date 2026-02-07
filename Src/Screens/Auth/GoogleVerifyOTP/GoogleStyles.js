@@ -4,6 +4,18 @@ import theme from '../../../Utills/AppTheme';
 
 const { width } = Dimensions.get('window');
 
+// Helper function for rgba colors
+const hexToRgba = (hex, alpha = 1) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return hex;
+  
+  const r = parseInt(result[1], 16);
+  const g = parseInt(result[2], 16);
+  const b = parseInt(result[3], 16);
+  
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 export default StyleSheet.create({
   container: {
     flex: 1,
@@ -23,7 +35,7 @@ export default StyleSheet.create({
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: `${theme.COLORS.error}15`,
+    backgroundColor: hexToRgba(theme.COLORS.error, 0.08),
     padding: theme.SIZES.padding.md,
     borderRadius: theme.SIZES.radius.md,
     marginBottom: theme.SIZES.xl,
@@ -127,27 +139,71 @@ export default StyleSheet.create({
   },
   inputError: {
     borderColor: theme.COLORS.error,
+    backgroundColor: hexToRgba(theme.COLORS.error, 0.03),
+  },
+  inputErrorExists: {
+    borderColor: theme.COLORS.warning,
+    backgroundColor: hexToRgba(theme.COLORS.warning, 0.05),
+    borderWidth: 1.5,
   },
   errorMessageContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: theme.SIZES.xs,
+    paddingHorizontal: theme.SIZES.xs,
+  },
+  errorExistsContainer: {
+    backgroundColor: hexToRgba(theme.COLORS.warning, 0.1),
+    padding: theme.SIZES.sm,
+    borderRadius: theme.SIZES.radius.sm,
+    marginTop: theme.SIZES.sm,
+    borderWidth: 1,
+    borderColor: hexToRgba(theme.COLORS.warning, 0.3),
   },
   errorTextSmall: {
     ...theme.FONTS.bodySmall,
     color: theme.COLORS.error,
     marginLeft: theme.SIZES.xs,
+    flex: 1,
+  },
+  errorExistsText: {
+    ...theme.FONTS.bodySmall,
+    color: theme.COLORS.warning,
+    marginLeft: theme.SIZES.xs,
+    flex: 1,
+    fontWeight: '600',
   },
   hintText: {
     ...theme.FONTS.bodySmall,
     color: theme.COLORS.textSecondary,
     marginTop: theme.SIZES.sm,
+    lineHeight: 18,
   },
   hashInfoText: {
     ...theme.FONTS.bodySmall,
     color: theme.COLORS.success,
     marginTop: theme.SIZES.xs,
     fontStyle: 'italic',
+  },
+
+  // Hash Status
+  hashStatusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: hexToRgba(theme.COLORS.info, 0.1),
+    padding: theme.SIZES.sm,
+    borderRadius: theme.SIZES.radius.sm,
+    marginBottom: theme.SIZES.sm,
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: hexToRgba(theme.COLORS.info, 0.2),
+  },
+  hashStatusText: {
+    ...theme.FONTS.bodySmall,
+    color: theme.COLORS.info,
+    marginLeft: theme.SIZES.xs,
+    fontSize: 12,
+    fontWeight: '500',
   },
 
   // Actions Container
@@ -167,6 +223,7 @@ export default StyleSheet.create({
   },
   submitButtonDisabled: {
     opacity: 0.6,
+    backgroundColor: theme.COLORS.disabled,
   },
   submitButtonText: {
     ...theme.FONTS.buttonLarge,
@@ -178,28 +235,82 @@ export default StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: theme.SIZES.sm,
+    opacity: 1,
   },
-  skipText: {
+  skipButtonDisabled: {
+    opacity: 0.5,
+  },
+  skipButtonText: {
     ...theme.FONTS.bodyMedium,
     color: theme.COLORS.textTertiary,
     marginLeft: theme.SIZES.xs,
   },
 
-  // Info Note
-  infoNote: {
+  // Info Box
+  infoBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: `${theme.COLORS.info}10`,
+    backgroundColor: hexToRgba(theme.COLORS.info, 0.08),
     padding: theme.SIZES.padding.md,
     borderRadius: theme.SIZES.radius.md,
     borderLeftWidth: 3,
     borderLeftColor: theme.COLORS.info,
+    marginTop: theme.SIZES.xl,
+  },
+  infoIcon: {
+    marginRight: theme.SIZES.sm,
+    marginTop: 2,
+  },
+  infoTitle: {
+    ...theme.FONTS.bodyBold,
+    color: theme.COLORS.textPrimary,
+    marginBottom: theme.SIZES.xs,
   },
   infoText: {
     ...theme.FONTS.bodySmall,
     color: theme.COLORS.textSecondary,
-    flex: 1,
-    marginLeft: theme.SIZES.sm,
     lineHeight: 20,
+  },
+
+  // Success/Error State Styles
+  successContainer: {
+    backgroundColor: hexToRgba(theme.COLORS.success, 0.1),
+    borderColor: theme.COLORS.success,
+  },
+  warningContainer: {
+    backgroundColor: hexToRgba(theme.COLORS.warning, 0.1),
+    borderColor: theme.COLORS.warning,
+  },
+
+  // Retry Button
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: hexToRgba(theme.COLORS.warning, 0.1),
+    borderRadius: theme.SIZES.radius.sm,
+    paddingHorizontal: theme.SIZES.md,
+    paddingVertical: theme.SIZES.sm,
+    marginTop: theme.SIZES.sm,
+    borderWidth: 1,
+    borderColor: hexToRgba(theme.COLORS.warning, 0.3),
+  },
+  retryButtonText: {
+    ...theme.FONTS.bodySmall,
+    color: theme.COLORS.warning,
+    marginLeft: theme.SIZES.xs,
+  },
+
+  // Loading State
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: theme.SIZES.md,
+  },
+  loadingText: {
+    ...theme.FONTS.bodySmall,
+    color: theme.COLORS.textSecondary,
+    marginLeft: theme.SIZES.sm,
   },
 });

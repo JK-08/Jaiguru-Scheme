@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 7.0.0"
+    "version": ">= 7.0.0",
+    "appVersionSource": "local"
   },
   "build": {
     "development": {
@@ -16,7 +17,6 @@
         "APP_ENV": "development"
       }
     },
-
     "production": {
       "autoIncrement": true,
       "android": {
@@ -29,7 +29,6 @@
         "APP_ENV": "production"
       }
     },
-
     "production-apk": {
       "autoIncrement": true,
       "android": {
@@ -40,7 +39,6 @@
       }
     }
   },
-
   "submit": {
     "production": {
       "android": {

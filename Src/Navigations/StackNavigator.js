@@ -1,101 +1,88 @@
-import * as React from 'react';
-import { View,ActivityIndicator } from 'react-native';
+// Src/Navigations/StackNavigator.js
+import React, { useEffect, useState } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import OnboardingScreen from '../Screens/Onboard/OnboardingScreen';
-import HomeScreen from '../Screens/Home/HomeScreen';
-import RegisterScreen from '../Screens/Auth/Register/Register';
 import LoginScreen from '../Screens/Auth/Login/Login';
+import RegisterScreen from '../Screens/Auth/Register/Register';
 import VerifyOTPScreen from '../Screens/Auth/VerifyOTP/VerifyOTP';
-import GoogleContactVerificationScreen from '../Screens/Auth/GoogleVerifyOTP/GoogleEnterMobile';
-import AsynchStorageHelper from '../Utills/AsynchStorageHelper';
+import MpinCreateScreen from '../Screens/Auth/CreateMpin/CreateMpin';
+import MpinVerifyScreen from '../Screens/Auth/VerifyMpin/VerifyMpin';
+import AllSchemesScreen from '../Screens/SchemeDetails/SchemeDetailScreen';
+import MainDrawerNavigator from './DrawerNavigator';
 
 const Stack = createNativeStackNavigator();
 
 export default function StackNavigator() {
-  const [initialRoute, setInitialRoute] = React.useState(null);
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [initialRoute, setInitialRoute] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const init = async () => {
-    
       try {
-
-        AsyncStorage.clear(); // For testing purposes only, remove in production
-        // Check if onboarding was completed
+        // AsyncStorage.clear();
         const hasSeenOnboarding = await AsyncStorage.getItem('hasSeenOnboarding');
-        
-        // Check if user is logged in
-        const userToken = await AsyncStorage.getItem('authToken');
-        const userDataStr = await AsyncStorage.getItem('userData');
-        let isLoggedIn = false;
-        
-        if (userToken && userDataStr) {
-          try {
-            const userData = JSON.parse(userDataStr);
-            // Additional validation if needed
-            isLoggedIn = !!userToken && !!userData.id;
-          } catch (e) {
-            console.log('Error parsing user data:', e);
-            isLoggedIn = false;
-          }
+        const token = await AsyncStorage.getItem('authToken');
+        const hasMpin = await AsyncStorage.getItem('hasMpin');
+
+        /**
+         * 🔀 FINAL FLOW
+         */
+
+        // 1️⃣ First time only → Onboarding
+        if (!hasSeenOnboarding) {
+          setInitialRoute('Onboarding');
         }
 
-        console.log('Navigation initialization:', {
-          hasSeenOnboarding,
-          hasToken: !!userToken,
-          isLoggedIn
-        });
-
-        // Determine initial route based on app state
-        if (!hasSeenOnboarding) {
-          // First time user - show onboarding
-          setInitialRoute('Onboarding');
-        } else if (isLoggedIn) {
-          // User is already logged in - go directly to home
-          setInitialRoute('Home');
-        } else {
-          // Returning user but not logged in - go to login
+        // 2️⃣ Onboarding done, NOT logged in → Login
+        else if (!token) {
           setInitialRoute('Login');
         }
+
+        // 3️⃣ Logged in, MPIN not created → Create MPIN
+        else if (hasMpin !== 'true') {
+          setInitialRoute('MpinCreate');
+        }
+
+        // 4️⃣ Logged in + MPIN exists → ALWAYS Verify MPIN
+        else {
+          setInitialRoute('MpinVerify');
+        }
       } catch (e) {
-        console.error('Error initializing navigation:', e);
-        // Fallback to onboarding on error
+        console.log('Navigation init error', e);
         setInitialRoute('Onboarding');
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
     init();
   }, []);
 
-  // Show loading screen while determining initial route
-  if (isLoading || !initialRoute) {
+  if (loading || !initialRoute) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
-        <ActivityIndicator size="large" color="#D4AF37" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
       </View>
     );
   }
 
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName={initialRoute}
-        screenOptions={{ headerShown: false }}
-      >
+      <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={initialRoute}>
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="VerifyOTP" component={VerifyOTPScreen} />
-        <Stack.Screen
-          name="GoogleContactVerification"
-          component={GoogleContactVerificationScreen}
-        />
-        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="MpinCreate" component={MpinCreateScreen} />
+        <Stack.Screen name="MpinVerify" component={MpinVerifyScreen} />
+        <Stack.Screen name="AllSchemes" component={AllSchemesScreen} />
+
+        {/* Drawer after MPIN success */}
+        <Stack.Screen name="MainDrawer" component={MainDrawerNavigator} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -21,9 +21,10 @@ import { LinearGradient } from "expo-linear-gradient";
 const { width, height } = Dimensions.get("window");
 
 const OnboardingScreen = ({ navigation }) => {
-  const { banners, loading, error: bannerError } = useOnboardBanners();
+  const { banners, loading, error: bannerError, refresh } = useOnboardBanners();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showGetStarted, setShowGetStarted] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
   const flatListRef = useRef(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -62,19 +63,30 @@ const OnboardingScreen = ({ navigation }) => {
   const completeOnboarding = async () => {
     try {
       // Mark onboarding as completed
-      await AsyncStorage.setItem("hasSeenOnboarding", "true");
+      await AsyncStorage.setItem('hasSeenOnboarding', 'true');
 
-      // Navigate to Register screen
-      navigation.replace("Register");
+      // Navigate to Login screen
+      navigation.replace("Login");
     } catch (error) {
       console.error("Error completing onboarding:", error);
       // Fallback navigation
-      navigation.replace("Register");
+      navigation.replace("Login");
     }
   };
 
   const handleSkip = completeOnboarding;
   const handleGetStarted = completeOnboarding;
+
+  const handleRetry = async () => {
+    setIsRetrying(true);
+    try {
+      await refresh();
+    } catch (error) {
+      console.error("Retry error:", error);
+    } finally {
+      setIsRetrying(false);
+    }
+  };
 
   const onScrollEnd = (e) => {
     const contentOffset = e.nativeEvent.contentOffset.x;
@@ -112,11 +124,14 @@ const OnboardingScreen = ({ navigation }) => {
     );
   };
 
-  if (loading) {
+  // Show loading indicator during retry
+  if (isRetrying || loading) {
     return (
       <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color={theme.COLORS.goldPrimary} />
-        <Text style={styles.loadingText}>Loading...</Text>
+        <Text style={styles.loadingText}>
+          {isRetrying ? "Retrying..." : "Loading..."}
+        </Text>
       </View>
     );
   }
@@ -128,10 +143,15 @@ const OnboardingScreen = ({ navigation }) => {
         <Text style={styles.errorText}>{bannerError}</Text>
         <TouchableOpacity
           style={styles.retryButton}
-          onPress={() => window.location.reload()}
+          onPress={handleRetry}
           activeOpacity={0.8}
+          disabled={isRetrying}
         >
-          <Text style={styles.retryText}>Retry</Text>
+          {isRetrying ? (
+            <ActivityIndicator size="small" color={theme.COLORS.primary} />
+          ) : (
+            <Text style={styles.retryText}>Retry</Text>
+          )}
         </TouchableOpacity>
       </View>
     );
@@ -144,10 +164,15 @@ const OnboardingScreen = ({ navigation }) => {
         <Text style={styles.errorText}>Please try again later</Text>
         <TouchableOpacity
           style={styles.retryButton}
-          onPress={() => window.location.reload()}
+          onPress={handleRetry}
           activeOpacity={0.8}
+          disabled={isRetrying}
         >
-          <Text style={styles.retryText}>Retry</Text>
+          {isRetrying ? (
+            <ActivityIndicator size="small" color={theme.COLORS.primary} />
+          ) : (
+            <Text style={styles.retryText}>Retry</Text>
+          )}
         </TouchableOpacity>
       </View>
     );
@@ -283,6 +308,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.SIZES.padding.xxl,
     paddingVertical: theme.SIZES.padding.lg,
     borderRadius: theme.SIZES.radius.lg,
+    minWidth: 120,
+    minHeight: 50,
+    justifyContent: "center",
+    alignItems: "center",
     ...theme.SHADOWS.md,
   },
   retryText: {
@@ -300,7 +329,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     ...StyleSheet.absoluteFillObject,
-
     paddingTop: Platform.OS === "ios" ? theme.SIZES.xxxl : theme.SIZES.xxl,
   },
   topContainer: {
@@ -329,7 +357,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.SIZES.padding.lg,
     marginBottom: theme.SIZES.lg,
   },
-
   getStartedContainer: {
     width: "100%",
     alignItems: "center",

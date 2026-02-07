@@ -3,14 +3,14 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   Dimensions,
   TextInput,
+  Animated,
+  Keyboard,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -19,15 +19,21 @@ import Header from "../../../Components/CommonHeader/CommonHeader";
 import useAuth from "../../../Hooks/useRegister";
 import theme from "../../../Utills/AppTheme";
 import { saveAuthData } from "../../../Utills/AsynchStorageHelper";
-import { showToast } from "../../../Components/Toast/Toast"; // Assuming you have this utility
+import { 
+  ToastTypes, 
+  ToastPositions,
+  ToastAnimationTypes,
+  useToast 
+} from "../../../Components/Toast/Toast";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { styles } from "./VerifyOTPStyles";
 
 const { width, height } = Dimensions.get("window");
 
 const VerifyOTPScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { verifyNormalOtp, verifyGoogleOtp, loading, error, clearError } =
-    useAuth();
+  const { verifyNormalOtp, verifyGoogleOtp, loading, error, clearError } = useAuth();
 
   const {
     mobileNumber,
@@ -35,24 +41,54 @@ const VerifyOTPScreen = () => {
     username,
     otpType = "normal",
     googleData,
+    registrationData,
   } = route.params || {};
 
+  // console.log("🚀 VerifyOTPScreen params:", route.params);
+
+  // OTP State
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [resendTimer, setResendTimer] = useState(20);
+  const [resendTimer, setResendTimer] = useState(30);
   const [otpLoading, setOtpLoading] = useState(false);
   const [autoCompleteOtp, setAutoCompleteOtp] = useState("");
+  
+  // Auto-verify State
   const [waitingForOtp, setWaitingForOtp] = useState(true);
   const [showFullScreenLoader, setShowFullScreenLoader] = useState(false);
-  const [autoVerifyTimer, setAutoVerifyTimer] = useState(20);
+  const [autoVerifyTimer, setAutoVerifyTimer] = useState(30);
   const [smsListenerReady, setSmsListenerReady] = useState(false);
   const [appHash, setAppHash] = useState([]);
+  
+  // Animation
+  const shakeAnimation = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.9)).current;
 
   const inputRefs = useRef([]);
   const { message, timeoutError, startListener, stopListener } = useOtpVerify({
     numberOfDigits: 6,
   });
 
-  // -------------------- TIMER --------------------
+  const { showToast, Toast } = useToast();
+
+  // Initialize animations
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 8,
+        tension: 40,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  // Resend timer
   useEffect(() => {
     if (resendTimer > 0) {
       const timer = setInterval(() => setResendTimer((prev) => prev - 1), 1000);
@@ -60,15 +96,16 @@ const VerifyOTPScreen = () => {
     }
   }, [resendTimer]);
 
-  // -------------------- DETECT OTP FROM MESSAGE --------------------
+  // OTP Detection from SMS
   const detectOtpFromMessage = (smsMessage) => {
     if (!smsMessage) return null;
     console.log("📩 Analyzing SMS for OTP:", smsMessage);
 
     const patterns = [
-      /your\s+otp\s+(?:for\s+\w+\s+)?is\s*(\d{6})/i,
+      /your\s+otp\s+(?:for\s+\w+\s+)?is\s*[:\-]?\s*(\d{6})/i,
       /otp.*?is\s*[:\-]?\s*(\d{6})/i,
       /otp[:\s]+(\d{6})/i,
+      /verification\s+code.*?(\d{6})/i,
       /\b(\d{6})\b/,
     ];
 
@@ -81,11 +118,11 @@ const VerifyOTPScreen = () => {
       }
     }
 
-    console.log("❌ No OTP detected");
+    console.log("❌ No OTP detected in message");
     return null;
   };
 
-  // -------------------- HANDLE INCOMING SMS --------------------
+  // Handle SMS message received
   useEffect(() => {
     if (message && smsListenerReady) {
       console.log("📨 SMS message received:", message);
@@ -96,50 +133,82 @@ const VerifyOTPScreen = () => {
         setOtp(detectedOtp.split(""));
         setWaitingForOtp(false);
         setShowFullScreenLoader(false);
-        showToast("OTP detected automatically!");
+        
+        showToast({
+          message: "✨ OTP detected automatically!",
+          type: ToastTypes.SUCCESS,
+          duration: 2000,
+          position: ToastPositions.TOP,
+          animationType: ToastAnimationTypes.SCALE
+        });
 
+        // Auto-verify after detection
         setTimeout(() => {
-          handleOTPVerification();
+          handleOTPVerification(detectedOtp);
         }, 800);
       }
     }
   }, [message, smsListenerReady]);
 
-  // -------------------- WAITING LOADER (20 seconds) --------------------
+  // Auto-verify timeout
   useEffect(() => {
-    if (smsListenerReady && Platform.OS === "android") {
+    if (smsListenerReady && Platform.OS === "android" && waitingForOtp) {
       setShowFullScreenLoader(true);
 
       const timer = setTimeout(() => {
         setWaitingForOtp(false);
         setShowFullScreenLoader(false);
-        showToast("You can enter OTP manually");
-      }, 20000);
+        
+        showToast({
+          message: "⌨️ Please enter OTP manually",
+          type: ToastTypes.INFO,
+          duration: 3000,
+          position: ToastPositions.TOP
+        });
+        
+        // Focus first input
+        setTimeout(() => {
+          inputRefs.current[0]?.focus();
+        }, 300);
+      }, 30000); // 30 seconds
 
       return () => clearTimeout(timer);
     }
-  }, [smsListenerReady]);
+  }, [smsListenerReady, waitingForOtp]);
 
-  // -------------------- HANDLE TIMEOUT --------------------
+  // Handle timeout error
   useEffect(() => {
     if (timeoutError) {
-      showToast("OTP detection timeout. Please enter it manually.");
+      showToast({
+        message: "⏱️ Auto-detection timeout. Enter OTP manually.",
+        type: ToastTypes.WARNING,
+        duration: 3000,
+        position: ToastPositions.TOP
+      });
       setWaitingForOtp(false);
       setShowFullScreenLoader(false);
+      
+      setTimeout(() => {
+        inputRefs.current[0]?.focus();
+      }, 300);
     }
   }, [timeoutError]);
 
-  // -------------------- AUTO VERIFY TIMER (20 seconds) --------------------
+  // Auto-verify countdown timer
   useEffect(() => {
     if (waitingForOtp && smsListenerReady && Platform.OS === "android") {
-      setAutoVerifyTimer(20);
+      setAutoVerifyTimer(30);
       const interval = setInterval(() => {
         setAutoVerifyTimer((prev) => {
           if (prev <= 1) {
             clearInterval(interval);
             setWaitingForOtp(false);
             setShowFullScreenLoader(false);
-            showToast("You can enter OTP manually");
+            
+            setTimeout(() => {
+              inputRefs.current[0]?.focus();
+            }, 300);
+            
             return 0;
           }
           return prev - 1;
@@ -150,7 +219,7 @@ const VerifyOTPScreen = () => {
     }
   }, [waitingForOtp, smsListenerReady]);
 
-  // -------------------- INITIALIZE LISTENER --------------------
+  // Initialize SMS listener
   useEffect(() => {
     const initializeSMSListener = async () => {
       if (Platform.OS === "android") {
@@ -163,18 +232,44 @@ const VerifyOTPScreen = () => {
           if (startListener) {
             startListener();
             setSmsListenerReady(true);
+            setWaitingForOtp(true);
+            setShowFullScreenLoader(true);
             console.log("✅ SMS listener started successfully");
+            
+            showToast({
+              message: "📱 Waiting for OTP SMS...",
+              type: ToastTypes.INFO,
+              duration: 3000,
+              position: ToastPositions.TOP
+            });
           }
         } catch (error) {
           console.error("❌ Error initializing SMS listener:", error);
+          
+          showToast({
+            message: "⚠️ Auto-detection unavailable. Enter OTP manually.",
+            type: ToastTypes.WARNING,
+            duration: 4000,
+            position: ToastPositions.TOP
+          });
+          
           setWaitingForOtp(false);
           setSmsListenerReady(false);
           setShowFullScreenLoader(false);
+          
+          setTimeout(() => {
+            inputRefs.current[0]?.focus();
+          }, 300);
         }
       } else {
+        // iOS - no auto-detection
         setWaitingForOtp(false);
         setSmsListenerReady(false);
         setShowFullScreenLoader(false);
+        
+        setTimeout(() => {
+          inputRefs.current[0]?.focus();
+        }, 300);
       }
     };
 
@@ -192,26 +287,47 @@ const VerifyOTPScreen = () => {
     };
   }, []);
 
-  // -------------------- AUTO VERIFY WHEN ALL DIGITS ENTERED --------------------
-  useEffect(() => {
-    const otpValue = otp.join("");
-    if (otpValue.length === 6 && !otpLoading && !waitingForOtp) {
-      console.log("🔍 Auto-verifying:", otpValue);
-      handleOTPVerification();
-    }
-  }, [otp]);
+  // Shake animation for errors
+  const shakeInputs = () => {
+    Animated.sequence([
+      Animated.timing(shakeAnimation, { toValue: 10, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnimation, { toValue: -10, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnimation, { toValue: 10, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnimation, { toValue: 0, duration: 50, useNativeDriver: true }),
+    ]).start();
+  };
 
-  // -------------------- OTP HANDLERS --------------------
+  // Handle OTP input change
   const handleOtpChange = (val, idx) => {
+    // Dismiss auto-verify loader if user starts typing
     if (val && waitingForOtp) {
       setWaitingForOtp(false);
       setShowFullScreenLoader(false);
     }
 
     const updated = [...otp];
+    
+    // Handle paste
+    if (val.length > 1) {
+      const pastedOtp = val.slice(0, 6).split("");
+      const newOtp = [...otp];
+      pastedOtp.forEach((digit, i) => {
+        if (idx + i < 6) {
+          newOtp[idx + i] = digit;
+        }
+      });
+      setOtp(newOtp);
+      
+      // Focus last filled input or last input
+      const lastFilledIndex = Math.min(idx + pastedOtp.length - 1, 5);
+      inputRefs.current[lastFilledIndex]?.focus();
+      return;
+    }
+
     updated[idx] = val;
     setOtp(updated);
 
+    // Auto-focus next/previous input
     if (val && idx < otp.length - 1) {
       inputRefs.current[idx + 1]?.focus();
     } else if (!val && idx > 0) {
@@ -219,16 +335,55 @@ const VerifyOTPScreen = () => {
     }
   };
 
+  // Handle backspace/delete
+  const handleKeyPress = (e, idx) => {
+    if (e.nativeEvent.key === 'Backspace' && !otp[idx] && idx > 0) {
+      inputRefs.current[idx - 1]?.focus();
+    }
+  };
+
+  // Clear OTP
   const clearOtp = () => {
     setOtp(["", "", "", "", "", ""]);
     setAutoCompleteOtp("");
     inputRefs.current[0]?.focus();
+    
+    showToast({
+      message: "🗑️ OTP cleared",
+      type: ToastTypes.INFO,
+      duration: 1500,
+      position: ToastPositions.BOTTOM
+    });
   };
 
-  const handleOTPVerification = async () => {
-    const otpValue = otp.join("");
+  // Navigate after successful OTP
+  const navigateAfterOtp = async () => {
+    try {
+      const hasMpin = await AsyncStorage.getItem("hasMpin");
+
+      if (hasMpin === "true") {
+        navigation.replace("MpinVerify");
+      } else {
+        navigation.replace("MpinCreate");
+      }
+    } catch (error) {
+      console.log("MPIN check error:", error);
+      navigation.replace("MpinCreate");
+    }
+  };
+
+  // Handle OTP Verification
+  const handleOTPVerification = async (customOtp = null) => {
+    const otpValue = customOtp || otp.join("");
+    
     if (otpValue.length !== 6) {
-      showToast("Please enter 6-digit OTP");
+      shakeInputs();
+      showToast({
+        message: "⚠️ Please enter 6-digit OTP",
+        type: ToastTypes.WARNING,
+        duration: 2000,
+        position: ToastPositions.TOP
+      });
       return;
     }
 
@@ -236,15 +391,16 @@ const VerifyOTPScreen = () => {
     setOtpLoading(true);
     setShowFullScreenLoader(true);
     clearError();
+    Keyboard.dismiss();
 
     try {
       let result;
 
       if (otpType === "normal") {
         const verificationData = {
-          username: username,
-          email: email,
-          contactNumber: mobileNumber,
+          username: username || registrationData?.username,
+          email: email || registrationData?.email,
+          contactNumber: mobileNumber || registrationData?.contactNumber,
           otp: otpValue.trim(),
         };
 
@@ -261,7 +417,6 @@ const VerifyOTPScreen = () => {
         result = await verifyGoogleOtp(verificationData);
         console.log("✅ Google OTP verification result:", result);
 
-        // Merge with Google data
         if (googleData && result) {
           result = {
             ...googleData,
@@ -271,30 +426,17 @@ const VerifyOTPScreen = () => {
         }
       }
 
-      // Check if verification was successful
       if (!result || (!result.token && !result.id)) {
-        const errorMsg =
-          result?.errorMessage || "Verification failed. Please try again.";
+        const errorMsg = result?.errorMessage || "Verification failed. Please try again.";
         throw new Error(errorMsg);
       }
 
-      // Check for referral code
+      // Handle referral code if present
       if (result.used_referral_code) {
-        console.log("🎯 Found referral code to verify:", {
+        console.log("🎯 Found referral code:", {
           userId: result.id,
           referralCode: result.used_referral_code,
         });
-
-        try {
-          // You might want to add referral verification logic here
-          // const referralCheckResponse = await userService.checkReferralCode(
-          //   result.id,
-          //   result.used_referral_code
-          // );
-          // console.log("📨 Referral API Response:", referralCheckResponse);
-        } catch (referralError) {
-          console.error("❌ Referral API error:", referralError);
-        }
       }
 
       // Save auth data
@@ -302,22 +444,37 @@ const VerifyOTPScreen = () => {
       console.log("💾 Save auth data result:", saveResult);
 
       if (!saveResult.success) {
-        throw new Error(
-          saveResult.error || "Failed to save authentication data",
-        );
+        throw new Error(saveResult.error || "Failed to save authentication data");
       }
 
-      showToast("OTP verified successfully!");
+      // Success
+      showToast({
+        message: "🎉 OTP verified successfully!",
+        type: ToastTypes.PREMIUM,
+        duration: 2000,
+        position: ToastPositions.TOP,
+        animationType: ToastAnimationTypes.BOUNCE
+      });
+      
       stopListener && stopListener();
       setShowFullScreenLoader(false);
 
-      // Navigate to Home
       setTimeout(() => {
-        navigation.replace("Home");
-      }, 500);
+        navigateAfterOtp();
+      }, 600);
+
     } catch (err) {
       console.log("❌ Verification error:", err);
-      showToast(err.message || "Invalid OTP. Please check and try again.");
+      
+      shakeInputs();
+      
+      showToast({
+        message: `❌ ${err.message || "Invalid OTP. Please check and try again."}`,
+        type: ToastTypes.ERROR,
+        duration: 3000,
+        position: ToastPositions.TOP
+      });
+      
       clearOtp();
       setShowFullScreenLoader(false);
     } finally {
@@ -325,25 +482,59 @@ const VerifyOTPScreen = () => {
     }
   };
 
+  // Handle Resend OTP
   const handleResendOtp = async () => {
     if (resendTimer > 0 || showFullScreenLoader) return;
 
     try {
-      showToast("OTP resent successfully!");
-      setResendTimer(20);
+      showToast({
+        message: "📨 OTP resent successfully!",
+        type: ToastTypes.SUCCESS,
+        duration: 2000,
+        position: ToastPositions.TOP
+      });
+      
+      setResendTimer(30);
       clearOtp();
 
+      // Restart auto-detection on Android
       if (Platform.OS === "android") {
         setWaitingForOtp(true);
         setShowFullScreenLoader(true);
+        setAutoVerifyTimer(30);
         startListener && startListener();
       }
     } catch (error) {
       console.error("Resend OTP error:", error);
-      showToast("Failed to resend OTP. Try again.");
+      
+      showToast({
+        message: "❌ Failed to resend OTP. Try again.",
+        type: ToastTypes.ERROR,
+        duration: 3000,
+        position: ToastPositions.TOP
+      });
     }
   };
 
+  // Skip auto-verify and enter manually
+  const skipAutoVerify = () => {
+    setWaitingForOtp(false);
+    setShowFullScreenLoader(false);
+    stopListener && stopListener();
+    
+    setTimeout(() => {
+      inputRefs.current[0]?.focus();
+    }, 300);
+    
+    showToast({
+      message: "⌨️ Enter OTP manually",
+      type: ToastTypes.INFO,
+      duration: 2000,
+      position: ToastPositions.BOTTOM
+    });
+  };
+
+  // Format time
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -358,7 +549,9 @@ const VerifyOTPScreen = () => {
     >
       <Header
         title="Verify OTP"
-        subtitle={`Enter the 6-digit OTP sent to +91 ${mobileNumber}`}
+        subtitle={`Enter the 6-digit code sent to ${
+          mobileNumber ? `+91 ${mobileNumber}` : email
+        }`}
       />
 
       <ScrollView
@@ -367,8 +560,16 @@ const VerifyOTPScreen = () => {
         keyboardShouldPersistTaps="handled"
         bounces={false}
       >
-        <View style={styles.contentContainer}>
-          {/* Error Message */}
+        <Animated.View
+          style={[
+            styles.contentContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ scale: scaleAnim }],
+            },
+          ]}
+        >
+          {/* Error Banner */}
           {error && (
             <View style={styles.errorContainer}>
               <Icon name="alert-circle" size={20} color={theme.COLORS.error} />
@@ -379,107 +580,125 @@ const VerifyOTPScreen = () => {
             </View>
           )}
 
-          {/* OTP Input - Underline Style */}
-          <View style={styles.otpWrapper}>
-            <View style={styles.otpContainerUnderline}>
+          {/* Auto-Verify Status Card */}
+          {Platform.OS === "android" && smsListenerReady && waitingForOtp && (
+            <View style={styles.autoVerifyCard}>
+              <View style={styles.autoVerifyIconContainer}>
+                <Icon name="email-fast-outline" size={28} color={theme.COLORS.primary} />
+              </View>
+              <View style={styles.autoVerifyContent}>
+                <Text style={styles.autoVerifyTitle}>Auto-detecting OTP</Text>
+                <Text style={styles.autoVerifySubtitle}>
+                  We'll fill it automatically when SMS arrives
+                </Text>
+                <Text style={styles.autoVerifyTimer}>
+                  {autoVerifyTimer}s remaining
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.skipButton}
+                onPress={skipAutoVerify}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.skipButtonText}>Skip</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* OTP Input Section */}
+          <View style={styles.otpSection}>
+            <Text style={styles.otpLabel}>Enter OTP Code</Text>
+            
+            <Animated.View
+              style={[
+                styles.otpContainer,
+                {
+                  transform: [{ translateX: shakeAnimation }],
+                },
+              ]}
+            >
               {otp.map((digit, index) => (
-                <View key={index} style={styles.otpDigitContainer}>
+                <View key={index} style={styles.otpInputWrapper}>
                   <TextInput
                     ref={(ref) => (inputRefs.current[index] = ref)}
                     style={[
-                      styles.otpInputUnderline,
+                      styles.otpInput,
                       digit && styles.otpInputFilled,
-                      showFullScreenLoader && styles.disabledInput,
+                      (showFullScreenLoader && waitingForOtp) && styles.otpInputDisabled,
                     ]}
-                    keyboardType="numeric"
+                    keyboardType="number-pad"
                     maxLength={1}
                     value={digit}
                     onChangeText={(val) => handleOtpChange(val, index)}
+                    onKeyPress={(e) => handleKeyPress(e, index)}
                     textAlign="center"
                     selectionColor={theme.COLORS.primary}
-                    editable={!showFullScreenLoader}
+                    editable={!(showFullScreenLoader && waitingForOtp)}
+                    autoFocus={index === 0 && !waitingForOtp}
                   />
                   <View
-                    style={[styles.underline, digit && styles.underlineActive]}
+                    style={[
+                      styles.otpInputUnderline,
+                      digit && styles.otpInputUnderlineActive,
+                    ]}
                   />
                 </View>
               ))}
-            </View>
+            </Animated.View>
 
-            <TouchableOpacity
-              style={styles.clearOtpButton}
-              onPress={clearOtp}
-              disabled={showFullScreenLoader}
-            >
-              <Text
-                style={[
-                  styles.clearOtpText,
-                  showFullScreenLoader && styles.disabledText,
-                ]}
+            {/* Clear OTP Button */}
+            {otp.some(d => d) && (
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={clearOtp}
+                disabled={showFullScreenLoader && waitingForOtp}
+                activeOpacity={0.7}
               >
-                Clear OTP
-              </Text>
-            </TouchableOpacity>
+                <Icon name="close-circle" size={18} color={theme.COLORS.textTertiary} />
+                <Text style={styles.clearButtonText}>Clear</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
-          {/* Timer & Resend */}
-          <View style={styles.timerWrapper}>
-            <View style={styles.timerCard}>
-              <Icon
-                name="timer-outline"
-                size={20}
-                color={theme.COLORS.textSecondary}
-              />
-              <Text style={styles.timerText}>
-                Resend OTP in {formatTime(resendTimer)}
-              </Text>
-            </View>
-
-            {resendTimer <= 0 && (
+          {/* Timer & Resend Section */}
+          <View style={styles.timerSection}>
+            {resendTimer > 0 ? (
+              <View style={styles.timerCard}>
+                <Icon name="timer-sand" size={20} color={theme.COLORS.goldPrimary} />
+                <Text style={styles.timerText}>
+                  Resend OTP in <Text style={styles.timerValue}>{formatTime(resendTimer)}</Text>
+                </Text>
+              </View>
+            ) : (
               <TouchableOpacity
                 onPress={handleResendOtp}
                 style={styles.resendButton}
                 activeOpacity={0.7}
                 disabled={showFullScreenLoader}
               >
-                <Icon
-                  name="reload"
-                  size={18}
-                  color={theme.COLORS.goldPrimary}
-                />
-                <Text
-                  style={[
-                    styles.resendText,
-                    showFullScreenLoader && styles.disabledText,
-                  ]}
-                >
-                  Resend OTP
-                </Text>
+                <Icon name="refresh" size={20} color={theme.COLORS.goldPrimary} />
+                <Text style={styles.resendButtonText}>Resend OTP</Text>
               </TouchableOpacity>
             )}
           </View>
 
           {/* Verify Button */}
           <TouchableOpacity
-            onPress={handleOTPVerification}
-            disabled={otp.join("").length !== 6 || showFullScreenLoader}
+            onPress={() => handleOTPVerification()}
+            disabled={otp.join("").length !== 6 || (showFullScreenLoader && waitingForOtp)}
             style={[
               styles.verifyButton,
-              (otp.join("").length !== 6 || showFullScreenLoader) &&
+              (otp.join("").length !== 6 || (showFullScreenLoader && waitingForOtp)) &&
                 styles.verifyButtonDisabled,
             ]}
             activeOpacity={0.8}
           >
-            {otpLoading ? (
+            {otpLoading && !waitingForOtp ? (
               <ActivityIndicator color={theme.COLORS.white} size="small" />
             ) : (
               <>
-                <Icon
-                  name="check-circle"
-                  size={20}
-                  color={theme.COLORS.white}
-                />
-                <Text style={styles.verifyButtonText}>Verify OTP</Text>
+                <Icon name="shield-check" size={22} color={theme.COLORS.white} />
+                <Text style={styles.verifyButtonText}>Verify & Continue</Text>
               </>
             )}
           </TouchableOpacity>
@@ -491,241 +710,75 @@ const VerifyOTPScreen = () => {
               activeOpacity={0.7}
               disabled={showFullScreenLoader}
             >
-              <Text
-                style={[
-                  styles.editNumberText,
-                  showFullScreenLoader && styles.disabledText,
-                ]}
-              >
-                <Icon
-                  name="pencil"
-                  size={14}
-                  color={theme.COLORS.textTertiary}
-                />{" "}
-                Wrong number? Edit
+              <Text style={styles.editNumberText}>
+                <Icon name="pencil" size={14} color={theme.COLORS.textTertiary} />{" "}
+                Wrong number? Change it
               </Text>
+            </TouchableOpacity>
+
+            {/* Security Note */}
+            <View style={styles.securityNote}>
+              <Icon name="shield-lock-outline" size={16} color={theme.COLORS.textTertiary} />
+              <Text style={styles.securityText}>
+                Your data is secure and encrypted
+              </Text>
+            </View>
+          </View>
+        </Animated.View>
+      </ScrollView>
+
+      <Toast />
+
+      {/* Full Screen Auto-Verify Loader */}
+      {showFullScreenLoader && waitingForOtp && (
+        <View style={styles.fullScreenLoader}>
+          <View style={styles.loaderOverlay} />
+          <View style={styles.loaderCard}>
+            <View style={styles.loaderIconContainer}>
+              <ActivityIndicator size="large" color={theme.COLORS.primary} />
+            </View>
+            
+            <Text style={styles.loaderTitle}>Waiting for OTP</Text>
+            <Text style={styles.loaderSubtitle}>
+              We're automatically detecting the OTP from your SMS
+            </Text>
+            
+            <View style={styles.loaderTimerContainer}>
+              <Icon name="timer-outline" size={18} color={theme.COLORS.goldPrimary} />
+              <Text style={styles.loaderTimer}>
+                {autoVerifyTimer}s remaining
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.loaderSkipButton}
+              onPress={skipAutoVerify}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.loaderSkipText}>Enter Manually</Text>
             </TouchableOpacity>
           </View>
         </View>
-      </ScrollView>
+      )}
 
-      {/* FULL SCREEN LOADER */}
-      {showFullScreenLoader && (
+      {/* Verification Loading Overlay */}
+      {showFullScreenLoader && !waitingForOtp && otpLoading && (
         <View style={styles.fullScreenLoader}>
-          <View style={styles.loaderBackground} />
-          <View style={styles.loaderContent}>
-            <ActivityIndicator size="large" color={theme.COLORS.primary} />
-            <Text style={styles.loadingText}>
-              {waitingForOtp && !otpLoading
-                ? "Waiting for OTP..."
-                : "Verifying OTP..."}
+          <View style={styles.loaderOverlay} />
+          <View style={styles.loaderCard}>
+            <View style={styles.loaderIconContainer}>
+              <ActivityIndicator size="large" color={theme.COLORS.primary} />
+            </View>
+            
+            <Text style={styles.loaderTitle}>Verifying OTP</Text>
+            <Text style={styles.loaderSubtitle}>
+              Please wait while we verify your code
             </Text>
-            <Text style={styles.loadingSubtext}>
-              {waitingForOtp && !otpLoading
-                ? "We're automatically detecting OTP from SMS..."
-                : "Please wait while we verify your OTP"}
-            </Text>
-            {waitingForOtp && !otpLoading && (
-              <Text style={styles.loadingTimer}>
-                Auto-detecting OTP… {autoVerifyTimer}s remaining
-              </Text>
-            )}
           </View>
         </View>
       )}
     </KeyboardAvoidingView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.COLORS.backgroundGold,
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    paddingHorizontal: theme.SIZES.padding.container,
-    paddingTop: Platform.OS === "ios" ? theme.SIZES.md : theme.SIZES.sm,
-    paddingBottom: theme.SIZES.xl,
-  },
-  contentContainer: {
-    marginTop: theme.SIZES.md,
-  },
-  errorContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: `${theme.COLORS.error}15`,
-    padding: theme.SIZES.padding.md,
-    borderRadius: theme.SIZES.radius.md,
-    marginBottom: theme.SIZES.xl,
-    borderLeftWidth: 4,
-    borderLeftColor: theme.COLORS.error,
-  },
-  errorText: {
-    ...theme.FONTS.bodySmall,
-    color: theme.COLORS.error,
-    flex: 1,
-    marginHorizontal: theme.SIZES.sm,
-  },
-  closeButton: {
-    padding: theme.SIZES.xs,
-  },
-  otpWrapper: {
-    alignItems: "center",
-    marginBottom: theme.SIZES.xxl,
-  },
-  otpContainerUnderline: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-    marginBottom: theme.SIZES.lg,
-  },
-  otpDigitContainer: {
-    alignItems: "center",
-    width: width * 0.12,
-  },
-  otpInputUnderline: {
-    width: "100%",
-    height: theme.SIZES.icon.xl,
-    fontSize: theme.SIZES.font.xxl,
-    fontFamily: theme.FONTS.family?.bold || "System",
-    color: theme.COLORS.textPrimary,
-    textAlign: "center",
-    backgroundColor: theme.COLORS.transparent,
-  },
-  otpInputFilled: {
-    color: theme.COLORS.primary,
-  },
-  underline: {
-    width: "100%",
-    height: 2,
-    backgroundColor: theme.COLORS.gray300,
-    marginTop: theme.SIZES.xs,
-  },
-  underlineActive: {
-    backgroundColor: theme.COLORS.primary,
-    height: 3,
-  },
-  clearOtpButton: {
-    marginTop: theme.SIZES.md,
-    padding: theme.SIZES.sm,
-  },
-  clearOtpText: {
-    ...theme.FONTS.bodySmall,
-    color: theme.COLORS.textTertiary,
-  },
-  disabledInput: {
-    opacity: 0.5,
-  },
-  disabledText: {
-    color: theme.COLORS.textDisabled,
-  },
-  timerWrapper: {
-    marginBottom: theme.SIZES.xxl,
-    alignItems: "center",
-  },
-  timerCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: theme.COLORS.white,
-    paddingHorizontal: theme.SIZES.padding.lg,
-    paddingVertical: theme.SIZES.padding.md,
-    borderRadius: theme.SIZES.radius.lg,
-    marginBottom: theme.SIZES.md,
-  },
-  timerText: {
-    ...theme.FONTS.bodyMedium,
-    color: theme.COLORS.textSecondary,
-    marginLeft: theme.SIZES.sm,
-  },
-  resendButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: theme.SIZES.sm,
-  },
-  resendText: {
-    ...theme.FONTS.bodyBold,
-    color: theme.COLORS.goldPrimary,
-    marginLeft: theme.SIZES.xs,
-  },
-  verifyButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: theme.COLORS.goldPrimary,
-    borderRadius: theme.SIZES.radius.md,
-    padding: theme.SIZES.padding.md,
-    height: theme.SIZES.button?.height?.lg || 56,
-    marginBottom: theme.SIZES.xl,
-  },
-  verifyButtonDisabled: {
-    opacity: 0.6,
-  },
-  verifyButtonText: {
-    ...theme.FONTS.buttonLarge,
-    color: theme.COLORS.primary,
-    marginLeft: theme.SIZES.sm,
-  },
-  footer: {
-    alignItems: "center",
-    paddingTop: theme.SIZES.lg,
-    borderTopWidth: 1,
-    borderTopColor: `${theme.COLORS.gray300}30`,
-  },
-  editNumberText: {
-    ...theme.FONTS.bodySmall,
-    color: theme.COLORS.textTertiary,
-  },
-  fullScreenLoader: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1000,
-  },
-  loaderBackground: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: theme.COLORS.overlayDark,
-  },
-  loaderContent: {
-    backgroundColor: theme.COLORS.white,
-    borderRadius: theme.SIZES.radius.xl,
-    padding: theme.SIZES.padding.xl,
-    alignItems: "center",
-    maxWidth: width * 0.8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  loadingText: {
-    ...theme.FONTS.h4,
-    color: theme.COLORS.primary,
-    marginTop: theme.SIZES.lg,
-    textAlign: "center",
-  },
-  loadingSubtext: {
-    ...theme.FONTS.body,
-    color: theme.COLORS.textSecondary,
-    marginTop: theme.SIZES.sm,
-    textAlign: "center",
-  },
-  loadingTimer: {
-    ...theme.FONTS.bodySmall,
-    color: theme.COLORS.goldPrimary,
-    marginTop: theme.SIZES.sm,
-    textAlign: "center",
-  },
-});
 
 export default VerifyOTPScreen;
