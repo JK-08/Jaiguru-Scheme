@@ -26,6 +26,7 @@ export default function MainDrawerNavigator() {
       <Drawer.Screen name="Home" component={HomeScreen} />
       <Drawer.Screen name="ResetMPIN" component={ResetMPINScreen} />
       <Drawer.Screen name="MemberCreation" component={MemberCreation} />
+      
     </Drawer.Navigator>
   );
 }

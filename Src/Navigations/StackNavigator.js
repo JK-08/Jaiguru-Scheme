@@ -12,6 +12,9 @@ import VerifyOTPScreen from '../Screens/Auth/VerifyOTP/VerifyOTP';
 import MpinCreateScreen from '../Screens/Auth/CreateMpin/CreateMpin';
 import MpinVerifyScreen from '../Screens/Auth/VerifyMpin/VerifyMpin';
 import AllSchemesScreen from '../Screens/SchemeDetails/SchemeDetailScreen';
+import PrivacyPolicy from '../Screens/Policies/PrivacyPolicy';
+import TermsAndConditions from '../Screens/Policies/TermsAndConditions';
+import DeleteAccount from '../Screens/AccountDelete/AccountDelete';
 import MainDrawerNavigator from './DrawerNavigator';
 
 const Stack = createNativeStackNavigator();
@@ -80,6 +83,9 @@ export default function StackNavigator() {
         <Stack.Screen name="MpinCreate" component={MpinCreateScreen} />
         <Stack.Screen name="MpinVerify" component={MpinVerifyScreen} />
         <Stack.Screen name="AllSchemes" component={AllSchemesScreen} />
+        <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
+        <Stack.Screen name="TermsAndConditions" component={TermsAndConditions} />
+        <Stack.Screen name="DeleteAccount" component={DeleteAccount} />
 
         {/* Drawer after MPIN success */}
         <Stack.Screen name="MainDrawer" component={MainDrawerNavigator} />

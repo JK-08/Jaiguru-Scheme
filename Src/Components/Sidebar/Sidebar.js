@@ -42,11 +42,27 @@ const MENU_ITEMS = [
     badge: 0,
   },
   {
-    key: "membercreation",
-    label: "Create Member",
-    icon: "person-add",
-    route: "MemberCreation",
+    key: "privacy",
+    label: "Privacy Policy",
+    icon: "lock-outline",
+    route: "PrivacyPolicy",
     badge: 0,
+  },
+  {
+    key: "terms",
+    label: "Terms & Conditions",
+    icon: "description",
+    route: "TermsAndConditions",
+    badge: 0,
+  
+  },
+  {
+    key: "deleteaccount",
+    label: "Delete Account",
+    icon: "delete-outline",
+    route: "DeleteAccount",
+    badge: 0,
+  
   },
 ];
 
