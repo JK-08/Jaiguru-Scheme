@@ -6,7 +6,7 @@ import { API_BASE_URL } from "../Config/BaseUrl";
  * Fetch account details using phone number from AsyncStorage
  */
 
-const BASE_URL = "https://scheme.bmgjewellers.com/v1/api"; // Ensure this is defined in your Config/BaseUrl.js
+
 export async function fetchAccountByPhone({ signal } = {}) {
 
   const userData = await getUserData();
@@ -17,7 +17,7 @@ export async function fetchAccountByPhone({ signal } = {}) {
 
   const phoneNo = userData.contactNumber || userData.mobile;
 
-  const url = `${BASE_URL}/account/phone_details?phoneNo=${phoneNo}`;
+  const url = `${API_BASE_URL}/account/phone_details?phoneNo=${phoneNo}`;
 
   const response = await fetch(url, {
     method: "GET",
