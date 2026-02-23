@@ -24,14 +24,18 @@ export default function SchemeCardSlider() {
   const { schemes, loading, error } = useSchemes();
   const navigation = useNavigation();
 
-  if (loading || !schemes || schemes.length === 0) return null;
+  if (!schemes || schemes.length === 0) return null;
 
   const screenWidth = Dimensions.get("window").width;
-  const CARD_WIDTH = screenWidth * 0.85;
-  const CARD_MARGIN = SIZES.md;
-  const SNAP_INTERVAL = CARD_WIDTH + CARD_MARGIN;
+  const CARD_WIDTH = screenWidth * 0.85; // 85% width
+  const CARD_MARGIN = SIZES.md; // Fixed margin between cards
+  const SNAP_INTERVAL = CARD_WIDTH + CARD_MARGIN; // Include margin for snapping
+
+  // Find index of SchemeId 17 to scroll to it
+  const initialIndex = schemes.findIndex(scheme => scheme.SchemeId === 17);
 
   const handleJoinScheme = (scheme) => {
+    // Navigate and pass entire scheme object
     navigation.navigate("MemberCreation", { scheme });
   };
 
@@ -88,13 +92,19 @@ export default function SchemeCardSlider() {
       decelerationRate="fast"
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{
-        paddingHorizontal: (screenWidth - CARD_WIDTH) / 2,
+        paddingHorizontal: (screenWidth - CARD_WIDTH) / 7,
         paddingVertical: SIZES.md,
       }}
+      // Scroll to SchemeId 17 initially
+      initialScrollIndex={initialIndex >= 0 ? initialIndex : 0}
+      getItemLayout={(data, index) => ({
+        length: SNAP_INTERVAL,
+        offset: SNAP_INTERVAL * index,
+        index,
+      })}
     />
   );
 }
-
 
 const styles = StyleSheet.create({
   cardContainer: {

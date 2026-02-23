@@ -15,8 +15,6 @@ import AllSchemesScreen from '../Screens/SchemeDetails/SchemeDetailScreen';
 import PrivacyPolicy from '../Screens/Policies/PrivacyPolicy';
 import TermsAndConditions from '../Screens/Policies/TermsAndConditions';
 import DeleteAccount from '../Screens/AccountDelete/AccountDelete';
-import SchemePassbook from '../Screens/SchemePassbook/SchemePassbook';
-import PaymentReceiptPage from '../Screens/PaymentReceipt/PaymentReceipt';
 import MainDrawerNavigator from './DrawerNavigator';
 
 const Stack = createNativeStackNavigator();
@@ -88,8 +86,6 @@ export default function StackNavigator() {
         <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
         <Stack.Screen name="TermsAndConditions" component={TermsAndConditions} />
         <Stack.Screen name="DeleteAccount" component={DeleteAccount} />
-        <Stack.Screen name="SchemePassbook" component={SchemePassbook} />
-        <Stack.Screen name="PaymentReceipt" component={PaymentReceiptPage} />
 
         {/* Drawer after MPIN success */}
         <Stack.Screen name="MainDrawer" component={MainDrawerNavigator} />
