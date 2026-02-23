@@ -280,9 +280,6 @@ export default function SchemeDetailsCard({ layout = "horizontal" }) {
           <Text style={styles.emptySubtext}>
             You don't have any active schemes yet.
           </Text>
-          <TouchableOpacity style={styles.createButton}>
-            <Text style={styles.createButtonText}>Create New Scheme</Text>
-          </TouchableOpacity>
         </View>
       </View>
     );
