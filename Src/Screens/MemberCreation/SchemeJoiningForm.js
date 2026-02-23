@@ -36,18 +36,16 @@ const SchemeJoiningForm = forwardRef(({ scheme, onSubmit, initialData = null }, 
   }, [schemes, transactionTypes, initialData]);
 
   // Expose validateAndSubmit method to parent
-  useImperativeHandle(ref, () => ({
-    validateAndSubmit: () => {
-      if (validateForm()) {
-        const submissionData = prepareSubmissionData();
-        onSubmit(submissionData);
-        setFormSubmitted(true);
-        return true;
-      }
-      return false;
-    }
-  }));
-
+useImperativeHandle(ref, () => ({
+  validateAndSubmit: () => {
+    console.log("validateAndSubmit called");
+    return validateForm();
+  },
+  getFormData: () => {
+    console.log("Returning form data");
+    return prepareSubmissionData();
+  }
+}));
   const validateForm = () => {
     if (!selectedScheme) {
       Alert.alert("Error", "Please select a scheme");

@@ -72,7 +72,11 @@ export default function SchemeDetailsCard({ layout = "horizontal" }) {
   }, [navigation]);
 
   const handleViewDetails = useCallback((account) => {
-    navigation.navigate("MemberCreation", { account });
+    // Navigate to SchemeDetails page with the account data
+    navigation.navigate("SchemePassbook", { 
+      schemeData: account,
+      fromScreen: "SchemeDetailsCard"
+    });
   }, [navigation]);
 
   const handlePayNow = useCallback((account) => {
@@ -220,6 +224,7 @@ export default function SchemeDetailsCard({ layout = "horizontal" }) {
     );
   }, [formatDate, handleViewDetails, handlePayNow, layout]);
 
+
   // Header Component
   const renderHeader = () => (
     <View style={styles.header}>
@@ -288,22 +293,7 @@ export default function SchemeDetailsCard({ layout = "horizontal" }) {
       styles.container,
       layout === "vertical" && styles.containerVertical
     ]}>
-      {renderHeader()}
-
-      {/* Stats summary - only for vertical layout */}
-      {layout === "vertical" && accounts && accounts.length > 0 && (
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>₹{totalAmount.toFixed(0)}</Text>
-            <Text style={styles.statLabel}>Total Investment</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{accountCount}</Text>
-            <Text style={styles.statLabel}>Active Schemes</Text>
-          </View>
-        </View>
-      )}
+       {layout === "horizontal" && (renderHeader())}
 
       {/* Scrollable list */}
       <FlatList
