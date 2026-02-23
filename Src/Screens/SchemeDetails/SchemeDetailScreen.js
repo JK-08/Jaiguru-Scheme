@@ -44,14 +44,6 @@ export default function AllSchemesScreen() {
         <View style={styles.headerRight} />
       </View>
 
-      {/* Filter Tabs */}
-      <View style={styles.filterContainer}>
-        <FilterButton title="All" value="all" isActive={filter === 'all'} />
-        <FilterButton title="Active" value="active" isActive={filter === 'active'} />
-        <FilterButton title="Due" value="due" isActive={filter === 'due'} />
-        <FilterButton title="Completed" value="completed" isActive={filter === 'completed'} />
-      </View>
-
       {/* Vertical Scheme Cards */}
       <View style={styles.content}>
         <SchemeDetailsCard layout="vertical" />

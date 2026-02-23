@@ -33,7 +33,7 @@ import { styles } from './RegisterStyles'; // Import styles from separate file
 
 // Configure Google Sign-In
 GoogleSignin.configure({
-  webClientId: "792128292012-161kjb3ap6f2msun0h56d4k8m0kfqs5l.apps.googleusercontent.com",
+  webClientId: "764581659241-09cqj59ppmrcegcsm4a9i594p0uop00p.apps.googleusercontent.com",
   offlineAccess: true,
   forceCodeForRefreshToken: true,
 });
@@ -728,7 +728,7 @@ const RegisterScreen = () => {
         </View>
 
         {/* Google Sign In */}
-        <TouchableOpacity
+        {/* <TouchableOpacity
           onPress={handleGoogleSignIn}
           disabled={googleLoading || loading}
           style={[
@@ -745,7 +745,7 @@ const RegisterScreen = () => {
               <Text style={styles.googleButtonText}>Sign up with Google</Text>
             </>
           )}
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         {/* Login Link */}
         <View style={styles.loginContainer}>

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -7,62 +7,95 @@ import {
   Alert,
   TouchableOpacity,
   ActivityIndicator,
+  Modal,
 } from "react-native";
-import { useRoute, useNavigation } from "@react-navigation/native";
-import { useFocusEffect } from "@react-navigation/native";
-import { useCallback } from "react";
-
+import { useRoute, useNavigation, useFocusEffect } from "@react-navigation/native";
 import UserRegistrationForm from "./UserRegistrationForm";
 import SchemeJoiningForm from "./SchemeJoiningForm";
 import { useCreateMember } from "../../Hooks/useMemberCreate";
+import { useRazorpayPayment } from "../../Hooks/useRazorPay";
+import PaymentModal from "./PaymentModal"; // Extract to separate component
+
+// Constants
+const STEPS = {
+  REGISTRATION: 1,
+  SCHEME_JOINING: 2
+};
 
 const MemberCreation = () => {
   const route = useRoute();
+  const navigation = useNavigation();
   const { scheme } = route.params || {};
-  const [currentStep, setCurrentStep] = useState(1);
+
+  // State
+  const [currentStep, setCurrentStep] = useState(STEPS.REGISTRATION);
   const [userRegistrationData, setUserRegistrationData] = useState({});
   const [schemeJoiningData, setSchemeJoiningData] = useState(null);
-  const nowDateTime = new Date().toISOString().slice(0, 10) + " 00:00:00";
-  const navigation = useNavigation();
-  const { create, loading } = useCreateMember();
-  useFocusEffect(
-  useCallback(() => {
-    setCurrentStep(1);
-    setUserRegistrationData({});
-    setSchemeJoiningData(null);
-  }, [])
-);
 
-
+  // Refs
   const registrationFormRef = useRef();
   const schemeFormRef = useRef();
 
-  const handleRegistrationSubmit = (formData) => {
-    setUserRegistrationData(formData);
-    setCurrentStep(2);
+  // Hooks
+  const { create, loading: createLoading } = useCreateMember();
+  const { 
+    loading: paymentLoading, 
+    startPayment,
+    paymentStep,
+    error: paymentError,
+    resetState: resetPayment,
+    PAYMENT_STEPS
+  } = useRazorpayPayment();
+
+  // Reset state on screen focus
+  useFocusEffect(
+    useCallback(() => {
+      resetForm();
+    }, [])
+  );
+
+  const resetForm = () => {
+    setCurrentStep(STEPS.REGISTRATION);
+    setUserRegistrationData({});
+    setSchemeJoiningData(null);
+    resetPayment();
   };
 
-  const handleSchemeSubmit = async (formData) => {
-    setSchemeJoiningData(formData);
-    
-    // Prepare payload
-    const user = userRegistrationData || {};
-    
-    const formatDate = (dateStr) => {
-      if (!dateStr) return "";
-      const [day, month, year] = dateStr.split("-");
-      if (!day || !month || !year) return "";
-      return `${year.padStart(4, "0")}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-    };
+  const handleRegistrationSubmit = useCallback((formData) => {
+    setUserRegistrationData(formData);
+    setCurrentStep(STEPS.SCHEME_JOINING);
+  }, []);
 
+  const handleBack = useCallback(() => {
+    if (currentStep === STEPS.SCHEME_JOINING) {
+      setCurrentStep(STEPS.REGISTRATION);
+    } else {
+      navigation.goBack();
+    }
+  }, [currentStep, navigation]);
+
+  const handleNext = useCallback(() => {
+    if (currentStep === STEPS.REGISTRATION && registrationFormRef.current) {
+      const isValid = registrationFormRef.current.validateAndSubmit();
+      if (isValid) {
+        setCurrentStep(STEPS.SCHEME_JOINING);
+      }
+    }
+  }, [currentStep]);
+
+  const formatDate = useCallback((dateStr) => {
+    if (!dateStr) return "";
+    const [day, month, year] = dateStr.split("-");
+    return day && month && year ? `${year.padStart(4, "0")}-${month.padStart(2, "0")}-${day.padStart(2, "0")}` : "";
+  }, []);
+
+  const createMemberPayload = useCallback((formData, paymentId, orderId) => {
+    const user = userRegistrationData;
     const aadhaar = user.aadharNumber?.replace(/\s/g, "") || "";
-    const maskedAadhaar =
-      aadhaar.length >= 4 ? "XXXX-XXXX-" + aadhaar.slice(-4) : "";
+    const maskedAadhaar = aadhaar.length >= 4 ? `XXXX-XXXX-${aadhaar.slice(-4)}` : "";
+    const nowDateTime = new Date().toISOString().slice(0, 10) + " 00:00:00";
 
-    const dob = formatDate(user.dob);
-    const anniversary = formatDate(user.anniversaryDate);
-
-    const payload = {
+    return {
       newMember: {
         title: user.title || "Mr",
         initial: (user.userName?.[0] || "K").toUpperCase(),
@@ -91,7 +124,7 @@ const MemberCreation = () => {
         idProofNo: aadhaar,
         aadhaarMasked: maskedAadhaar,
         panNumber: user.panNumber || "",
-        dob: dob,
+        dob: formatDate(user.dob),
         email: user.emailAddress || "",
         mobileVerified: true,
         aadhaarVerified: true,
@@ -100,7 +133,7 @@ const MemberCreation = () => {
         upDateTime: nowDateTime,
         userId: "999",
         appVer: "WEB",
-        anniversaryDate: anniversary,
+        anniversaryDate: formatDate(user.anniversaryDate),
       },
       createSchemeSummary: {
         schemeId: formData.schemeId || 0,
@@ -116,139 +149,185 @@ const MemberCreation = () => {
         modePay: (formData.paymentType?.[0] || "O").toUpperCase(),
         accCode: "00001",
         chqBankCode: "1",
-        chqCardNo: "7700201931983",
-        chqBranch: "Phi Com Test",
-        chkBank: "NB",
-        chqRtnReason: "ORDER-2C63D28B94",
+        chqCardNo: paymentId || "",
+        chqBranch: "Razorpay",
+        chkBank: "Razorpay",
+        chqRtnReason: orderId || "",
       },
-      referralCode: "RANJI40191",
+      referralCode: "KIRUB001",
     };
+  }, [userRegistrationData, formatDate]);
 
-    console.log("Payload to be sent:", JSON.stringify(payload));
-
+  const handleMemberCreation = useCallback(async (formData, paymentId, orderId) => {
     try {
-      const res = await create(payload);
-      console.log("API Response:", res);
+      const payload = createMemberPayload(formData, paymentId, orderId);
+      console.log('Creating member with payload:', payload);
+
+      const response = await create(payload);
+      
       Alert.alert(
         "Success",
-        `Member created successfully!\n\nPersonal ID: ${res.message?.personalId || ""}\nScheme: ${formData.schemeName || ""}\nAmount: ₹${formData.amount || 0}\nPayment Type: ${formData.paymentType || ""}`,
-        [
-          {
-            text: "OK",
-            onPress: () => navigation.navigate("Home"),
-          },
-        ]
+        `Member created successfully!\n\nPersonal ID: ${response.message?.personalId || ""}\nScheme: ${formData.schemeName || ""}\nAmount: ₹${formData.amount || 0}`,
+        [{ text: "OK", onPress: () => navigation.navigate("Home") }]
       );
-    } catch (err) {
-      Alert.alert("Error", err.message || "Failed to create member");
+    } catch (error) {
+      console.error('Member creation error:', error);
+      Alert.alert("Error", error.message || "Failed to create member");
     }
-  };
+  }, [create, createMemberPayload, navigation]);
 
-  const handleNext = () => {
-    if (currentStep === 1) {
-      if (registrationFormRef.current) {
-        const isValid = registrationFormRef.current.validateAndSubmit();
-        if (isValid) {
-          setCurrentStep(2);
-        }
-      }
-    }
-  };
+  const handleSubmit = useCallback(async () => {
+    if (currentStep !== STEPS.SCHEME_JOINING || !schemeFormRef.current) return;
 
-  const handleSubmit = () => {
-    if (currentStep === 2 && schemeFormRef.current) {
-      schemeFormRef.current.validateAndSubmit();
-    }
-  };
+    const isValid = schemeFormRef.current.validateAndSubmit();
+    if (!isValid) return;
 
-  const handleBack = () => {
-    if (currentStep === 2) {
-      setCurrentStep(1);
+    const formData = schemeFormRef.current.getFormData();
+    
+    // Get values with fallbacks
+    const regNo = formData.regNo || "3";
+    const groupCode = formData.selectedScheme || formData.groupCode || "MAN";
+
+    const result = await startPayment(
+      formData.amount,
+      {
+        name: userRegistrationData.userName,
+        phone: userRegistrationData.mobileNumber,
+        email: userRegistrationData.emailAddress,
+      },
+      regNo,
+      groupCode
+    );
+
+    if (result.success) {
+      await handleMemberCreation(formData, result.paymentId, result.orderId);
     } else {
-      navigation.goBack();
+      Alert.alert("Payment Failed", result.message);
     }
-  };
+  }, [currentStep, userRegistrationData, startPayment, handleMemberCreation]);
+
+  const isLoading = createLoading || paymentLoading;
 
   return (
     <View style={styles.container}>
       {/* Step Indicator */}
-      <View style={styles.stepIndicator}>
-        <View style={styles.stepRow}>
-          <View style={[styles.stepCircle, currentStep >= 1 && styles.activeStep]}>
-            <Text style={[styles.stepNumber, currentStep >= 1 && styles.activeStepText]}>1</Text>
-          </View>
-          <View style={[styles.stepLine, currentStep >= 2 && styles.activeStepLine]} />
-          <View style={[styles.stepCircle, currentStep >= 2 && styles.activeStep]}>
-            <Text style={[styles.stepNumber, currentStep >= 2 && styles.activeStepText]}>2</Text>
-          </View>
-        </View>
-        <View style={styles.stepLabels}>
-          <Text style={[styles.stepLabel, currentStep >= 1 && styles.activeStepLabel]}>
-            Registration
-          </Text>
-          <Text style={[styles.stepLabel, currentStep >= 2 && styles.activeStepLabel]}>
-            Scheme Joining
-          </Text>
-        </View>
-      </View>
+      <StepIndicator currentStep={currentStep} />
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
       >
-        {currentStep === 1 ? (
-          <UserRegistrationForm 
+        {currentStep === STEPS.REGISTRATION ? (
+          <UserRegistrationForm
             ref={registrationFormRef}
-            onSubmit={handleRegistrationSubmit} 
+            onSubmit={handleRegistrationSubmit}
             initialData={userRegistrationData}
           />
         ) : (
-          <SchemeJoiningForm 
+          <SchemeJoiningForm
             ref={schemeFormRef}
-            scheme={scheme} 
-            onSubmit={handleSchemeSubmit}
+            scheme={scheme}
             initialData={schemeJoiningData}
           />
         )}
       </ScrollView>
 
+      {/* Payment Status Modal */}
+      <PaymentModal 
+        visible={paymentStep === PAYMENT_STEPS.CREATING_ORDER || 
+                 paymentStep === PAYMENT_STEPS.VERIFYING}
+        step={paymentStep}
+        error={paymentError}
+      />
+
+      {/* Loading Overlay */}
+      {isLoading && paymentStep === PAYMENT_STEPS.IDLE && (
+        <LoadingOverlay message={createLoading ? "Creating Member..." : "Processing..."} />
+      )}
+
       {/* Navigation Buttons */}
-      <View style={styles.navigationContainer}>
-        <TouchableOpacity 
-          style={[styles.navButton, styles.backButton]}
-          onPress={handleBack}
-        >
-          <Text style={styles.backButtonText}>
-            {currentStep === 1 ? 'Cancel' : 'Back'}
-          </Text>
-        </TouchableOpacity>
-        
-        {currentStep === 1 ? (
-          <TouchableOpacity 
-            style={[styles.navButton, styles.nextButton]}
-            onPress={handleNext}
-          >
-            <Text style={styles.nextButtonText}>Next</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity 
-            style={[styles.navButton, styles.submitButton]}
-            onPress={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.submitButtonText}>Submit</Text>
-            )}
-          </TouchableOpacity>
-        )}
-      </View>
+      <NavigationButtons
+        currentStep={currentStep}
+        onBack={handleBack}
+        onNext={handleNext}
+        onSubmit={handleSubmit}
+        isLoading={isLoading}
+      />
     </View>
   );
 };
 
-export default MemberCreation;
+// Sub-components for better organization
+const StepIndicator = ({ currentStep }) => (
+  <View style={styles.stepIndicator}>
+    <View style={styles.stepRow}>
+      {[1, 2].map((step) => (
+        <React.Fragment key={step}>
+          <View style={[styles.stepCircle, currentStep >= step && styles.activeStep]}>
+            <Text style={[styles.stepNumber, currentStep >= step && styles.activeStepText]}>
+              {step}
+            </Text>
+          </View>
+          {step === 1 && (
+            <View style={[styles.stepLine, currentStep >= 2 && styles.activeStepLine]} />
+          )}
+        </React.Fragment>
+      ))}
+    </View>
+    <View style={styles.stepLabels}>
+      <Text style={[styles.stepLabel, currentStep >= 1 && styles.activeStepLabel]}>
+        Registration
+      </Text>
+      <Text style={[styles.stepLabel, currentStep >= 2 && styles.activeStepLabel]}>
+        Scheme Joining
+      </Text>
+    </View>
+  </View>
+);
+
+const LoadingOverlay = ({ message }) => (
+  <View style={styles.loadingOverlay}>
+    <ActivityIndicator size="large" color="#4CAF50" />
+    <Text style={styles.loadingText}>{message}</Text>
+  </View>
+);
+
+const NavigationButtons = ({ currentStep, onBack, onNext, onSubmit, isLoading }) => (
+  <View style={styles.navigationContainer}>
+    <TouchableOpacity
+      style={[styles.navButton, styles.backButton]}
+      onPress={onBack}
+      disabled={isLoading}
+    >
+      <Text style={styles.backButtonText}>
+        {currentStep === 1 ? "Cancel" : "Back"}
+      </Text>
+    </TouchableOpacity>
+
+    {currentStep === 1 ? (
+      <TouchableOpacity
+        style={[styles.navButton, styles.nextButton]}
+        onPress={onNext}
+        disabled={isLoading}
+      >
+        <Text style={styles.nextButtonText}>Next</Text>
+      </TouchableOpacity>
+    ) : (
+      <TouchableOpacity
+        style={[styles.navButton, styles.submitButton]}
+        onPress={onSubmit}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <ActivityIndicator color="#FFFFFF" />
+        ) : (
+          <Text style={styles.submitButtonText}>Pay & Continue</Text>
+        )}
+      </TouchableOpacity>
+    )}
+  </View>
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -362,4 +441,23 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 16,
   },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+  },
+  loadingText: {
+    color: "#FFFFFF",
+    marginTop: 10,
+    fontSize: 16,
+    fontWeight: "500",
+  },
 });
+
+export default MemberCreation;
