@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useAccountDetails } from "../../Hooks/useGetAllDetails";
 import { COLORS, SIZES, FONTS, SHADOWS } from "../../Utills/AppTheme";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const CARD_WIDTH = SCREEN_WIDTH * 0.90;
@@ -20,7 +20,15 @@ const CARD_SPACING = SIZES.padding.lg;
 export default function SchemeDetailsCard({ layout = "horizontal" }) {
   const { accounts, loading, error, refetch } = useAccountDetails();
   const [refreshing, setRefreshing] = React.useState(false);
-  const navigation = useNavigation();
+const navigation = useNavigation();
+
+useFocusEffect(
+  useCallback(() => {
+    refetch?.();
+  }, [refetch])
+);
+
+  
 
   // Memoized values - must be called unconditionally
   const totalAmount = useMemo(() => {
@@ -80,8 +88,27 @@ export default function SchemeDetailsCard({ layout = "horizontal" }) {
   }, [navigation]);
 
   const handlePayNow = useCallback((account) => {
-    console.log("Pay now pressed for:", account?.regNo);
-  }, []);
+    // Navigate to PayNow page with all account details
+    navigation.navigate("Paynow", {
+      accountData: account,
+      fromScreen: "SchemeDetailsCard",
+      // Pass all relevant details explicitly for easy access
+      regNo: account.regNo,
+      groupCode: account.groupCode,
+      memberName: account.pName,
+      schemeName: account.schemeSummary?.schemeName,
+      schemeShortName: account.schemeSummary?.schemeSName,
+      schemeId: account.schemeSummary?.schemeId,
+      totalAmount: account.totalAmount || 0,
+      amount: account.amount || 0,
+      nextDueDate: account.nextDueDate,
+      installmentsPaid: account.schemeSummary?.schemaSummaryTransBalance?.insPaid || "0",
+      totalInstallments: account.schemeSummary?.instalment || "0",
+      joinDate: account.joinDate,
+      maturityDate: account.maturityDate,
+      bonusAmount: account.bonusAmount || 0,
+    });
+  }, [navigation]);
 
   const formatDate = useCallback((dateString) => {
     if (!dateString) return "N/A";
@@ -100,13 +127,14 @@ export default function SchemeDetailsCard({ layout = "horizontal" }) {
       bonusAmount = 0,
       schemeSummary,
       nextDueDate,
+      amount,
     } = account;
 
     const insPaid = schemeSummary?.schemaSummaryTransBalance?.insPaid || "0";
     const instalment = schemeSummary?.instalment || "0";
     const schemeSName = schemeSummary?.schemeSName || "N/A";
     const schemeName = schemeSummary?.schemeName || "N/A";
-
+    const schemeAmount = parseFloat(amount) || 0;
     const isPaymentDue = nextDueDate && new Date(nextDueDate) <= new Date();
 
     return (
@@ -155,14 +183,15 @@ export default function SchemeDetailsCard({ layout = "horizontal" }) {
               styles.amountSection,
               layout === "vertical" && styles.amountSectionVertical
             ]}>
+              <View style={[styles.amountCard, styles.bonusCard]}>
+                <Text style={styles.bonusLabel}>Amount</Text>
+                <Text style={styles.bonusValue}>₹{schemeAmount.toFixed(0)}</Text>
+              </View>
               <View style={styles.amountCard}>
                 <Text style={styles.amountLabel}>Total Paid</Text>
                 <Text style={styles.amountValue}>₹{totalAmount.toFixed(0)}</Text>
               </View>
-              <View style={[styles.amountCard, styles.bonusCard]}>
-                <Text style={styles.bonusLabel}>Bonus</Text>
-                <Text style={styles.bonusValue}>₹{bonusAmount.toFixed(0)}</Text>
-              </View>
+              
               <View style={styles.amountCard}>
                 <Text style={styles.amountLabel}>Installment</Text>
                 <View style={styles.installmentRow}>
@@ -223,7 +252,6 @@ export default function SchemeDetailsCard({ layout = "horizontal" }) {
       </View>
     );
   }, [formatDate, handleViewDetails, handlePayNow, layout]);
-
 
   // Header Component
   const renderHeader = () => (
@@ -290,7 +318,7 @@ export default function SchemeDetailsCard({ layout = "horizontal" }) {
       styles.container,
       layout === "vertical" && styles.containerVertical
     ]}>
-       {layout === "horizontal" && (renderHeader())}
+      {layout === "horizontal" && (renderHeader())}
 
       {/* Scrollable list */}
       <FlatList

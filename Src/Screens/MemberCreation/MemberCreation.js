@@ -12,7 +12,7 @@ import {
 import { useRoute, useNavigation, useFocusEffect } from "@react-navigation/native";
 import UserRegistrationForm from "./UserRegistrationForm";
 import SchemeJoiningForm from "./SchemeJoiningForm";
-import { useCreateMember } from "../../Hooks/useMemberCreate";
+import { useMemberActions } from "../../Hooks/useMemberCreate";
 import { useRazorpayPayment } from "../../Hooks/useRazorPay";
 import PaymentModal from "./PaymentModal"; // Extract to separate component
 
@@ -36,8 +36,10 @@ const MemberCreation = () => {
   const registrationFormRef = useRef();
   const schemeFormRef = useRef();
 
+
+
   // Hooks
-  const { create, loading: createLoading } = useCreateMember();
+const { handleCreateMember: create, loading: createLoading } = useMemberActions();
   const { 
     loading: paymentLoading, 
     startPayment,
@@ -83,11 +85,28 @@ const MemberCreation = () => {
     }
   }, [currentStep]);
 
-  const formatDate = useCallback((dateStr) => {
-    if (!dateStr) return "";
+const formatDate = useCallback((dateStr) => {
+  if (!dateStr) return null;
+
+  // If already in YYYY-MM-DD format
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return dateStr;
+  }
+
+  // If in DD-MM-YYYY format
+  if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
     const [day, month, year] = dateStr.split("-");
-    return day && month && year ? `${year.padStart(4, "0")}-${month.padStart(2, "0")}-${day.padStart(2, "0")}` : "";
-  }, []);
+    return `${year}-${month}-${day}`;
+  }
+
+  // Fallback (handles Date objects or other formats)
+  const date = new Date(dateStr);
+  if (!isNaN(date)) {
+    return date.toISOString().split("T")[0];
+  }
+
+  return null;
+}, []);
 
   const createMemberPayload = useCallback((formData, paymentId, orderId) => {
     const user = userRegistrationData;

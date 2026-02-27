@@ -11,6 +11,7 @@ import {
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useCompany } from "../../Hooks/useCompany";
 import { useTodayRate } from "../../Hooks/useTodayRate";
+import useNotifications from "../../Hooks/useNotifications";
 import {
   COLORS,
   SIZES,
@@ -34,10 +35,21 @@ const HomeHeaderRedesigned = ({
   const [currentTime, setCurrentTime] = useState(new Date());
   const navigation = useNavigation();
 
+const {
+  unreadCount,
+  refresh,
+} = useNotifications();
+
   const handleMenuPress = () => {
     navigation.dispatch(DrawerActions.openDrawer());
   };
+useEffect(() => {
+  const interval = setInterval(() => {
+    refresh(); // refresh notifications
+  }, 1000); // every 1 second
 
+  return () => clearInterval(interval);
+}, [refresh]);
   // Update time every minute
   useEffect(() => {
     const timer = setInterval(() => {
@@ -63,20 +75,25 @@ const HomeHeaderRedesigned = ({
       {/* Top Row: Menu Icon, Logo & Company Name, Notification */}
       <View style={styles.topRow}>
         {/* Right: Notification Icon */}
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={onNotificationPress}
-          activeOpacity={0.7}
-        >
-          <Icon
-            name="notifications-none"
-            size={SIZES.icon.lg}
-            color={COLORS.white}
-          />
-          <View style={styles.notificationBadge}>
-            <Text style={styles.badgeText}>3</Text>
-          </View>
-        </TouchableOpacity>
+     <TouchableOpacity
+  style={styles.iconButton}
+  onPress={() => navigation.navigate("NotificationScreen")}
+  activeOpacity={0.7}
+>
+  <Icon
+    name="notifications-none"
+    size={SIZES.icon.lg}
+    color={COLORS.white}
+  />
+
+  {unreadCount > 0 && (
+    <View style={styles.notificationBadge}>
+      <Text style={styles.badgeText}>
+        {unreadCount > 99 ? "99+" : unreadCount}
+      </Text>
+    </View>
+  )}
+</TouchableOpacity>
         {/* Center: Logo and Company Name */}
         <TouchableOpacity
           style={styles.centerContainer}

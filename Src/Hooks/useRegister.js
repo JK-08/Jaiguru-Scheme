@@ -5,7 +5,9 @@ import {
   loginUser,
   googleLogin,
   requestGoogleContactOtp,
-  verifyGoogleContactOtp
+  verifyGoogleContactOtp,
+  forgotPassword,          // ✅ added
+  resetPassword            // ✅ added
 } from '../Services/RegisterService';
 
 const useAuth = () => {
@@ -13,81 +15,101 @@ const useAuth = () => {
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-const handleApi = async (apiFn, successCallback = null) => {
-  setLoading(true);
-  setError(null);
 
-  try {
-    const result = await apiFn();
-    if (successCallback) successCallback(result);
-    return result;
+  /* =========================
+     COMMON API HANDLER
+  ========================= */
+  const handleApi = async (apiFn, successCallback = null) => {
+    setLoading(true);
+    setError(null);
 
-  } catch (err) {
-    // 👇 Extract backend error PROPERLY
-    const backendError =
-      err?.response?.data?.error ||
-      err?.response?.data?.message ||
-      err?.message ||
-      'Something went wrong';
+    try {
+      const result = await apiFn();
 
-    setError(backendError);
+      if (successCallback) {
+        successCallback(result);
+      }
 
-    // 👇 IMPORTANT: return error object instead of throwing
-    return {
-      error: backendError,
-      status: err?.response?.status,
-    };
+      return result;
 
-  } finally {
-    setLoading(false);
-  }
-};
+    } catch (err) {
+      const backendError =
+        err?.data?.error ||
+        err?.data?.message ||
+        err?.message ||
+        'Something went wrong';
 
-  // Normal Signup
+      setError(backendError);
+
+      return {
+        error: backendError,
+        status: err?.status,
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* =========================
+     NORMAL AUTH
+  ========================= */
+
   const signUp = (payload) =>
     handleApi(() => registerUser(payload));
 
-  // Normal OTP Verify
   const verifyNormalOtp = (payload) =>
     handleApi(() => verifyOtp(payload), (result) => {
-      if (result.token) {
+      if (result?.token) {
         setToken(result.token);
         setUser(result.user || result.data?.user || {});
       }
     });
 
-  // Normal Login
   const login = (payload) =>
     handleApi(() => loginUser(payload), (result) => {
-      if (result.token) {
+      if (result?.token) {
         setToken(result.token);
         setUser(result.user || result.data?.user || {});
       }
     });
 
-  // Google Login
+  /* =========================
+     PASSWORD
+  ========================= */
+
+  const sendForgotPassword = (payload) =>
+    handleApi(() => forgotPassword(payload));
+
+  const updatePassword = (payload) =>
+    handleApi(() => resetPassword(payload));
+
+  /* =========================
+     GOOGLE AUTH
+  ========================= */
+
   const loginWithGoogle = (payload) =>
     handleApi(() => googleLogin(payload), (result) => {
-      // If user needs contact verification, don't set token/user yet
-      if (!result.needsContactVerification && result.token) {
+      if (!result?.needsContactVerification && result?.token) {
         setToken(result.token);
         setUser(result.user || result.data?.user || {});
       }
       return result;
     });
 
-  // Google Contact OTP Request
   const requestGoogleOtp = (payload) =>
     handleApi(() => requestGoogleContactOtp(payload));
 
-  // Google Contact OTP Verify
   const verifyGoogleOtp = (payload) =>
     handleApi(() => verifyGoogleContactOtp(payload), (result) => {
-      if (result.token) {
+      if (result?.token) {
         setToken(result.token);
         setUser(result.user || result.data?.user || {});
       }
     });
+
+  /* =========================
+     LOGOUT
+  ========================= */
 
   const logout = () => {
     setUser(null);
@@ -96,23 +118,22 @@ const handleApi = async (apiFn, successCallback = null) => {
   };
 
   return {
-    // State
     loading,
     error,
     user,
     token,
-    
-    // Normal Auth
+
     signUp,
     verifyNormalOtp,
     login,
-    
-    // Google Auth
+
     loginWithGoogle,
     requestGoogleOtp,
     verifyGoogleOtp,
-    
-    // Common
+
+    sendForgotPassword,
+    updatePassword,
+
     logout,
     clearError: () => setError(null),
   };

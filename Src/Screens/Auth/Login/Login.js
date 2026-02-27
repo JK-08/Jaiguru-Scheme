@@ -343,7 +343,7 @@ const LoginScreen = () => {
   };
 
   const navigateToForgotPassword = () => {
-    navigation.navigate("EnterNumber", { mode: "forgot" });
+    navigation.navigate("ForgotPassword", { mode: "forgot" });
   };
 
   const navigateToRegister = () => {

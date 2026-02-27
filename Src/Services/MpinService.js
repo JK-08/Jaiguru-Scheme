@@ -1,57 +1,95 @@
-import { getAuthToken } from '../Utills/AsynchStorageHelper';
-import { MPIN_API_BASE_URL } from '../Config/BaseUrl';
+import { getAuthToken } from "../Utills/AsynchStorageHelper";
+import { MPIN_API_BASE_URL } from "../Config/BaseUrl";
 
+/**
+ * Common POST Request
+ */
 const postRequest = async (endpoint, params = {}) => {
-  const token = await getAuthToken();
+  try {
+    const token = await getAuthToken();
 
-  if (!token) {
-    throw new Error('Authorization token not found');
+    if (!token) {
+      console.log("❌ No Auth Token Found");
+      throw new Error("Authorization token not found");
+    }
+
+    // Convert params to query string
+    const queryString = Object.keys(params)
+      .map(
+        (key) =>
+          `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`
+      )
+      .join("&");
+
+    const url = `${MPIN_API_BASE_URL}${endpoint}${
+      queryString ? `?${queryString}` : ""
+    }`;
+
+    console.log("===================================");
+    console.log("📤 API Request URL:", url);
+    console.log("📤 Request Params:", params);
+    console.log("📤 Token:", token);
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("📥 Raw Response Status:", response.status);
+
+    let data;
+const text = await response.text();
+
+try {
+  data = JSON.parse(text);
+} catch (e) {
+  console.log("⚠️ Response is not JSON, raw text:", text);
+  data = { message: text }; // fallback
+}
+
+    console.log("📥 Response Data:", data);
+    console.log("===================================");
+
+    if (!response.ok) {
+      throw {
+        message: data?.message || "Request failed",
+        status: response.status,
+      };
+    }
+
+    return data;
+  } catch (error) {
+    console.log("🚨 API Error:", error);
+    throw error;
   }
-
-  // Build URL with query parameters
-  const queryString = Object.keys(params)
-    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
-    .join('&');
-  
-  const url = `${MPIN_API_BASE_URL}${endpoint}?${queryString}`;
-  
-  console.log('API Request URL:', url);
-  console.log('API Headers:', { Authorization: `Bearer ${token}` });
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  const text = await response.text();
-  console.log('API Response Status:', response.status);
-  console.log('API Response Text:', text);
-
-  if (!response.ok) {
-    throw new Error(text || `Request failed with status ${response.status}`);
-  }
-
-  return text;
 };
+/** -----------------------------
+ * EXISTING MPIN APIs
+ * ----------------------------- */
 
-/** Create MPIN */
-export const createMpin = (mpin) => {
-  return postRequest('/create', { mpin });
-};
+export const createMpin = (mpin) =>
+  postRequest("/create", { mpin });
 
-/** Verify MPIN */
-export const verifyMpin = (enteredMpin) => {
-  return postRequest('/verify', { enteredMpin });
-};
+export const verifyMpin = (enteredMpin) =>
+  postRequest("/verify", { enteredMpin });
 
-/** Reset MPIN with old MPIN */
-export const resetMpinWithOld = (oldMpin, newMpin) => {
-  return postRequest('/resetMpin', { oldMpin, newMpin });
-};
+export const resetMpinWithOld = (oldMpin, newMpin) =>
+  postRequest("/resetMpin", { oldMpin, newMpin });
 
-/** Reset MPIN directly (no old MPIN) */
-export const resetMpinDirect = (newMpin) => {
-  return postRequest('/reset', { newMpin });
-};
+export const resetMpinDirect = (newMpin) =>
+  postRequest("/reset", { newMpin });
+
+/** -----------------------------
+ * 🔑 FORGOT MPIN APIs
+ * ----------------------------- */
+
+/** Send OTP for Forgot MPIN */
+export const sendForgotOtp = () =>
+  postRequest("/forgot/send-otp");
+
+/** Verify OTP & Reset MPIN */
+export const verifyForgotOtp = (otp, newMpin) =>
+  postRequest("/forgot/verify", { otp, newMpin });

@@ -4,6 +4,8 @@ import {
   verifyMpin,
   resetMpinWithOld,
   resetMpinDirect,
+  sendForgotOtp,
+  verifyForgotOtp,
 } from "../Services/MpinService";
 
 export const useMpin = () => {
@@ -12,20 +14,11 @@ export const useMpin = () => {
   const [message, setMessage] = useState(null);
 
   const normalizeError = (err) => {
-    // Default error shape
-    const normalizedError = {
+    return {
       message: err?.message || "Something went wrong",
       status: err?.status,
       code: err?.code,
     };
-
-    // 🔑 MPIN NOT FOUND (from your current service)
-    if (err?.message === "MPIN not found") {
-      normalizedError.code = "MPIN_NOT_FOUND";
-      normalizedError.status = 404;
-    }
-
-    return normalizedError;
   };
 
   const handleRequest = async (apiCall) => {
@@ -34,15 +27,15 @@ export const useMpin = () => {
       setError(null);
       setMessage(null);
 
-      const responseText = await apiCall();
-      setMessage(responseText || "Success");
+      const response = await apiCall();
 
-      return responseText;
+      setMessage(response?.message || "Success");
+
+      return response;
     } catch (err) {
       const normalizedError = normalizeError(err);
-
       setError(normalizedError.message);
-      throw normalizedError; // 🔥 always throw normalized error
+      throw normalizedError;
     } finally {
       setLoading(false);
     }
@@ -61,12 +54,20 @@ export const useMpin = () => {
     verifyMpin: (mpin) =>
       handleRequest(() => verifyMpin(mpin)),
 
-    /** Reset MPIN with old MPIN */
+    /** Reset with old MPIN */
     resetMpinWithOld: (oldMpin, newMpin) =>
       handleRequest(() => resetMpinWithOld(oldMpin, newMpin)),
 
-    /** Reset MPIN directly */
+    /** Direct reset */
     resetMpinDirect: (newMpin) =>
       handleRequest(() => resetMpinDirect(newMpin)),
+
+    /** 🔑 Send Forgot OTP */
+    sendForgotOtp: () =>
+      handleRequest(() => sendForgotOtp()),
+
+    /** 🔑 Verify OTP & Reset MPIN */
+    verifyForgotOtp: (otp, newMpin) =>
+      handleRequest(() => verifyForgotOtp(otp, newMpin)),
   };
 };

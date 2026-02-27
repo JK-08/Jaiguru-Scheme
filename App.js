@@ -4,7 +4,6 @@ import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
-  registerForPushNotificationsAsync,
   setupNotificationListeners,
 } from './Src/Helpers/NotificationHelper';
 import StackNavigator from './Src/Navigations/StackNavigator';
@@ -12,24 +11,19 @@ import useFonts from './Src/Utills/Fonts';
 import { checkForAppUpdate } from './Src/Utills/VersionChecker';
 
 export default function App() {
-  const [expoPushToken, setExpoPushToken] = useState(null);
   const [appReady, setAppReady] = useState(false);
-useEffect(() => {
-  checkForAppUpdate();
-}, []);
 
   // ✅ LOAD FONTS
   const fontsLoaded = useFonts();
 
   useEffect(() => {
+    checkForAppUpdate();
+  }, []);
+
+  useEffect(() => {
     const initApp = async () => {
       try {
-        const token = await registerForPushNotificationsAsync();
-        if (token) {
-          setExpoPushToken(token);
-          console.log('Expo Push Token:', token);
-        }
-        
+        // ✅ Only setup listeners, don't register for token
         setupNotificationListeners();
         setAppReady(true);
       } catch (error) {

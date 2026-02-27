@@ -1,4 +1,4 @@
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef } from "react";
 import {
   View,
   Text,
@@ -7,16 +7,27 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
-  KeyboardAvoidingView,
   Alert,
+  Modal,
+  ActivityIndicator,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { COLORS, SIZES, FONTS, SHADOWS } from "../../Utills/AppTheme";
+import authStorage from "../../Utills/AsynchStorageHelper";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 // Storage key for saving form data
 const FORM_STORAGE_KEY = "@user_registration_form_data";
 
-const UserRegistrationForm = forwardRef(({onSubmit, initialData = {}}, ref) => {
+// Months for date picker
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
+const UserRegistrationForm = forwardRef(({ onSubmit, initialData = {} }, ref) => {
+  const scrollViewRef = useRef(null);
+  
   const [formData, setFormData] = useState({
     // Document Details
     aadharNumber: "",
@@ -27,6 +38,7 @@ const UserRegistrationForm = forwardRef(({onSubmit, initialData = {}}, ref) => {
     lastName: "",
     dob: "",
     maritalStatus: "",
+    anniversaryDate: "",
     mobileNumber: "",
     emailAddress: "",
     
@@ -44,25 +56,54 @@ const UserRegistrationForm = forwardRef(({onSubmit, initialData = {}}, ref) => {
   });
 
   const [errors, setErrors] = useState({});
-  const [focusedField, setFocusedField] = useState(null);
   const [hasPreviousData, setHasPreviousData] = useState(false);
+  const [isFetchingLocation, setIsFetchingLocation] = useState(false);
+  
+  // Date picker states
+  const [showDatePicker, setShowDatePicker] = useState(null);
+  const [selectedDate, setSelectedDate] = useState({
+    day: "01",
+    month: "01",
+    year: "1990",
+  });
 
   const maritalStatusOptions = ["Single", "Married"];
+
+  // Generate days, months, years for date picker
+  const currentYear = new Date().getFullYear();
+  const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, "0"));
+  const months = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, "0"));
+  const years = Array.from({ length: 100 }, (_, i) => (currentYear - i).toString());
+
+  // Load user data from AuthStorage on mount
+  useEffect(() => {
+    loadUserDataFromAuth();
+  }, []);
 
   // Initialize with initialData if provided
   useEffect(() => {
     if (Object.keys(initialData).length > 0) {
       setFormData(initialData);
       setHasPreviousData(true);
-    } else {
-      loadSavedFormData();
+      
+      if (initialData.dob) {
+        const [year, month, day] = initialData.dob.split("-");
+        setSelectedDate({ day, month, year });
+      }
     }
-  }, []);
+  }, [initialData]);
 
   // Save form data to AsyncStorage whenever formData changes
   useEffect(() => {
     saveFormData();
   }, [formData]);
+
+  // Auto-fetch city and state from pincode
+  useEffect(() => {
+    if (formData.pincode && formData.pincode.length === 6) {
+      fetchLocationFromPincode();
+    }
+  }, [formData.pincode]);
 
   // Expose validateAndSubmit method to parent
   useImperativeHandle(ref, () => ({
@@ -72,24 +113,104 @@ const UserRegistrationForm = forwardRef(({onSubmit, initialData = {}}, ref) => {
         return true;
       }
       return false;
-    }
+    },
+    clearForm: clearFormData
   }));
 
-  // Load saved form data from AsyncStorage
-  const loadSavedFormData = async () => {
+  // Load user data from AuthStorage
+  const loadUserDataFromAuth = async () => {
     try {
-      const savedData = await AsyncStorage.getItem(FORM_STORAGE_KEY);
-      if (savedData !== null) {
-        const parsedData = JSON.parse(savedData);
+      // First try to load saved form data
+      const savedFormData = await AsyncStorage.getItem(FORM_STORAGE_KEY);
+      
+      if (savedFormData !== null) {
+        const parsedData = JSON.parse(savedFormData);
         setFormData(parsedData);
         setHasPreviousData(true);
         
-        if (parsedData.aadharNumber && parsedData.aadharNumber.replace(/\s/g, "").length === 12) {
-          validateAadharNumber(parsedData.aadharNumber);
+        if (parsedData.dob) {
+          const [year, month, day] = parsedData.dob.split("-");
+          setSelectedDate({ day, month, year });
+        }
+        return;
+      }
+
+      // If no saved form data, load from auth storage
+      const authSession = await authStorage.getAuthSession();
+      
+      if (authSession.isAuthenticated && authSession.user) {
+        const user = authSession.user;
+        
+        // Map auth user data to form fields
+        const userFields = {
+          userName: user.username || user.name || "",
+          mobileNumber: user.contactNumber || user.mobileNumber || user.phone || "",
+          emailAddress: user.email || "",
+        };
+
+        setFormData(prev => ({
+          ...prev,
+          ...userFields
+        }));
+
+        // Also try to load from USER_DATA key directly if needed
+        const userData = await AsyncStorage.getItem('userData');
+        if (userData) {
+          const parsedUserData = JSON.parse(userData);
+          setFormData(prev => ({
+            ...prev,
+            userName: prev.userName || parsedUserData.username || parsedUserData.name || "",
+            mobileNumber: prev.mobileNumber || parsedUserData.contactNumber || parsedUserData.mobileNumber || "",
+            emailAddress: prev.emailAddress || parsedUserData.email || "",
+          }));
         }
       }
     } catch (error) {
-      console.error("Error loading saved form data:", error);
+      console.error("Error loading user data from auth:", error);
+    }
+  };
+
+  // Fetch location from pincode
+  const fetchLocationFromPincode = async (pincode = formData.pincode) => {
+    if (!pincode || pincode.length !== 6) return;
+
+    setIsFetchingLocation(true);
+    try {
+      const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+      const data = await response.json();
+
+      if (data[0]?.Status === "Success") {
+        const postOffice = data[0].PostOffice[0];
+        const district = postOffice.District || "";
+        const state = postOffice.State || "";
+
+        setFormData(prev => ({
+          ...prev,
+          city: district,
+          state: state,
+        }));
+
+        // Clear any city/state errors if they existed
+        setErrors(prev => ({
+          ...prev,
+          city: null,
+          state: null,
+          pincode: null
+        }));
+      } else {
+        setErrors(prev => ({
+          ...prev,
+          pincode: "Invalid pincode. Please check and try again."
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching pincode data:", error);
+      setErrors(prev => ({
+        ...prev,
+        pincode: "Failed to fetch location data. Please enter manually."
+      }));
+    } finally {
+      setIsFetchingLocation(false);
     }
   };
 
@@ -103,16 +224,13 @@ const UserRegistrationForm = forwardRef(({onSubmit, initialData = {}}, ref) => {
     }
   };
 
-  // Clear all form data from state and AsyncStorage
+  // Clear all form data
   const clearFormData = async () => {
     Alert.alert(
       "Clear Form",
       "Are you sure you want to clear all form data? This action cannot be undone.",
       [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
+        { text: "Cancel", style: "cancel" },
         {
           text: "Clear",
           style: "destructive",
@@ -127,6 +245,7 @@ const UserRegistrationForm = forwardRef(({onSubmit, initialData = {}}, ref) => {
                 lastName: "",
                 dob: "",
                 maritalStatus: "",
+                anniversaryDate: "",
                 mobileNumber: "",
                 emailAddress: "",
                 doorNo: "",
@@ -141,6 +260,9 @@ const UserRegistrationForm = forwardRef(({onSubmit, initialData = {}}, ref) => {
               
               setErrors({});
               setHasPreviousData(false);
+              
+              // Reload user data from auth
+              loadUserDataFromAuth();
             } catch (error) {
               Alert.alert("Error", "Failed to clear form data. Please try again.");
             }
@@ -296,12 +418,6 @@ const UserRegistrationForm = forwardRef(({onSubmit, initialData = {}}, ref) => {
     if (field === "pincode" && value !== "") {
       if (!/^\d{6}$/.test(value)) {
         setErrors((prev) => ({ ...prev, pincode: "Pincode must be 6 digits" }));
-      } else {
-        setErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors.pincode;
-          return newErrors;
-        });
       }
     }
   };
@@ -327,6 +443,11 @@ const UserRegistrationForm = forwardRef(({onSubmit, initialData = {}}, ref) => {
     if (!formData.userName) newErrors.userName = "Name is required";
     if (!formData.dob) newErrors.dob = "Date of birth is required";
     if (!formData.maritalStatus) newErrors.maritalStatus = "Marital status is required";
+    
+    // Anniversary validation (if married)
+    if (formData.maritalStatus === "Married" && !formData.anniversaryDate) {
+      newErrors.anniversaryDate = "Anniversary date is required for married individuals";
+    }
     
     // Mobile validation
     if (!formData.mobileNumber) {
@@ -375,6 +496,146 @@ const UserRegistrationForm = forwardRef(({onSubmit, initialData = {}}, ref) => {
     return text;
   };
 
+  const formatDateDisplay = (dateString) => {
+    if (!dateString) return "";
+    const [year, month, day] = dateString.split("-");
+    return `${day}/${month}/${year}`;
+  };
+
+  const openDatePicker = (type) => {
+    if (type === "dob" && formData.dob) {
+      const [year, month, day] = formData.dob.split("-");
+      setSelectedDate({ day, month, year });
+    } else if (type === "anniversary" && formData.anniversaryDate) {
+      const [year, month, day] = formData.anniversaryDate.split("-");
+      setSelectedDate({ day, month, year });
+    } else {
+      setSelectedDate({ day: "01", month: "01", year: "1990" });
+    }
+    setShowDatePicker(type);
+  };
+
+  const handleDateConfirm = () => {
+    if (!selectedDate.day || !selectedDate.month || !selectedDate.year) {
+      Alert.alert("Error", "Please select a valid date");
+      return;
+    }
+
+    const formattedDate = `${selectedDate.year}-${selectedDate.month}-${selectedDate.day}`;
+
+    if (showDatePicker === "dob") {
+      handleInputChange("dob", formattedDate);
+    } else if (showDatePicker === "anniversary") {
+      handleInputChange("anniversaryDate", formattedDate);
+    }
+
+    setShowDatePicker(null);
+  };
+
+  const renderDatePicker = () => (
+    <Modal visible={!!showDatePicker} transparent animationType="fade">
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>
+              {showDatePicker === "dob" ? "Select Date of Birth" : "Select Anniversary Date"}
+            </Text>
+            <TouchableOpacity onPress={() => setShowDatePicker(null)}>
+              <Text style={styles.closeButton}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.selectedDatePreview}>
+            Selected: {selectedDate.day}/{selectedDate.month}/{selectedDate.year}
+          </Text>
+
+          <View style={styles.pickerContainer}>
+            {/* Day Picker */}
+            <View style={styles.pickerColumn}>
+              <Text style={styles.pickerLabel}>Day</Text>
+              <ScrollView style={styles.pickerScrollView} showsVerticalScrollIndicator={false}>
+                {days.map((day) => (
+                  <TouchableOpacity
+                    key={day}
+                    style={[
+                      styles.pickerItem,
+                      selectedDate.day === day && styles.pickerItemSelected,
+                    ]}
+                    onPress={() => setSelectedDate(prev => ({ ...prev, day }))}
+                  >
+                    <Text style={[
+                      styles.pickerItemText,
+                      selectedDate.day === day && styles.pickerItemTextSelected,
+                    ]}>{day}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
+            {/* Month Picker */}
+            <View style={styles.pickerColumn}>
+              <Text style={styles.pickerLabel}>Month</Text>
+              <ScrollView style={styles.pickerScrollView} showsVerticalScrollIndicator={false}>
+                {months.map((month, index) => (
+                  <TouchableOpacity
+                    key={month}
+                    style={[
+                      styles.pickerItem,
+                      selectedDate.month === month && styles.pickerItemSelected,
+                    ]}
+                    onPress={() => setSelectedDate(prev => ({ ...prev, month }))}
+                  >
+                    <Text style={[
+                      styles.pickerItemText,
+                      selectedDate.month === month && styles.pickerItemTextSelected,
+                    ]}>{MONTHS[index]}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
+            {/* Year Picker */}
+            <View style={styles.pickerColumn}>
+              <Text style={styles.pickerLabel}>Year</Text>
+              <ScrollView style={styles.pickerScrollView} showsVerticalScrollIndicator={false}>
+                {years.map((year) => (
+                  <TouchableOpacity
+                    key={year}
+                    style={[
+                      styles.pickerItem,
+                      selectedDate.year === year && styles.pickerItemSelected,
+                    ]}
+                    onPress={() => setSelectedDate(prev => ({ ...prev, year }))}
+                  >
+                    <Text style={[
+                      styles.pickerItemText,
+                      selectedDate.year === year && styles.pickerItemTextSelected,
+                    ]}>{year}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+
+          <View style={styles.modalButtons}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setShowDatePicker(null)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.confirmButton}
+              onPress={handleDateConfirm}
+            >
+              <Text style={styles.confirmButtonText}>Confirm</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+
   const renderInput = (
     label,
     field,
@@ -386,9 +647,60 @@ const UserRegistrationForm = forwardRef(({onSubmit, initialData = {}}, ref) => {
       keyboardType = "default",
       autoCapitalize = "words",
       maxLength,
+      editable = true,
     } = options;
 
-    const isFocused = focusedField === field;
+    const hasError = !!errors[field];
+    const hasValue = !!formData[field];
+
+    return (
+      <View style={styles.inputContainer}>
+        <View style={styles.labelRow}>
+          <Text style={styles.label}>
+            {label}
+            {mandatory && <Text style={styles.mandatory}> *</Text>}
+          </Text>
+          {hasValue && editable && (
+            <TouchableOpacity
+              onPress={() => clearField(field)}
+              style={styles.clearFieldButton}
+            >
+              <Text style={styles.clearFieldText}>Clear</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        <TextInput
+          style={[
+            styles.input,
+            hasError && styles.inputError,
+            !editable && styles.inputDisabled,
+          ]}
+          placeholder={placeholder}
+          placeholderTextColor={COLORS.inputPlaceholder}
+          value={formData[field]}
+          onChangeText={(text) => {
+            if (field === "aadharNumber") {
+              const formatted = formatAadhar(text);
+              handleInputChange(field, formatted);
+            } else if (field === "panNumber") {
+              handleInputChange(field, text.toUpperCase());
+            } else {
+              handleInputChange(field, text);
+            }
+          }}
+          keyboardType={keyboardType}
+          autoCapitalize={autoCapitalize}
+          maxLength={maxLength}
+          editable={editable}
+        />
+        {hasError && (
+          <Text style={styles.errorText}>{errors[field]}</Text>
+        )}
+      </View>
+    );
+  };
+
+  const renderDateInput = (label, field, mandatory = true) => {
     const hasError = !!errors[field];
     const hasValue = !!formData[field];
 
@@ -408,36 +720,19 @@ const UserRegistrationForm = forwardRef(({onSubmit, initialData = {}}, ref) => {
             </TouchableOpacity>
           )}
         </View>
-        <TextInput
+        <TouchableOpacity
           style={[
             styles.input,
-            isFocused && styles.inputFocused,
+            styles.dateInput,
             hasError && styles.inputError,
           ]}
-          placeholder={placeholder}
-          placeholderTextColor={COLORS.inputPlaceholder}
-          value={formData[field]}
-          onChangeText={(text) => {
-            if (field === "aadharNumber") {
-              const formatted = formatAadhar(text);
-              handleInputChange(field, formatted);
-            } else if (field === "panNumber") {
-              handleInputChange(field, text.toUpperCase());
-            } else {
-              handleInputChange(field, text);
-            }
-          }}
-          onFocus={() => setFocusedField(field)}
-          onBlur={() => {
-            setFocusedField(null);
-            if (field === "aadharNumber" && formData.aadharNumber.replace(/\s/g, "").length === 12) {
-              validateAadharNumber(formData.aadharNumber);
-            }
-          }}
-          keyboardType={keyboardType}
-          autoCapitalize={autoCapitalize}
-          maxLength={maxLength}
-        />
+          onPress={() => openDatePicker(field)}
+        >
+          <Text style={hasValue ? styles.dateText : styles.placeholderText}>
+            {hasValue ? formatDateDisplay(formData[field]) : `Select ${label}`}
+          </Text>
+          <Text style={styles.dateIcon}>📅</Text>
+        </TouchableOpacity>
         {hasError && (
           <Text style={styles.errorText}>{errors[field]}</Text>
         )}
@@ -492,10 +787,7 @@ const UserRegistrationForm = forwardRef(({onSubmit, initialData = {}}, ref) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <View style={styles.container}>
       <View style={styles.customHeader}>
         <View style={styles.headerLeft}>
           <Text style={styles.headerTitle}>User Registration</Text>
@@ -513,10 +805,12 @@ const UserRegistrationForm = forwardRef(({onSubmit, initialData = {}}, ref) => {
         )}
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
+      <KeyboardAwareScrollView
+        ref={scrollViewRef}
+        enableOnAndroid={true}
+        extraScrollHeight={20}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
       >
         {/* Document Details Section */}
         <View style={styles.section}>
@@ -557,12 +851,11 @@ const UserRegistrationForm = forwardRef(({onSubmit, initialData = {}}, ref) => {
             mandatory: false,
           })}
 
-          {renderInput("Date of Birth", "dob", "DD-MM-YYYY", {
-            mandatory: true,
-            keyboardType: "numeric",
-          })}
+          {renderDateInput("Date of Birth", "dob", true)}
 
           {renderMaritalStatusPicker()}
+
+          {formData.maritalStatus === "Married" && renderDateInput("Anniversary Date", "anniversaryDate", true)}
 
           {renderInput("Mobile Number", "mobileNumber", "10 digit mobile", {
             mandatory: true,
@@ -605,21 +898,28 @@ const UserRegistrationForm = forwardRef(({onSubmit, initialData = {}}, ref) => {
 
           <View style={styles.row}>
             <View style={styles.halfWidth}>
-              {renderInput("Pincode", "pincode", "6 digits", {
-                mandatory: true,
-                keyboardType: "numeric",
-                maxLength: 6,
-              })}
+              <View style={styles.pincodeContainer}>
+                {renderInput("Pincode", "pincode", "6 digits", {
+                  mandatory: true,
+                  keyboardType: "numeric",
+                  maxLength: 6,
+                })}
+                {isFetchingLocation && (
+                  <ActivityIndicator size="small" color={COLORS.primary} style={styles.pincodeLoader} />
+                )}
+              </View>
             </View>
             <View style={styles.halfWidth}>
               {renderInput("City", "city", "City", {
                 mandatory: true,
+                editable: false,
               })}
             </View>
           </View>
 
           {renderInput("State", "state", "State", {
             mandatory: true,
+            editable: false,
           })}
         </View>
 
@@ -660,8 +960,11 @@ const UserRegistrationForm = forwardRef(({onSubmit, initialData = {}}, ref) => {
 
         {/* Bottom Spacing */}
         <View style={styles.bottomSpacing} />
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
+
+      {/* Date Picker Modal */}
+      {renderDatePicker()}
+    </View>
   );
 });
 
@@ -705,12 +1008,8 @@ const styles = StyleSheet.create({
     ...FONTS.bodySmall,
     fontWeight: "600",
   },
-  scrollView: {
-    flex: 1,
-  },
   scrollContent: {
     padding: SIZES.padding.container,
-    paddingBottom: SIZES.padding.xxl,
   },
   section: {
     backgroundColor: COLORS.white,
@@ -777,19 +1076,33 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.inputBackground,
     minHeight: SIZES.input.height,
   },
-  inputFocused: {
-    borderColor: COLORS.inputFocused,
-    borderWidth: 2,
-    backgroundColor: COLORS.white,
-    ...SHADOWS.xs,
-  },
   inputError: {
     borderColor: COLORS.error,
+  },
+  inputDisabled: {
+    backgroundColor: COLORS.disabled,
+    color: COLORS.textTertiary,
   },
   errorText: {
     marginTop: SIZES.padding.xs,
     color: COLORS.error,
     ...FONTS.caption,
+  },
+  dateInput: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  dateText: {
+    ...FONTS.body,
+    color: COLORS.textPrimary,
+  },
+  placeholderText: {
+    ...FONTS.body,
+    color: COLORS.inputPlaceholder,
+  },
+  dateIcon: {
+    fontSize: SIZES.font.md,
   },
   maritalStatusContainer: {
     flexDirection: "row",
@@ -825,6 +1138,14 @@ const styles = StyleSheet.create({
   halfWidth: {
     flex: 1,
   },
+  pincodeContainer: {
+    position: "relative",
+  },
+  pincodeLoader: {
+    position: "absolute",
+    right: 10,
+    top: Platform.OS === "ios" ? 35 : 40,
+  },
   actionButtonsContainer: {
     marginTop: SIZES.padding.lg,
     gap: SIZES.padding.sm,
@@ -840,6 +1161,109 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: SIZES.padding.xxxl,
+  },
+  
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: COLORS.white,
+    borderRadius: SIZES.radius.card,
+    padding: SIZES.padding.lg,
+    width: "90%",
+    maxHeight: "80%",
+    ...SHADOWS.lg,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: SIZES.padding.md,
+  },
+  modalTitle: {
+    ...FONTS.h4,
+    color: COLORS.primary,
+  },
+  closeButton: {
+    fontSize: SIZES.font.xl,
+    color: COLORS.textSecondary,
+    padding: SIZES.padding.xs,
+  },
+  selectedDatePreview: {
+    ...FONTS.body,
+    color: COLORS.primary,
+    marginBottom: SIZES.padding.md,
+    textAlign: "center",
+    fontWeight: "600",
+  },
+  pickerContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: SIZES.padding.lg,
+  },
+  pickerColumn: {
+    flex: 1,
+    alignItems: "center",
+    marginHorizontal: SIZES.padding.xs,
+  },
+  pickerLabel: {
+    ...FONTS.caption,
+    color: COLORS.textSecondary,
+    marginBottom: SIZES.padding.xs,
+  },
+  pickerScrollView: {
+    height: 200,
+    width: "100%",
+  },
+  pickerItem: {
+    paddingVertical: SIZES.padding.sm,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: SIZES.radius.sm,
+  },
+  pickerItemSelected: {
+    backgroundColor: COLORS.primary + "20",
+  },
+  pickerItemText: {
+    ...FONTS.body,
+    color: COLORS.textPrimary,
+  },
+  pickerItemTextSelected: {
+    color: COLORS.primary,
+    fontWeight: "600",
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: SIZES.padding.md,
+    marginTop: SIZES.padding.md,
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: SIZES.padding.sm,
+    borderRadius: SIZES.radius.input,
+    backgroundColor: COLORS.border,
+    alignItems: "center",
+  },
+  cancelButtonText: {
+    ...FONTS.body,
+    color: COLORS.textPrimary,
+  },
+  confirmButton: {
+    flex: 1,
+    paddingVertical: SIZES.padding.sm,
+    borderRadius: SIZES.radius.input,
+    backgroundColor: COLORS.primary,
+    alignItems: "center",
+  },
+  confirmButtonText: {
+    ...FONTS.body,
+    color: COLORS.white,
+    fontWeight: "600",
   },
 });
 

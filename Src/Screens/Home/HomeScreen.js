@@ -1,28 +1,140 @@
 // screens/HomeScreen.js
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
-  StyleSheet,
+  StyleSheet, 
   TouchableOpacity,
   SafeAreaView,
+  ActivityIndicator,
+  Alert
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import HomeHeaderRedesigned from '../../Components/MainHeader/MainHeader';
 import SliderComponent from '../../Components/Slider/Slider';
 import SchemeDetailsCard from '../../Components/SchemeDetailsCard/SchemeDetailsCard';
 import SchemesList from '../../Components/SchemeCard/SchemeCard';
 import { useNavigation } from '@react-navigation/native';
+import PushNotificationService from '../../Services/PushNotificationService';
+import { 
+  registerForPushNotificationsAsync, 
+  wasTokenSent, 
+  markTokenAsSent,
+  getStoredPushToken
+} from '../../Helpers/NotificationHelper';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
   const scrollViewRef = useRef(null);
+  
+  // Notification states
+  const [notificationStatus, setNotificationStatus] = useState('checking'); // checking, registering, registered, failed
+  const [userId, setUserId] = useState(null);
+  const [pushToken, setPushToken] = useState(null);
+
+  // Get user ID from storage on component mount
+  useEffect(() => {
+    getUserData();
+  }, []);
+
+  // Register for push notifications when userId is available
+  useEffect(() => {
+    if (userId) {
+      handlePushNotificationRegistration();
+    }
+  }, [userId]);
+
+  const getUserData = async () => {
+    try {
+      // Get user data from your auth storage method
+      // Adjust this based on how you store user data after login
+      const userData = await AsyncStorage.getItem('userData');
+      const userToken = await AsyncStorage.getItem('userToken');
+      
+      if (userData) {
+        const user = JSON.parse(userData);
+        setUserId(user.id || user.userId);
+      } else {
+        // If no user data, you might want to skip notification registration
+        setNotificationStatus('skipped');
+        console.log('No user logged in - skipping notification registration');
+      }
+    } catch (error) {
+      console.error('Error getting user data:', error);
+      setNotificationStatus('failed');
+    }
+  };
+
+  const handlePushNotificationRegistration = async () => {
+    try {
+      setNotificationStatus('registering');
+      
+      // First check if we already have a token
+      const existingToken = await getStoredPushToken();
+      
+      if (existingToken) {
+        setPushToken(existingToken);
+        
+        // Check if token was already sent to server
+        const tokenSent = await wasTokenSent();
+        
+        if (!tokenSent) {
+          // Token exists but wasn't sent to server, send it now
+          await sendTokenToServer(existingToken);
+        } else {
+          setNotificationStatus('registered');
+          console.log('📱 Push notifications already registered');
+        }
+      } else {
+        // Generate new token
+        const token = await registerForPushNotificationsAsync(userId);
+        
+        if (token) {
+          setPushToken(token);
+          await sendTokenToServer(token);
+        } else {
+          setNotificationStatus('failed');
+        }
+      }
+    } catch (error) {
+      console.error('Error in push notification registration:', error);
+      setNotificationStatus('failed');
+    }
+  };
+
+  const sendTokenToServer = async (token) => {
+    try {
+      const success = await PushNotificationService.sendPushTokenToServer(token, userId);
+      
+      if (success) {
+        await markTokenAsSent();
+        setNotificationStatus('registered');
+        
+        // Optional: Show success message once
+        // Alert.alert('Success', 'Notifications enabled successfully');
+      } else {
+        setNotificationStatus('failed');
+      }
+    } catch (error) {
+      console.error('Error sending token to server:', error);
+      setNotificationStatus('failed');
+    }
+  };
+
+  const handleRetryNotificationRegistration = () => {
+    if (userId) {
+      handlePushNotificationRegistration();
+    } else {
+      getUserData();
+    }
+  };
 
   const handleNotificationPress = () => {
     console.log('Notifications pressed');
-    // navigation.navigate('Notifications');
+    navigation.navigate('Notifications');
   };
 
   const handleLogoPress = () => {
@@ -34,7 +146,50 @@ const HomeScreen = () => {
 
   const handleRatePress = (type) => {
     console.log(`${type} rates pressed`);
-    // navigation.navigate('Rates', { rateType: type });
+    navigation.navigate('Rates', { rateType: type });
+  };
+
+  // Render notification status banner
+  const renderNotificationStatus = () => {
+    if (notificationStatus === 'registered' || notificationStatus === 'skipped') {
+      return null; // Don't show banner if registered or skipped
+    }
+
+    return (
+      <TouchableOpacity 
+        style={[
+          styles.notificationBanner,
+          notificationStatus === 'failed' && styles.notificationBannerError,
+          notificationStatus === 'registering' && styles.notificationBannerLoading
+        ]}
+        onPress={notificationStatus === 'failed' ? handleRetryNotificationRegistration : null}
+        disabled={notificationStatus === 'registering'}
+      >
+        {notificationStatus === 'registering' ? (
+          <>
+            <ActivityIndicator size="small" color="#fff" />
+            <Text style={styles.notificationBannerText}>
+              Setting up notifications...
+            </Text>
+          </>
+        ) : notificationStatus === 'failed' ? (
+          <>
+            <Icon name="notifications-off" size={20} color="#fff" />
+            <Text style={styles.notificationBannerText}>
+              Enable notifications to receive updates
+            </Text>
+            <Text style={styles.notificationBannerAction}>Tap to retry</Text>
+          </>
+        ) : notificationStatus === 'checking' ? (
+          <>
+            <ActivityIndicator size="small" color="#fff" />
+            <Text style={styles.notificationBannerText}>
+              Checking notification status...
+            </Text>
+          </>
+        ) : null}
+      </TouchableOpacity>
+    );
   };
 
   return (
@@ -43,6 +198,9 @@ const HomeScreen = () => {
         onNotificationPress={handleNotificationPress}
         onLogoPress={handleLogoPress}
       />
+
+      {/* Notification Status Banner */}
+      {renderNotificationStatus()}
 
       <ScrollView
         ref={scrollViewRef}
@@ -100,7 +258,7 @@ export default HomeScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#ffffffff',
   },
   scrollContent: {
     paddingBottom: 30,
@@ -152,6 +310,51 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 12,
     color: '#333',
+    fontWeight: '500',
+  },
+  // Notification banner styles
+  notificationBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#007AFF',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginHorizontal: 16,
+    marginTop: 8,
+    borderRadius: 8,
+    gap: 8,
+  },
+  notificationBannerError: {
+    backgroundColor: '#F44336',
+  },
+  notificationBannerLoading: {
+    backgroundColor: '#FFA000',
+  },
+  notificationBannerText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1,
+  },
+  notificationBannerAction: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+  },
+  // Test button (development only)
+  testButton: {
+    backgroundColor: '#e0e0e0',
+    padding: 12,
+    marginHorizontal: 16,
+    marginTop: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  testButtonText: {
+    color: '#333',
+    fontSize: 14,
     fontWeight: '500',
   },
 });

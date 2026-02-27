@@ -1,14 +1,16 @@
+// PaymentReceiptPDF.js - Updated for Expo SDK 54 with new FileSystem API
 import * as Print from "expo-print";
-import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
 import { Asset } from "expo-asset";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert, Platform } from "react-native";
+import * as FileSystem from "expo-file-system/legacy";
 import { getCompanyDetails } from "../Services/CompanyDetailsService";
+// import * as FileSystem from 'expo-file-system';
 
 class PaymentReceiptPDF {
   // Constants
   static STORAGE_KEYS = {
-    DOWNLOAD_DIR: "BMG_DOWNLOAD_DIR",
+    DOWNLOAD_DIR: "JAIGURU_DOWNLOAD_DIR",
   };
 
   static ASSETS = {
@@ -47,7 +49,6 @@ class PaymentReceiptPDF {
           id: cleanedCompany.COMPANYID
         });
 
-        // Map to expected format for the receipt
         return {
           cname: cleanedCompany.COMPANYNAME || "JAIGURU JEWELLERS",
           companyId: cleanedCompany.COMPANYID || "JGJ",
@@ -95,124 +96,39 @@ class PaymentReceiptPDF {
   }
 
   // ---------------------------------------------------------------------------
-  // FILE SYSTEM HELPERS
+  // ASSET TO BASE64 CONVERSION - UPDATED FOR NEW API
   // ---------------------------------------------------------------------------
-  static async getDirectoryUri() {
-    try {
-      const savedUri = await AsyncStorage.getItem(
-        this.STORAGE_KEYS.DOWNLOAD_DIR
-      );
-      if (savedUri) return savedUri;
-
-      const permissions =
-        await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-
-      if (permissions.granted) {
-        await AsyncStorage.setItem(
-          this.STORAGE_KEYS.DOWNLOAD_DIR,
-          permissions.directoryUri
-        );
-        return permissions.directoryUri;
-      } else {
-        Alert.alert("Permission Needed", "Please allow access to save files.");
-        throw new Error("Storage permission not granted");
-      }
-    } catch (error) {
-      console.error("getDirectoryUri Error:", error);
-      throw error;
-    }
-  }
-
-  static async resetDownloadFolder() {
-    await AsyncStorage.removeItem(this.STORAGE_KEYS.DOWNLOAD_DIR);
-    Alert.alert("Reset", "Download folder permission has been reset.");
-  }
-
-  // ---------------------------------------------------------------------------
-  // ASSET TO BASE64 CONVERSION
-  // ---------------------------------------------------------------------------
-  static async assetToBase64(moduleAsset) {
+static async assetToBase64(moduleAsset) {
+  try {
     const asset = Asset.fromModule(moduleAsset);
+    await asset.downloadAsync();
 
-    try {
-      await asset.downloadAsync();
-    } catch (e) {
-      // Asset might already be available
-    }
+    const uri = asset.localUri || asset.uri;
+    if (!uri) throw new Error("Asset URI not available");
 
-    const sourceUri = asset.localUri || asset.uri;
-    if (!sourceUri) throw new Error("Asset URI not available");
+    const base64 = await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
 
-    if (sourceUri.startsWith("data:")) {
-      return sourceUri.substring(sourceUri.indexOf(",") + 1);
-    }
-
-    try {
-      return await FileSystem.readAsStringAsync(sourceUri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-    } catch (readErr) {
-      return await this.handleAssetFallback(sourceUri, asset);
-    }
+    return base64;
+  } catch (error) {
+    console.error("assetToBase64 Error:", error);
+    return "";
   }
-
-  static async handleAssetFallback(sourceUri, asset) {
-    try {
-      const fileName = asset.name || `tmp_asset_${Date.now()}`;
-      const dest = FileSystem.cacheDirectory + fileName;
-
-      await FileSystem.copyAsync({ from: sourceUri, to: dest });
-      return await FileSystem.readAsStringAsync(dest, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-    } catch (copyErr) {
-      try {
-        const response = await fetch(sourceUri);
-        const buffer = await response.arrayBuffer();
-        return this.arrayBufferToBase64(buffer);
-      } catch (fetchErr) {
-        console.error("assetToBase64: all fallbacks failed", {
-          copyErr,
-          fetchErr,
-        });
-        throw new Error("Unable to convert asset to base64");
-      }
-    }
-  }
-
-  static arrayBufferToBase64(buffer) {
-    const bytes = new Uint8Array(buffer);
-    let binary = '';
-    for (let i = 0; i < bytes.byteLength; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return btoa(binary);
-  }
+}
 
   // ---------------------------------------------------------------------------
-  // FORMATTING FUNCTIONS
+  // FORMATTING FUNCTIONS - EXACTLY MATCHING FIRST CODE
   // ---------------------------------------------------------------------------
   static formatDate(dateString) {
-    if (!dateString) return "N/A";
+    if (!dateString || dateString === "1900-01-01 00:00:00.0") return "N/A";
     try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return "Invalid Date";
-    }
-  }
-
-  static formatShortDate(dateString) {
-    if (!dateString) return "N/A";
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-IN", {
+      const dateStringFormatted = dateString.includes(" ")
+        ? dateString.replace(" ", "T").replace(/\.\d+$/, "")
+        : dateString;
+      const date = new Date(dateStringFormatted);
+      if (isNaN(date.getTime())) return "Invalid Date";
+      return date.toLocaleDateString("en-GB", {
         day: "2-digit",
         month: "short",
         year: "numeric",
@@ -222,11 +138,12 @@ class PaymentReceiptPDF {
     }
   }
 
-  static formatAmount(amount) {
-    return parseFloat(amount || 0).toLocaleString("en-IN", {
+  static formatCurrency(amount) {
+    const numAmount = parseFloat(amount) || 0;
+    return `₹${numAmount.toLocaleString('en-IN', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    });
+    })}`;
   }
 
   static numberToWords(num) {
@@ -312,12 +229,11 @@ class PaymentReceiptPDF {
   }
 
   // ---------------------------------------------------------------------------
-  // DATA EXTRACTION
+  // DATA EXTRACTION - MATCHING FIRST CODE STRUCTURE
   // ---------------------------------------------------------------------------
   static extractDataFromResponse(responseData) {
     try {
       const schemeData = responseData?.schemeData || {};
-      const personalInfo = schemeData?.personalInfo || {};
       const payment = responseData?.payment || {};
       const customerInfo = responseData?.customerInfo || {};
       const schemeInfo = responseData?.schemeInfo || {};
@@ -328,26 +244,27 @@ class PaymentReceiptPDF {
           weight: payment.weight || "0.0",
           receiptNo: payment.receiptNo || `RCP${Date.now()}`,
           updateTime: payment.updateTime || new Date().toISOString(),
-          paymentMode: payment.chqBank || "CASH",
-          paymentSubMode: payment.chqBranch || "",
-          transactionId: payment.chq_CardNo || "",
+          chqBank: payment.chqBank || "N/A",
+          chqBranch: payment.chqBranch || "N/A",
+          chq_CardNo: payment.chq_CardNo || "N/A",
           installment: payment.installment || "1",
         },
         customerInfo: {
-          customerName: customerInfo.customerName || personalInfo?.pName || schemeData?.pName || "N/A",
-          mobile: customerInfo.mobile || personalInfo?.mobile || schemeData?.personalInfo?.mobile || "N/A",
+          customerName: customerInfo.customerName || schemeData?.pName || "N/A",
+          mobile: customerInfo.mobile || schemeData?.personalInfo?.mobile || "N/A",
           address1: customerInfo.address1 || 
-                    `${personalInfo?.doorNo || ""}, ${personalInfo?.address1 || ""}`.replace(/^,\s*|,\s*$/g, '') || 
+                    `${schemeData?.personalInfo?.doorNo || ""}, ${schemeData?.personalInfo?.address1 || ""}`.replace(/^,\s*|,\s*$/g, '') || 
                     "N/A",
           address2: customerInfo.address2 || 
-                    `${personalInfo?.city || ""}, ${personalInfo?.state || ""} ${personalInfo?.pinCode || ""}`.replace(/^,\s*|,\s*$/g, '') || 
+                    `${schemeData?.personalInfo?.city || ""}, ${schemeData?.personalInfo?.state || ""} ${schemeData?.personalInfo?.pinCode || ""}`.replace(/^,\s*|,\s*$/g, '') || 
                     "N/A",
         },
         schemeInfo: {
-          schemeName: schemeInfo.schemeName || schemeData?.schemeSummary?.schemeName || "Savings Scheme",
-          hsnCode: schemeInfo.hsnCode || "",
-          regNo: schemeData?.regNo || "",
-          groupCode: schemeData?.groupCode || "",
+          schemeName: schemeInfo.schemeName || schemeData?.schemeSummary?.schemeName || "Jaiguru Scheme",
+          hsnCode: schemeInfo.hsnCode || schemeData?.schemeSummary?.hsnCode || "",
+          regNo: schemeData?.regNo || schemeData?.regno || "N/A",
+          groupCode: schemeData?.groupCode || schemeData?.groupcode || "N/A",
+          pName: schemeData?.pName || "",
         },
       };
     } catch (error) {
@@ -357,27 +274,29 @@ class PaymentReceiptPDF {
   }
 
   // ---------------------------------------------------------------------------
-  // HTML GENERATION
+  // HTML GENERATION - MATCHING FIRST CODE STYLES
   // ---------------------------------------------------------------------------
   static generateReceiptHTML({
     payment,
     customerInfo,
     schemeInfo,
     companyData,
-    bgBase64,
     logoBase64,
   }) {
-    // Build company address dynamically
-    const companyAddress = [
-      companyData.cAddress1,
-      companyData.cAddress2,
-      companyData.cAddress3,
-      companyData.cAddress4,
-    ]
-      .filter(Boolean)
-      .join(", ");
-    
-    const companyAddressWithPin = companyAddress + (companyData.cPincode ? ` - ${companyData.cPincode}` : "");
+    // Build company address
+    const getCompanyAddress = () => {
+      return [
+        companyData.cAddress1,
+        companyData.cAddress2,
+        companyData.cAddress3,
+        companyData.cAddress4,
+        companyData.cPincode ? `PIN: ${companyData.cPincode}` : "",
+      ]
+        .filter(Boolean)
+        .join(", ");
+    };
+
+    const companyAddress = getCompanyAddress();
 
     return `
 <!DOCTYPE html>
@@ -391,367 +310,373 @@ class PaymentReceiptPDF {
     margin: 0; 
     padding: 0; 
     box-sizing: border-box; 
-    font-family: 'Arial', 'Helvetica', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   }
   body { 
-    color: #333;
-    margin: 0; 
-    padding: 0; 
-    line-height: 1.4;
+    background-color: #f5f5f5;
+    padding: 20px;
   }
   @page { 
     size: A4; 
-    margin: 0; 
-  }
-  .page {
-    width: 210mm;
-    min-height: 297mm;
-    padding: 15mm 15mm;
-    background-image: url('data:image/jpeg;base64,${bgBase64}');
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center center;
-    position: relative;
+    margin: 20mm;
   }
   .receipt-container {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 12px;
-    padding: 25px 30px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    border: 1px solid #d4af37;
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    margin: 0 auto;
   }
   .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid #d4af37;
+    margin-bottom: 16px;
   }
-  .logo-container {
-    width: 120px;
-    height: 80px;
+  .header-content {
     display: flex;
+    flex-direction: row;
     align-items: center;
-    justify-content: center;
   }
   .logo {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+    width: 60px;
+    height: 60px;
+    margin-right: 12px;
+    border-radius: 30px;
   }
   .logo-placeholder {
-    width: 80px;
-    height: 80px;
-    background: linear-gradient(135deg, #d4af37 0%, #996515 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 30px;
+    background-color: #4C0B0B;
     justify-content: center;
-    color: white;
-    font-size: 32px;
+    align-items: center;
+    margin-right: 12px;
+    display: flex;
+  }
+  .logo-placeholder-text {
+    font-size: 20px;
     font-weight: bold;
+    color: #ffffff;
   }
-  .title-section {
-    text-align: right;
-  }
-  .receipt-title {
-    font-size: 32px;
-    font-weight: bold;
-    color: #996515;
-    letter-spacing: 1px;
-    margin-bottom: 5px;
-  }
-  .receipt-subtitle {
-    font-size: 14px;
-    color: #666;
-  }
-  .company-details {
-    text-align: center;
-    margin-bottom: 25px;
-    padding: 15px;
-    background: linear-gradient(135deg, #fff9e6 0%, #fff 100%);
-    border-radius: 8px;
-    border-left: 4px solid #d4af37;
+  .company-info {
+    flex: 1;
   }
   .company-name {
-    font-size: 22px;
+    color: #4C0B0B;
+    font-size: 18px;
     font-weight: bold;
-    color: #996515;
-    margin-bottom: 5px;
+    letter-spacing: 0.5px;
   }
-  .company-address {
-    font-size: 13px;
-    color: #666;
-    line-height: 1.5;
+  .contact-section {
+    background-color: #FFF9F0;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 16px;
   }
-  .company-contact {
-    font-size: 13px;
-    color: #666;
-    margin-top: 5px;
+  .contact-text {
+    color: #333;
+    font-size: 11px;
+    line-height: 18px;
+    margin-bottom: 2px;
   }
-  .company-gst {
-    font-size: 13px;
-    color: #996515;
+  .divider {
+    height: 2px;
+    background-color: #4C0B0B;
+    margin: 16px 0;
+  }
+  .receipt-title {
+    font-size: 20px;
     font-weight: bold;
-    margin-top: 5px;
+    color: #4C0B0B;
+    text-align: center;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
   }
-  .info-grid {
+  .info-section {
+    background-color: #F8F9FA;
+    padding: 14px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    border-left: 4px solid #4C0B0B;
+  }
+  .info-row {
     display: flex;
+    flex-direction: row;
     justify-content: space-between;
-    margin-bottom: 25px;
-    padding: 15px;
-    background: #f8f8f8;
-    border-radius: 8px;
+    gap: 12px;
   }
-  .info-box {
+  .info-item {
     flex: 1;
   }
   .info-label {
-    font-size: 12px;
+    font-size: 11px;
     color: #666;
-    margin-bottom: 3px;
+    margin-bottom: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
   }
   .info-value {
-    font-size: 16px;
+    font-size: 13px;
+    color: #000;
     font-weight: bold;
-    color: #333;
   }
-  .info-value-small {
-    font-size: 14px;
-    color: #333;
+  .receipt-to-section {
+    margin-bottom: 16px;
   }
   .section-title {
-    font-size: 18px;
+    font-size: 13px;
     font-weight: bold;
-    color: #996515;
-    margin: 20px 0 10px 0;
-    padding-bottom: 5px;
-    border-bottom: 1px solid #d4af37;
+    color: #4C0B0B;
+    margin-bottom: 10px;
+    text-transform: uppercase;
   }
-  .customer-details {
-    margin-bottom: 20px;
-    padding: 15px;
-    background: #f8f8f8;
-    border-radius: 8px;
+  .customer-box {
+    border: 1px solid #DDD;
+    border-radius: 6px;
+    padding: 12px;
+    background-color: #FAFAFA;
   }
   .customer-row {
     display: flex;
-    margin-bottom: 8px;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 12px;
+  }
+  .customer-item {
+    flex: 1;
   }
   .customer-label {
-    width: 100px;
-    font-size: 14px;
-    color: #666;
+    font-size: 11px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 4px;
   }
   .customer-value {
-    flex: 1;
-    font-size: 14px;
-    color: #333;
+    font-size: 12px;
+    color: #000;
     font-weight: 500;
   }
-  .payment-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 20px 0;
-    background: white;
-    border-radius: 8px;
+  .table-container {
+    border: 1px solid #DDD;
+    border-radius: 6px;
     overflow: hidden;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    margin-bottom: 16px;
   }
-  .payment-table th {
-    background: #996515;
-    color: white;
-    padding: 12px 10px;
-    font-size: 14px;
-    text-align: left;
+  .table-header {
+    display: flex;
+    flex-direction: row;
+    background-color: #4C0B0B;
+    padding: 10px 8px;
   }
-  .payment-table td {
-    padding: 12px 10px;
-    font-size: 14px;
-    border-bottom: 1px solid #eee;
+  .th {
+    color: #ffffff;
+    text-align: center;
+    font-weight: bold;
+    font-size: 11px;
+    text-transform: uppercase;
   }
-  .payment-table tr:last-child td {
-    border-bottom: none;
+  .table-row {
+    display: flex;
+    flex-direction: row;
+    background-color: #ffffff;
+    padding: 12px 8px;
+    border-top: 1px solid #E0E0E0;
   }
-  .amount-words {
-    margin: 20px 0;
-    padding: 15px;
-    background: #fff9e6;
-    border-radius: 8px;
-    font-size: 14px;
-    color: #666;
-    font-style: italic;
-    border-left: 4px solid #d4af37;
-  }
-  .amount-words strong {
-    color: #996515;
-    font-style: normal;
+  .td {
+    text-align: center;
+    color: #333;
+    font-size: 12px;
+    font-weight: 500;
   }
   .total-section {
-    margin-top: 25px;
-    padding: 20px;
-    background: linear-gradient(135deg, #996515 0%, #d4af37 100%);
-    border-radius: 8px;
     display: flex;
-    justify-content: space-between;
+    flex-direction: row;
+    justify-content: flex-end;
     align-items: center;
-    color: white;
+    background-color: #FFF9F0;
+    padding: 14px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    border: 1px solid #FFD700;
   }
   .total-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-right: 12px;
+  }
+  .total-amount {
     font-size: 18px;
     font-weight: bold;
+    color: #4C0B0B;
   }
-  .total-value {
-    font-size: 24px;
+  .payment-mode-section {
+    background-color: #F8F9FA;
+    padding: 14px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+  }
+  .payment-mode-title {
+    font-size: 12px;
     font-weight: bold;
+    color: #4C0B0B;
+    margin-bottom: 8px;
+  }
+  .payment-mode-row {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 4px;
+  }
+  .payment-mode-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #666;
+    width: 70px;
+  }
+  .payment-mode-value {
+    font-size: 11px;
+    color: #333;
+    flex: 1;
   }
   .footer {
     margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px dashed #d4af37;
+    padding-top: 16px;
+    border-top: 1px solid #E0E0E0;
     text-align: center;
+  }
+  .footer-text {
     font-size: 12px;
-    color: #666;
+    color: #555;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .footer-sub-text {
+    font-size: 10px;
+    color: #999;
     font-style: italic;
-  }
-  .payment-mode-box {
-    margin-top: 15px;
-    padding: 12px;
-    background: #f0f0f0;
-    border-radius: 6px;
-    font-size: 13px;
-  }
-  .payment-mode-label {
-    color: #666;
-    margin-right: 10px;
-  }
-  .payment-mode-value {
-    color: #333;
-    font-weight: bold;
-  }
-  .jaiguru-brand {
-    color: #996515;
-    font-weight: bold;
   }
 </style>
 </head>
 <body>
-<div class="page">
-  <div class="receipt-container">
-    <!-- Header with Logo -->
-    <div class="header">
-      <div class="logo-container">
-        ${logoBase64 ? 
-          `<img class="logo" src="data:image/jpeg;base64,${logoBase64}" alt="Jaiguru Jewellers Logo" />` : 
-          `<div class="logo-placeholder">JGJ</div>`
-        }
-      </div>
-      <div class="title-section">
-        <div class="receipt-title">PAYMENT RECEIPT</div>
-        <div class="receipt-subtitle">Tax Invoice / Bill of Supply</div>
+<div class="receipt-container">
+  <!-- Company Header -->
+  <div class="header">
+    <div class="header-content">
+      ${logoBase64 ? 
+        `<img class="logo" src="data:image/jpeg;base64,${logoBase64}" alt="Company Logo" />` : 
+        `<div class="logo-placeholder"><span class="logo-placeholder-text">Jaiguru</span></div>`
+      }
+      <div class="company-info">
+        <div class="company-name">${companyData.cname || "Jaiguru jewellers"}</div>
       </div>
     </div>
+  </div>
 
-    <!-- Company Details -->
-    <div class="company-details">
-      <div class="company-name">${companyData.cname}</div>
-      <div class="company-address">${companyAddressWithPin}</div>
-      <div class="company-contact">
-        <span>📞 ${companyData.cPhone}</span> | 
-        <span>✉️ ${companyData.cEmail}</span>
+  <!-- Contact Information -->
+  <div class="contact-section">
+    <div class="contact-text">📞 ${companyData.cPhone || "+91-95143 33601, +91-95143 33609"}</div>
+    <div class="contact-text">✉ ${companyData.cEmail}</div>
+    <div class="contact-text">📍 ${companyAddress || "160, Melamasi St, Madurai-625001"}</div>
+  </div>
+
+  <!-- Divider -->
+  <div class="divider"></div>
+
+  <!-- Receipt Title -->
+  <div class="receipt-title">PAYMENT RECEIPT</div>
+
+  <!-- Scheme and Transaction Info -->
+  <div class="info-section">
+    <div class="info-row">
+      <div class="info-item">
+        <div class="info-label">Scheme Name</div>
+        <div class="info-value">${schemeInfo.schemeName}</div>
       </div>
-      ${companyData.gstNo ? `<div class="company-gst">GSTIN: ${companyData.gstNo}</div>` : ''}
+      <div class="info-item">
+        <div class="info-label">Transaction Date</div>
+        <div class="info-value">${this.formatDate(payment.updateTime)}</div>
+      </div>
     </div>
+  </div>
 
-    <!-- Receipt Info Grid -->
-    <div class="info-grid">
-      <div class="info-box">
-        <div class="info-label">Receipt Number</div>
-        <div class="info-value">${payment.receiptNo}</div>
-      </div>
-      <div class="info-box">
-        <div class="info-label">Receipt Date</div>
-        <div class="info-value">${this.formatShortDate(payment.updateTime)}</div>
-      </div>
-      <div class="info-box">
-        <div class="info-label">Installment</div>
-        <div class="info-value">#${payment.installment}</div>
-      </div>
-    </div>
-
-    <!-- Customer Details -->
-    <div class="section-title">Customer Details</div>
-    <div class="customer-details">
+  <!-- Receipt To Section -->
+  <div class="receipt-to-section">
+    <div class="section-title">RECEIPT TO:</div>
+    <div class="customer-box">
       <div class="customer-row">
-        <div class="customer-label">Name</div>
-        <div class="customer-value">${customerInfo.customerName}</div>
+        <div class="customer-item">
+          <div class="customer-label">Name:</div>
+          <div class="customer-value">${customerInfo.customerName}</div>
+        </div>
+        <div class="customer-item">
+          <div class="customer-label">Transaction No:</div>
+          <div class="customer-value">${payment.receiptNo}</div>
+        </div>
       </div>
       <div class="customer-row">
-        <div class="customer-label">Mobile</div>
-        <div class="customer-value">${customerInfo.mobile}</div>
-      </div>
-      <div class="customer-row">
-        <div class="customer-label">Scheme</div>
-        <div class="customer-value">${schemeInfo.schemeName}</div>
-      </div>
-      ${schemeInfo.regNo ? `
-      <div class="customer-row">
-        <div class="customer-label">Reg No</div>
-        <div class="customer-value">${schemeInfo.regNo}</div>
-      </div>
-      ` : ''}
-      <div class="customer-row">
-        <div class="customer-label">Address</div>
-        <div class="customer-value">
-          ${customerInfo.address1}<br/>
-          ${customerInfo.address2}
+        <div class="customer-item">
+          <div class="customer-label">Mobile:</div>
+          <div class="customer-value">${customerInfo.mobile}</div>
+        </div>
+        <div class="customer-item">
+          <div class="customer-label">Group Code:</div>
+          <div class="customer-value">${schemeInfo.groupCode}</div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Payment Details Table -->
-    <div class="section-title">Payment Details</div>
-    <table class="payment-table">
-      <thead>
-        <tr>
-          <th>Description</th>
-          <th>HSN/SAC</th>
-          <th>Amount (₹)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>${schemeInfo.schemeName} - Installment #${payment.installment}</td>
-          <td>${schemeInfo.hsnCode || '9973'}</td>
-          <td><strong>₹ ${this.formatAmount(payment.amount)}</strong></td>
-        </tr>
-      </tbody>
-    </table>
-
-    <!-- Payment Mode -->
-    <div class="payment-mode-box">
-      <span class="payment-mode-label">Payment Mode:</span>
-      <span class="payment-mode-value">${payment.paymentMode} ${payment.paymentSubMode ? `- ${payment.paymentSubMode}` : ''}</span>
-      ${payment.transactionId ? `<br/><span class="payment-mode-label">Transaction ID:</span> <span class="payment-mode-value">${payment.transactionId}</span>` : ''}
+  <!-- Payment Table -->
+  <div class="table-container">
+    <div class="table-header">
+      <span class="th" style="flex: 0.5;">S.No</span>
+      <span class="th" style="flex: 1.8;">Group Code - Reg No</span>
+      <span class="th" style="flex: 1;">Installment</span>
+      ${parseFloat(payment.weight) > 0 ? `<span class="th" style="flex: 1;">Weight (g)</span>` : ''}
+      <span class="th" style="flex: 1.2;">Amount (₹)</span>
     </div>
 
-    <!-- Amount in Words -->
-    <div class="amount-words">
-      <strong>Amount in words:</strong> ${this.numberToWords(Number(payment.amount))}
+    <div class="table-row">
+      <span class="td" style="flex: 0.5;">1</span>
+      <span class="td" style="flex: 1.8;">${schemeInfo.groupCode}-${schemeInfo.regNo}</span>
+      <span class="td" style="flex: 1;">${payment.installment}</span>
+      ${parseFloat(payment.weight) > 0 ? 
+        `<span class="td" style="flex: 1;">${parseFloat(payment.weight).toFixed(3)}</span>` : ''}
+      <span class="td" style="flex: 1.2;">${this.formatCurrency(payment.amount)}</span>
     </div>
+  </div>
 
-    <!-- Total Amount -->
-    <div class="total-section">
-      <span class="total-label">Total Amount Paid</span>
-      <span class="total-value">₹ ${this.formatAmount(payment.amount)}</span>
-    </div>
+  <!-- Total Amount -->
+  <div class="total-section">
+    <span class="total-label">Total Amount Paid:</span>
+    <span class="total-amount">${this.formatCurrency(payment.amount)}</span>
+  </div>
 
-    <!-- Footer -->
-    <div class="footer">
-      <div>✨ This is a computer generated receipt - valid without signature ✨</div>
-      <div style="margin-top: 8px; color: #996515;">JAIGURU JEWELLERS - Trust Since 1995</div>
-    </div>
+  <!-- Payment Mode Details -->
+  ${(payment.chqBank && payment.chqBank !== "N/A") || payment.chq_CardNo ? `
+  <div class="payment-mode-section">
+    <div class="payment-mode-title">Payment Details:</div>
+    ${payment.chqBank && payment.chqBank !== "N/A" ? `
+    <div class="payment-mode-row">
+      <span class="payment-mode-label">Mode:</span>
+      <span class="payment-mode-value">${payment.chqBank}</span>
+    </div>` : ''}
+    ${payment.chqBranch && payment.chqBranch !== "N/A" ? `
+    <div class="payment-mode-row">
+      <span class="payment-mode-label">Branch:</span>
+      <span class="payment-mode-value">${payment.chqBranch}</span>
+    </div>` : ''}
+    ${payment.chq_CardNo && payment.chq_CardNo !== "N/A" ? `
+    <div class="payment-mode-row">
+      <span class="payment-mode-label">Ref No:</span>
+      <span class="payment-mode-value">${payment.chq_CardNo}</span>
+    </div>` : ''}
+  </div>` : ''}
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-text">Thank you for being our valued customer</div>
+    <div class="footer-sub-text">This is a computer generated receipt</div>
   </div>
 </div>
 </body>
@@ -759,117 +684,116 @@ class PaymentReceiptPDF {
   }
 
   // ---------------------------------------------------------------------------
-  // PDF GENERATION
+  // PDF GENERATION - UPDATED FOR NEW API
   // ---------------------------------------------------------------------------
-  static async generatePDF(responseData) {
-    try {
-      console.log("🔄 Starting PDF generation for Jaiguru Jewellers...");
-      
-      // Extract data from response
-      const { payment, customerInfo, schemeInfo } =
-        this.extractDataFromResponse(responseData);
+// ---------------------------------------------------------------------------
+// PDF GENERATION - STABLE VERSION (SDK 54 SAFE)
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// PDF GENERATION - ANDROID DOWNLOAD FOLDER (LIKE OLD WORKING CODE)
+// ---------------------------------------------------------------------------
+static async generatePDF(responseData) {
+  try {
+    console.log("🔄 Starting PDF generation...");
 
-      console.log("📥 Extracted data:", {
-        receiptNo: payment.receiptNo,
-        amount: payment.amount,
-        customerName: customerInfo.customerName,
-      });
+    // 1️⃣ Extract data
+    const { payment, customerInfo, schemeInfo } =
+      this.extractDataFromResponse(responseData);
 
-      // Load assets and company data in parallel
-      console.log("🖼️ Loading assets and company data...");
-      const [bgBase64, logoBase64, companyData] = await Promise.all([
-        this.assetToBase64(this.ASSETS.BACKGROUND).catch(() => ""),
-        this.assetToBase64(this.ASSETS.LOGO).catch(() => ""),
-        this.getCompanyData(),
-      ]);
+    // 2️⃣ Load logo + company data
+    const [logoBase64, companyData] = await Promise.all([
+      this.assetToBase64(this.ASSETS.LOGO).catch(() => ""),
+      this.getCompanyData(),
+    ]);
 
-      console.log("✅ Data loaded successfully");
+    // 3️⃣ Generate HTML
+    const html = this.generateReceiptHTML({
+      payment,
+      customerInfo,
+      schemeInfo,
+      companyData,
+      logoBase64,
+    });
 
-      const html = this.generateReceiptHTML({
-        payment,
-        customerInfo,
-        schemeInfo,
-        companyData,
-        bgBase64,
-        logoBase64,
-      });
+    // 4️⃣ Generate temporary PDF
+    const { uri } = await Print.printToFileAsync({
+      html,
+      width: 595,
+      height: 842,
+    });
 
-      console.log("📄 Generating PDF from HTML...");
-      const { uri } = await Print.printToFileAsync({
-        html,
-        width: 595, // A4 width in points
-        height: 842, // A4 height in points
-        base64: false,
-      });
+    if (!uri) throw new Error("PDF generation failed");
 
-      const fileName = `Jaiguru_Receipt_${payment.receiptNo}_${Date.now()}.pdf`;
-      console.log("💾 PDF generated, saving as:", fileName);
+    const fileName = `Receipt_${payment.receiptNo}_${Date.now()}.pdf`;
 
-      if (Platform.OS === "android") {
-        try {
-          const directoryUri = await this.getDirectoryUri();
-          const base64 = await FileSystem.readAsStringAsync(uri, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
+    // ============================
+    // ANDROID → SAVE TO DOWNLOADS
+    // ============================
+    if (Platform.OS === "android") {
+      const permissions =
+        await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
 
-          const newUri = await FileSystem.StorageAccessFramework.createFileAsync(
-            directoryUri,
-            fileName,
-            "application/pdf"
-          );
-
-          await FileSystem.writeAsStringAsync(newUri, base64, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-
-          console.log("✅ PDF saved to:", newUri);
-          Alert.alert(
-            "Success ✓",
-            `Receipt saved successfully!\n\nFile: ${fileName}`,
-            [{ text: "OK", style: "default" }]
-          );
-
-          return { success: true, fileName, uri: newUri };
-        } catch (saveError) {
-          console.error("Error saving to selected directory:", saveError);
-          
-          // Fallback to cache directory
-          const fallbackUri = FileSystem.cacheDirectory + fileName;
-          await FileSystem.copyAsync({ from: uri, to: fallbackUri });
-          
-          Alert.alert(
-            "Success ✓",
-            `Receipt saved to cache!\n\nFile: ${fileName}`,
-            [{ text: "OK", style: "default" }]
-          );
-          
-          return { success: true, fileName, uri: fallbackUri };
-        }
-      } else {
-        // iOS
-        const newUri = FileSystem.documentDirectory + fileName;
-        await FileSystem.moveAsync({ from: uri, to: newUri });
-        console.log("✅ PDF saved to:", newUri);
-        
-        Alert.alert(
-          "Success ✓",
-          `Receipt saved successfully!\n\nFile: ${fileName}`,
-          [{ text: "OK", style: "default" }]
-        );
-        
-        return { success: true, fileName, uri: newUri };
+      if (!permissions.granted) {
+        Alert.alert("Permission Needed", "Please allow storage access.");
+        throw new Error("Storage permission not granted");
       }
-    } catch (error) {
-      console.error("❌ PDF Generation Error:", {
-        message: error.message,
-        stack: error.stack,
+
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
       });
-      Alert.alert("Error", `Failed to generate PDF: ${error.message}`, [
-        { text: "OK", style: "cancel" },
-      ]);
-      return { success: false, error: error.message };
+
+      const newUri =
+        await FileSystem.StorageAccessFramework.createFileAsync(
+          permissions.directoryUri,
+          fileName,
+          "application/pdf"
+        );
+
+      await FileSystem.writeAsStringAsync(newUri, base64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      console.log("✅ PDF saved to:", newUri);
+
+      Alert.alert("Success ✓", `Receipt saved successfully!\n\n${fileName}`);
+
+      return {
+        success: true,
+        fileName,
+        uri: newUri,
+      };
     }
+
+    // ============================
+    // IOS → SAVE TO APP FOLDER
+    // ============================
+    else {
+      const newPath = FileSystem.documentDirectory + fileName;
+
+      await FileSystem.moveAsync({
+        from: uri,
+        to: newPath,
+      });
+
+      Alert.alert("Success ✓", `Receipt saved successfully!`);
+
+      return {
+        success: true,
+        fileName,
+        uri: newPath,
+      };
+    }
+  } catch (error) {
+    console.error("❌ PDF Generation Error:", error);
+
+    Alert.alert("Error", error.message || "Failed to generate receipt");
+
+    return {
+      success: false,
+      error: error.message,
+    };
   }
+}
 
   // ---------------------------------------------------------------------------
   // SHARE PDF
@@ -879,12 +803,18 @@ class PaymentReceiptPDF {
       const result = await this.generatePDF(responseData);
       
       if (result.success && result.uri) {
-        // Share the PDF
-        await Share.share({
-          url: result.uri,
-          title: "Payment Receipt",
-          message: `Payment Receipt - ${responseData?.payment?.receiptNo || ''}`,
-        });
+        // Check if sharing is available
+        const isSharingAvailable = await Sharing.isAvailableAsync();
+        
+        if (isSharingAvailable) {
+          await Sharing.shareAsync(result.uri, {
+            mimeType: 'application/pdf',
+            dialogTitle: 'Share Payment Receipt',
+            UTI: 'com.adobe.pdf'
+          });
+        } else {
+          Alert.alert("Sharing not available", "Sharing is not available on this device");
+        }
       }
       
       return result;
@@ -902,8 +832,7 @@ class PaymentReceiptPDF {
       const { payment, customerInfo, schemeInfo } =
         this.extractDataFromResponse(responseData);
 
-      const [bgBase64, logoBase64, companyData] = await Promise.all([
-        this.assetToBase64(this.ASSETS.BACKGROUND).catch(() => ""),
+      const [logoBase64, companyData] = await Promise.all([
         this.assetToBase64(this.ASSETS.LOGO).catch(() => ""),
         this.getCompanyData(),
       ]);
@@ -913,7 +842,6 @@ class PaymentReceiptPDF {
         customerInfo,
         schemeInfo,
         companyData,
-        bgBase64,
         logoBase64,
       });
     } catch (error) {

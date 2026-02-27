@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { Platform, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // 1️⃣ Handle notifications in foreground (Expo SDK latest)
 Notifications.setNotificationHandler({
@@ -13,11 +14,61 @@ Notifications.setNotificationHandler({
   }),
 });
 
-// 2️⃣ Register device and get Expo push token
-export async function registerForPushNotificationsAsync() {
+// Store token in AsyncStorage to avoid re-registering
+const STORAGE_KEYS = {
+  PUSH_TOKEN: 'pushToken',
+  TOKEN_SENT: 'tokenSentToServer'
+};
+
+// 2️⃣ Check if we already have a token
+export async function getStoredPushToken() {
+  try {
+    return await AsyncStorage.getItem(STORAGE_KEYS.PUSH_TOKEN);
+  } catch (error) {
+    console.error('Error reading stored token:', error);
+    return null;
+  }
+}
+
+// 3️⃣ Check if token was already sent to server
+export async function wasTokenSent() {
+  try {
+    const sent = await AsyncStorage.getItem(STORAGE_KEYS.TOKEN_SENT);
+    return sent === 'true';
+  } catch (error) {
+    console.error('Error checking token sent status:', error);
+    return false;
+  }
+}
+
+// 4️⃣ Mark token as sent
+export async function markTokenAsSent() {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.TOKEN_SENT, 'true');
+  } catch (error) {
+    console.error('Error marking token as sent:', error);
+  }
+}
+
+// 5️⃣ Register for push token (call this from Home screen)
+export async function registerForPushNotificationsAsync(userId) {
   if (Platform.OS === 'web') {
     console.log('Push notifications not supported on web');
     return null;
+  }
+
+  // First check if we already have a token stored
+  const existingToken = await getStoredPushToken();
+  if (existingToken) {
+    console.log('📱 Using existing push token:', existingToken);
+    
+    // Check if we need to send this token to server
+    const tokenSent = await wasTokenSent();
+    if (!tokenSent && userId) {
+      // Token exists but wasn't sent to server, send it now
+      return existingToken;
+    }
+    return existingToken;
   }
 
   if (!Device.isDevice) {
@@ -46,17 +97,38 @@ export async function registerForPushNotificationsAsync() {
 
   let token;
   try {
-    const tokenData = await Notifications.getExpoPushTokenAsync({
-      projectId: Constants?.expoConfig?.extra?.eas?.projectId,
-    });
-    token = tokenData.data;
+    const projectId = Constants?.expoConfig?.extra?.eas?.projectId;
+    if (!projectId) {
+      console.warn('No projectId found, trying without');
+      const tokenData = await Notifications.getExpoPushTokenAsync();
+      token = tokenData.data;
+    } else {
+      const tokenData = await Notifications.getExpoPushTokenAsync({
+        projectId: projectId,
+      });
+      token = tokenData.data;
+    }
   } catch (e) {
     console.warn('getExpoPushTokenAsync failed:', e);
-    const tokenData = await Notifications.getExpoPushTokenAsync();
-    token = tokenData.data;
+    try {
+      const tokenData = await Notifications.getExpoPushTokenAsync();
+      token = tokenData.data;
+    } catch (error) {
+      console.error('Failed to get token even without projectId:', error);
+      return null;
+    }
   }
 
-  console.log('✅ Expo Push Token:', token);
+  console.log('✅ New Expo Push Token generated:', token);
+  
+  // Store the token
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.PUSH_TOKEN, token);
+    // Reset sent status for new token
+    await AsyncStorage.setItem(STORAGE_KEYS.TOKEN_SENT, 'false');
+  } catch (error) {
+    console.error('Error storing token:', error);
+  }
 
   // Android notification channel
   if (Platform.OS === 'android') {
@@ -71,7 +143,7 @@ export async function registerForPushNotificationsAsync() {
   return token;
 }
 
-// 3️⃣ Setup listeners for notifications
+// 6️⃣ Setup listeners for notifications
 export function setupNotificationListeners() {
   const subscriptionReceived = Notifications.addNotificationReceivedListener(notification => {
     console.log('📩 Notification received in foreground:', notification);
@@ -94,7 +166,7 @@ export function setupNotificationListeners() {
   };
 }
 
-// 4️⃣ Send local test notification
+// 7️⃣ Send local test notification
 export async function sendTestNotification() {
   const { status } = await Notifications.getPermissionsAsync();
   if (status !== 'granted') {

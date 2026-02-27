@@ -134,11 +134,6 @@ export const getUserData = async () => {
     if (!data) return null;
     
     const userData = JSON.parse(data);
-    console.log('Retrieved user data:', {
-      userId: userData.userId || userData.userid,
-      username: userData.username,
-      loginType: userData.loginType,
-    });
     
     return userData;
   } catch (error) {
@@ -173,7 +168,7 @@ export const getUserId = async () => {
   try {
     const userData = await getUserData();
     const userId = userData?.userId || userData?.userid || null;
-    console.log('Retrieved User ID:', userId);
+    // console.log('Retrieved User ID:', userId);
     return userId;
   } catch (error) {
     console.error('getUserId error:', error);
