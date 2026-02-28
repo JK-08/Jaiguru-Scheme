@@ -25,6 +25,7 @@ import {
   markTokenAsSent,
   getStoredPushToken
 } from '../../Helpers/NotificationHelper';
+import BottomTab from '../../Components/BottomTab/BottomTab';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -249,6 +250,7 @@ const HomeScreen = () => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+   <BottomTab activeScreen="HOME" />
     </SafeAreaView>
   );
 };

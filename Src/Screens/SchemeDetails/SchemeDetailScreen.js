@@ -11,7 +11,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import SchemeDetailsCard from '../../Components/SchemeDetailsCard/SchemeDetailsCard';
-
+import BottomTab from '../../Components/BottomTab/BottomTab';
 export default function AllSchemesScreen() {
   const navigation = useNavigation();
   const [filter, setFilter] = useState('all'); // all, active, due, completed
@@ -48,6 +48,7 @@ export default function AllSchemesScreen() {
       <View style={styles.content}>
         <SchemeDetailsCard layout="vertical" />
       </View>
+      <BottomTab activeScreen={"SCHEMES"} />
     </SafeAreaView>
   );
 }

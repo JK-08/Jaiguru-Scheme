@@ -728,7 +728,7 @@ const RegisterScreen = () => {
         </View>
 
         {/* Google Sign In */}
-        {/* <TouchableOpacity
+        <TouchableOpacity
           onPress={handleGoogleSignIn}
           disabled={googleLoading || loading}
           style={[
@@ -745,7 +745,7 @@ const RegisterScreen = () => {
               <Text style={styles.googleButtonText}>Sign up with Google</Text>
             </>
           )}
-        </TouchableOpacity> */}
+        </TouchableOpacity>
 
         {/* Login Link */}
         <View style={styles.loginContainer}>

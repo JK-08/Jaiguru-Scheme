@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "Jaiguru-DigiGold",
-    "slug": "jaiguru-scheme",
-    "version": "1.2.0",
+    "slug": "jaiguruscheme",
+    "version": "1.2.2",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
@@ -29,15 +29,16 @@
     },
     "android": {
       "package": "com.brightechsoftware.jaiguruscheme2",
-      "versionCode": 21,
+      "versionCode": 23,
       "edgeToEdgeEnabled": true,
       "googleServicesFile": "./google-services.json",
       "permissions": [
-        "CAMERA",
-        "READ_MEDIA_IMAGES",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "POST_NOTIFICATIONS"
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.RECORD_AUDIO"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
@@ -63,9 +64,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "8ed64d8a-ec1f-4c8c-a182-f288b1ef2160"
+        "projectId": "ce8af2b3-2296-4523-a877-f2c091be1723"
       }
     },
-    "owner": "jk_08"
+    "owner": "kiruba08"
   }
 }

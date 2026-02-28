@@ -12,7 +12,20 @@
           "package_name": "com.brightechsoftware.jaiguruscheme2"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "764581659241-nehsb9k83fqoujekqqggsgaq3ps7bnrh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.brightechsoftware.jaiguruscheme2",
+            "certificate_hash": "d7e2ad937b2512876c2a280c96d22413a34d8e1f"
+          }
+        },
+        {
+          "client_id": "764581659241-09cqj59ppmrcegcsm4a9i594p0uop00p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAujuNCrAT-AGC0azAvGACqtkihQAkfEeU"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "764581659241-09cqj59ppmrcegcsm4a9i594p0uop00p.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

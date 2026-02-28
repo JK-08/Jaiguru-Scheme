@@ -39,7 +39,7 @@ class NotificationService {
 
       const response = await this.request(`/notifications/user/${userId}`);
       
-      console.log("API Response:", response); // Debug log
+      // console.log("API Response:", response); // Debug log
 
       // Handle the response structure from your API
       if (response?.status === "success" && Array.isArray(response.data)) {

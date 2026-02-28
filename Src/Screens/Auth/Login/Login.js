@@ -504,8 +504,8 @@ const LoginScreen = () => {
               <View style={styles.divider} />
             </View>
 
-            {/* Google Button */}
-            {/* <TouchableOpacity
+             {/* Google Button */}
+            <TouchableOpacity
               style={[styles.googleButton, googleLoading && styles.buttonDisabled]}
               onPress={handleGoogleSignIn}
               disabled={isLoading}
@@ -522,7 +522,7 @@ const LoginScreen = () => {
                   <Text style={styles.googleButtonText}>Continue with Google</Text>
                 </View>
               )}
-            </TouchableOpacity> */}
+            </TouchableOpacity>
 
             {/* Register Link */}
             <View style={styles.registerContainer}>

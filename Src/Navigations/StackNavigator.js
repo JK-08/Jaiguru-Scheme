@@ -25,7 +25,10 @@ import ForgotPasswordScreen from '../Screens/Auth/ForgotPassword/ForgotPassword'
 import ForgotVerifyOtpScreen from '../Screens/Auth/ForgotPassword/ForgotVerifyOTP';
 import ResetPasswordScreen from '../Screens/Auth/ResetPassword/ResetPassword';
 import PayNow from '../Screens/PayNow/PayNow';
-
+import GoogleContactMobileScreen from '../Screens/Auth/GoogleContactUpdate/GoogleContactMobile';
+import GoogleContactOtpScreen from '../Screens/Auth/GoogleContactUpdate/GoogleContactVerify';
+import HelpCentre from '../Screens/HelpCenter/HelpCenter';
+import HomeScreen from '../Screens/Home/HomeScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -104,7 +107,10 @@ export default function StackNavigator() {
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
         <Stack.Screen name="ForgotVerifyOTP" component={ForgotVerifyOtpScreen} />
         <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} /> 
-        <Stack.Screen name="Paynow" component={PayNow} />       
+        <Stack.Screen name="Paynow" component={PayNow} />    
+        <Stack.Screen name="GoogleContactVerification" component={GoogleContactMobileScreen} />
+        <Stack.Screen name="GoogleContactVerify" component={GoogleContactOtpScreen} />
+        <Stack.Screen name="HelpCenter" component={HelpCentre} />
 
         {/* Drawer after MPIN success */}
         <Stack.Screen name="MainDrawer" component={MainDrawerNavigator} />

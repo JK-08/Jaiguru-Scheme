@@ -126,10 +126,13 @@ export const requestGoogleContactOtp = ({
     ...(hashKey && { hashKey }),
   }).toString();
 
-  return apiRequest(
-    `${API_BASE_URL}/request-google-contact-update?${queryParams}`,
-    { method: "POST" }
-  );
+return apiRequest(
+  `${API_BASE_URL}/request-google-contact-update?${queryParams}`,
+  { 
+    method: "POST",
+    headers: { "Content-Type": "application/json" }
+  }
+);
 };
 
 /* =========================
