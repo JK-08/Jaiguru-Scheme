@@ -59,8 +59,8 @@ export const useMpin = () => {
       handleRequest(() => resetMpinWithOld(oldMpin, newMpin)),
 
     /** Direct reset */
-    resetMpinDirect: (newMpin) =>
-      handleRequest(() => resetMpinDirect(newMpin)),
+    resetMpinDirect: (oldMpin, newMpin) =>
+      handleRequest(() => resetMpinDirect(oldMpin, newMpin)),
 
     /** 🔑 Send Forgot OTP */
     sendForgotOtp: () =>

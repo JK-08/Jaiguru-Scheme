@@ -7,6 +7,7 @@ export const getCompanyDetails = async () => {
 
     const response = await fetch(url);
 
+    
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(errorText || "Failed to fetch company details");

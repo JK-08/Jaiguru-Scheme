@@ -14,7 +14,8 @@ import UserRegistrationForm from "./UserRegistrationForm";
 import SchemeJoiningForm from "./SchemeJoiningForm";
 import { useMemberActions } from "../../Hooks/useMemberCreate";
 import { useRazorpayPayment } from "../../Hooks/useRazorPay";
-import PaymentModal from "./PaymentModal"; // Extract to separate component
+import PaymentModal from "./PaymentModal";
+import RazorpayWebView from "../../Components/RazorpayWebView";
 
 // Constants
 const STEPS = {
@@ -46,7 +47,11 @@ const { handleCreateMember: create, loading: createLoading } = useMemberActions(
     paymentStep,
     error: paymentError,
     resetState: resetPayment,
-    PAYMENT_STEPS
+    PAYMENT_STEPS,
+    webViewVisible,
+    razorpayOptions,
+    handlePaymentSuccess,
+    handlePaymentDismiss,
   } = useRazorpayPayment();
 
   // Reset state on screen focus
@@ -165,11 +170,11 @@ const formatDate = useCallback((dateStr) => {
       },
       schemeCollectInsert: {
         amount: formData.amount || 0,
-        modePay: (formData.paymentType?.[0] || "O").toUpperCase(),
+        modePay: 4,
         accCode: "00001",
-        chqBankCode: "1",
+        chqBankCode: 4,
         chqCardNo: paymentId || "",
-        chqBranch: "Razorpay",
+        chqBranch: "Online",
         chkBank: "Razorpay",
         chqRtnReason: orderId || "",
       },
@@ -183,11 +188,19 @@ const formatDate = useCallback((dateStr) => {
       console.log('Creating member with payload:', payload);
 
       const response = await create(payload);
-      
+
+      // Parse the message string into an object
+      const msgStr = response?.message || "";
+      const parsed = {};
+      msgStr.replace(/[{}]/g, "").split(", ").forEach((pair) => {
+        const [key, ...rest] = pair.split("=");
+        if (key) parsed[key.trim()] = rest.join("=").trim();
+      });
+
       Alert.alert(
-        "Success",
-        `Member created successfully!\n\nPersonal ID: ${response.message?.personalId || ""}\nScheme: ${formData.schemeName || ""}\nAmount: ₹${formData.amount || 0}`,
-        [{ text: "OK", onPress: () => navigation.navigate("Home") }]
+        "✅ Member Created Successfully",
+        `Personal ID: ${parsed.personalId || "-"}\nReg No: ${parsed.regNo || "-"}\nGroup Code: ${parsed.groupCode || "-"}\nScheme: ${formData.schemeName || "-"}\nAmount: ₹${parsed.amount || formData.amount || 0}\nReceipt No: ${parsed.sno || "-"}`,
+        [{ text: "OK", onPress: () => navigation.navigate("MainDrawer") }]
       );
     } catch (error) {
       console.error('Member creation error:', error);
@@ -202,8 +215,6 @@ const formatDate = useCallback((dateStr) => {
     if (!isValid) return;
 
     const formData = schemeFormRef.current.getFormData();
-    
-    // Get values with fallbacks
     const regNo = formData.regNo || "3";
     const groupCode = formData.selectedScheme || formData.groupCode || "MAN";
 
@@ -220,7 +231,7 @@ const formatDate = useCallback((dateStr) => {
 
     if (result.success) {
       await handleMemberCreation(formData, result.paymentId, result.orderId);
-    } else {
+    } else if (result.message !== 'Payment cancelled by user') {
       Alert.alert("Payment Failed", result.message);
     }
   }, [currentStep, userRegistrationData, startPayment, handleMemberCreation]);
@@ -251,6 +262,14 @@ const formatDate = useCallback((dateStr) => {
           />
         )}
       </ScrollView>
+
+      {/* Razorpay Checkout WebView */}
+      <RazorpayWebView
+        visible={webViewVisible}
+        options={razorpayOptions}
+        onSuccess={handlePaymentSuccess}
+        onDismiss={handlePaymentDismiss}
+      />
 
       {/* Payment Status Modal */}
       <PaymentModal 

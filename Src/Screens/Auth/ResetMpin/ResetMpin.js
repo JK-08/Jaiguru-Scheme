@@ -1,22 +1,18 @@
 // ResetMpinScreen.js - Optimized Version
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-  Keyboard,
-  TouchableWithoutFeedback,
+  View, Text, TextInput, TouchableOpacity,
+  KeyboardAvoidingView, Platform, Keyboard,
+  TouchableWithoutFeedback, ScrollView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useMpin } from "../../../Hooks/useMpin";
 import { useToast, ToastTypes, ToastPositions } from "../../../Components/Toast/Toast";
-import { COLORS, FONTS, COMMON_STYLES, SIZES } from "../../../Utills/AppTheme";
+import { COLORS, FONTS, COMMON_STYLES, SIZES, moderateScale } from "../../../Utills/AppTheme";
+
+const getSpacing = (v) => moderateScale(v);
 import styles from "./ResetMpinStyles";
 
 const ForgotMpin = () => {
@@ -24,11 +20,13 @@ const ForgotMpin = () => {
   const { resetMpinDirect, loading } = useMpin();
   const { showToast, Toast } = useToast();
 
+  const [oldMpin, setOldMpin] = useState(["", "", "", ""]);
   const [newMpin, setNewMpin] = useState(["", "", "", ""]);
   const [confirmMpin, setConfirmMpin] = useState(["", "", "", ""]);
+  const [showOldMpin, setShowOldMpin] = useState(false);
   const [showNewMpin, setShowNewMpin] = useState(false);
   const [showConfirmMpin, setShowConfirmMpin] = useState(false);
-  const [activeSection, setActiveSection] = useState("new");
+  const [activeSection, setActiveSection] = useState("old");
   const [focusedIndex, setFocusedIndex] = useState(null);
   const [mpinValidations, setMpinValidations] = useState({
     length: false,
@@ -37,6 +35,7 @@ const ForgotMpin = () => {
     sequence: false,
   });
 
+  const oldMpinRefs = useRef([]);
   const newMpinRefs = useRef([]);
   const confirmMpinRefs = useRef([]);
   const MAX_ATTEMPTS = 3;
@@ -83,17 +82,13 @@ const ForgotMpin = () => {
   }, []);
 
   const resetAllMpin = () => {
+    setOldMpin(["", "", "", ""]);
     setNewMpin(["", "", "", ""]);
     setConfirmMpin(["", "", "", ""]);
     setFocusedIndex(null);
-    setActiveSection("new");
-    setMpinValidations({
-      length: false,
-      consecutive: false,
-      repeated: false,
-      sequence: false,
-    });
-    setTimeout(() => newMpinRefs.current[0]?.focus(), 100);
+    setActiveSection("old");
+    setMpinValidations({ length: false, consecutive: false, repeated: false, sequence: false });
+    setTimeout(() => oldMpinRefs.current[0]?.focus(), 100);
   };
 
   const formatTime = useCallback((seconds) => {
@@ -104,85 +99,57 @@ const ForgotMpin = () => {
 
 const handleMpinChange = useCallback((text, index, type) => {
   if (isLocked) return;
-
   const numericText = text.replace(/[^0-9]/g, "").slice(0, 1);
 
-  if (type === "new") {
-    const updatedNewMpin = [...newMpin];
-    updatedNewMpin[index] = numericText;
-    setNewMpin(updatedNewMpin);
-
-    if (numericText && index < 3) {
-      setTimeout(() => {
-        newMpinRefs.current[index + 1]?.focus();
-      }, 50);
-    }
-
+  if (type === "old") {
+    const updated = [...oldMpin];
+    updated[index] = numericText;
+    setOldMpin(updated);
+    if (numericText && index < 3) setTimeout(() => oldMpinRefs.current[index + 1]?.focus(), 50);
+    if (numericText && index === 3) setTimeout(() => { setActiveSection("new"); newMpinRefs.current[0]?.focus(); }, 100);
+  } else if (type === "new") {
+    const updated = [...newMpin];
+    updated[index] = numericText;
+    setNewMpin(updated);
+    if (numericText && index < 3) setTimeout(() => newMpinRefs.current[index + 1]?.focus(), 50);
     if (numericText && index === 3) {
-      const mpinString = updatedNewMpin.join("");
-      validateMpin(mpinString);
-      setTimeout(() => {
-        setActiveSection("confirm");
-        confirmMpinRefs.current[0]?.focus();
-      }, 100);
+      validateMpin(updated.join(""));
+      setTimeout(() => { setActiveSection("confirm"); confirmMpinRefs.current[0]?.focus(); }, 100);
     }
   } else {
-    const updatedConfirmMpin = [...confirmMpin];
-    updatedConfirmMpin[index] = numericText;
-    setConfirmMpin(updatedConfirmMpin);
-
-    // <-- Debugging log for Confirm MPIN entry
-    console.log("Confirm MPIN Entered:", updatedConfirmMpin.join(""));
-
-    if (numericText && index < 3) {
-      setTimeout(() => {
-        confirmMpinRefs.current[index + 1]?.focus();
-      }, 50);
-    }
-
+    const updated = [...confirmMpin];
+    updated[index] = numericText;
+    setConfirmMpin(updated);
+    if (numericText && index < 3) setTimeout(() => confirmMpinRefs.current[index + 1]?.focus(), 50);
     if (numericText && index === 3) {
-      const newMpinString = newMpin.join("");
-      const confirmMpinString = updatedConfirmMpin.join("");
-      if (newMpinString === confirmMpinString) {
-        setTimeout(() => handleSubmit(), 100);
-      }
+      if (newMpin.join("") === updated.join("")) setTimeout(() => handleSubmit(), 100);
     }
   }
-}, [newMpin, confirmMpin, isLocked, validateMpin]);
+}, [oldMpin, newMpin, confirmMpin, isLocked, validateMpin]);
 
 
   const handleKeyPress = useCallback((e, index, type) => {
     if (e.nativeEvent.key === "Backspace") {
-      const refs = type === "new" ? newMpinRefs : confirmMpinRefs;
-      const mpinArray = type === "new" ? newMpin : confirmMpin;
-      
-      if (!mpinArray[index] && index > 0) {
-        refs.current[index - 1]?.focus();
-      }
+      const refs = type === "old" ? oldMpinRefs : type === "new" ? newMpinRefs : confirmMpinRefs;
+      const mpinArray = type === "old" ? oldMpin : type === "new" ? newMpin : confirmMpin;
+      if (!mpinArray[index] && index > 0) refs.current[index - 1]?.focus();
     }
-  }, [newMpin, confirmMpin]);
+  }, [oldMpin, newMpin, confirmMpin]);
 
 const handleSubmit = useCallback(async () => {
   if (isLocked) return;
 
+  const oldMpinString = oldMpin.join("");
   const newMpinString = newMpin.join("");
   const confirmMpinString = confirmMpin.join("");
 
   console.log('=== Reset MPIN Debug Info ===');
+  console.log('Old MPIN:', oldMpinString);
   console.log('New MPIN:', newMpinString);
   console.log('Confirm MPIN:', confirmMpinString);
-  console.log('MPIN Validation:', mpinValidations);
-  console.log('Loading State:', loading);
-  console.log('Locked State:', isLocked);
 
-  if (newMpinString.length !== 4 || confirmMpinString.length !== 4) {
-    console.log('Validation Failed: Incomplete MPIN');
-    showToast({
-      message: "Please enter complete 4-digit MPINs",
-      type: ToastTypes.WARNING,
-      duration: 3000,
-      position: ToastPositions.TOP,
-    });
+  if (oldMpinString.length !== 4 || newMpinString.length !== 4 || confirmMpinString.length !== 4) {
+    showToast({ message: "Please enter all 4-digit MPINs", type: ToastTypes.WARNING, duration: 3000, position: ToastPositions.TOP });
     return;
   }
 
@@ -232,11 +199,8 @@ const handleSubmit = useCallback(async () => {
   }
 
   console.log('=== Calling API ===');
-  console.log('MPIN to reset:', newMpinString);
-  
   try {
-    console.log('API call started...');
-    const result = await resetMpinDirect(newMpinString);
+    const result = await resetMpinDirect(oldMpinString, newMpinString);
     console.log('API call successful:', result);
     
     resetAllMpin();
@@ -271,12 +235,9 @@ const handleSubmit = useCallback(async () => {
 }, [newMpin, confirmMpin, attempts, isLocked, resetMpinDirect, showToast, navigation, validateMpin]);
   const handleToggleVisibility = (type) => {
     if (isLocked) return;
-    
-    if (type === "new") {
-      setShowNewMpin(!showNewMpin);
-    } else {
-      setShowConfirmMpin(!showConfirmMpin);
-    }
+    if (type === "old") setShowOldMpin(v => !v);
+    else if (type === "new") setShowNewMpin(v => !v);
+    else setShowConfirmMpin(v => !v);
   };
 
   const handleBack = useCallback(() => {
@@ -290,7 +251,7 @@ const handleSubmit = useCallback(async () => {
   };
 
   const renderMpinInputs = (type, mpinArray, showMpin) => {
-    const refs = type === "new" ? newMpinRefs : confirmMpinRefs;
+    const refs = type === "old" ? oldMpinRefs : type === "new" ? newMpinRefs : confirmMpinRefs;
     const isActive = activeSection === type;
     const isDisabled = isLocked || loading;
 
@@ -354,9 +315,10 @@ const handleSubmit = useCallback(async () => {
     );
   };
 
-  const isSubmitDisabled = loading || isLocked || 
-    newMpin.some(digit => digit === "") || 
-    confirmMpin.some(digit => digit === "");
+  const isSubmitDisabled = loading || isLocked ||
+    oldMpin.some(d => d === "") ||
+    newMpin.some(d => d === "") ||
+    confirmMpin.some(d => d === "");
 
   return (
     <SafeAreaView style={COMMON_STYLES.containerBlue}>
@@ -368,7 +330,11 @@ const handleSubmit = useCallback(async () => {
         keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
       >
         <TouchableWithoutFeedback onPress={dismissKeyboard}>
-          <View style={styles.contentContainer}>
+          <ScrollView
+            contentContainerStyle={{ paddingBottom: 24, paddingHorizontal: SIZES.padding.container, paddingTop: getSpacing(8) }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
             
             {/* Header with Back Button */}
             <View style={styles.header}>
@@ -428,6 +394,21 @@ const handleSubmit = useCallback(async () => {
               <Text style={styles.instructionsText}>
                 Set a new 4-digit MPIN for your account
               </Text>
+            </View>
+
+            {/* Old MPIN Section */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Current MPIN</Text>
+                {activeSection === "old" && (
+                  <View style={styles.activeIndicator}>
+                    <Icon name="circle" size={SIZES.icon.xs} color={COLORS.primary} />
+                    <Text style={styles.activeText}>Entering</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.sectionSubtitle}>Enter your current 4-digit MPIN</Text>
+              {renderMpinInputs("old", oldMpin, showOldMpin)}
             </View>
 
             {/* New MPIN Section */}
@@ -594,7 +575,7 @@ const handleSubmit = useCallback(async () => {
                 Your new MPIN will be encrypted and stored securely
               </Text>
             </View>
-          </View>
+          </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </SafeAreaView>

@@ -13,6 +13,8 @@ import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useMpin } from "../../../Hooks/useMpin";
+import { useRegisterUser } from "../../../Hooks/useLoginCheck";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useToast, ToastTypes, ToastPositions } from "../../../Components/Toast/Toast";
 import { COLORS, FONTS, COMMON_STYLES, SIZES } from "../../../Utills/AppTheme";
 import styles from "./VerifyMpinStyles";
@@ -20,6 +22,7 @@ import styles from "./VerifyMpinStyles";
 const MpinVerifyScreen = () => {
   const navigation = useNavigation();
   const { verifyMpin, loading } = useMpin();
+  const { register } = useRegisterUser();
   const { showToast, Toast } = useToast();
 
   const [mpin, setMpin] = useState(["", "", "", ""]);
@@ -102,12 +105,29 @@ const MpinVerifyScreen = () => {
           position: ToastPositions.TOP,
         });
 
-        setTimeout(() => {
-         navigation.reset({
-  index: 0,
-  routes: [{ name: 'MainDrawer' }],
-});
-
+        setTimeout(async () => {
+          try {
+            const today = new Date().toISOString().split('T')[0];
+            const lastDate = await AsyncStorage.getItem('dailyRegisterDate');
+            if (lastDate !== today) {
+              const userData = await AsyncStorage.getItem('userData');
+              if (userData) {
+                const user = JSON.parse(userData);
+                const mobileNumber = user.contactNumber || user.mobileNumber || user.phone;
+                const username = user.username || user.name;
+                if (mobileNumber && username) {
+                  await register(username, mobileNumber);
+                  await AsyncStorage.setItem('dailyRegisterDate', today);
+                }
+              }
+            }
+          } catch (e) {
+            console.log('Daily register error:', e);
+          }
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'MainDrawer' }],
+          });
         }, 300);
       } catch (err) {
         // 🔑 MPIN NOT CREATED

@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     paddingHorizontal: SIZES.padding.container,
-    paddingTop: getSpacing(16),
+    paddingTop: getSpacing(8),
     backgroundColor: COLORS.backgroundBlue,
   },
 
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: getSpacing(24),
+    marginBottom: getSpacing(10),
     paddingHorizontal: getSpacing(4),
   },
   
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   securityStatus: {
     ...COMMON_STYLES.rowCenter,
     gap: getSpacing(12),
-    marginBottom: getSpacing(16),
+    marginBottom: getSpacing(8),
   },
   
   statusItem: {
@@ -125,12 +125,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: COLORS.infoLight + "20",
-    paddingHorizontal: getSpacing(12),
-    paddingVertical: getSpacing(10),
+    paddingHorizontal: getSpacing(10),
+    paddingVertical: getSpacing(6),
     borderRadius: SIZES.radius.md,
     borderWidth: 1,
     borderColor: COLORS.info,
-    marginBottom: getSpacing(20),
+    marginBottom: getSpacing(10),
   },
   
   instructionsText: {
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   // 🎯 SECTION
   // ============================================
   section: {
-    marginBottom: getSpacing(20),
+    marginBottom: getSpacing(10),
   },
   
   sectionHeader: {
@@ -175,9 +175,9 @@ const styles = StyleSheet.create({
   
   sectionSubtitle: {
     ...FONTS.caption,
-    fontSize: getFontSize(12),
+    fontSize: getFontSize(11),
     color: COLORS.textTertiary,
-    marginBottom: getSpacing(16),
+    marginBottom: getSpacing(8),
   },
 
   // ============================================
@@ -191,8 +191,8 @@ const styles = StyleSheet.create({
   
   mpinDigitContainer: {
     ...COMMON_STYLES.card.default,
-    width: getResponsiveValue(60),
-    height: getResponsiveValue(60),
+    width: getResponsiveValue(52),
+    height: getResponsiveValue(52),
     borderRadius: SIZES.radius.md,
     borderWidth: 2,
     borderColor: COLORS.borderLight,
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   
   mpinDigitInput: {
     ...FONTS.h1,
-    fontSize: getFontSize(24),
+    fontSize: getFontSize(20),
     color: COLORS.textBlueDark,
     width: "100%",
     height: "100%",
@@ -256,8 +256,8 @@ const styles = StyleSheet.create({
   strengthContainer: {
     backgroundColor: COLORS.blueOpacity10,
     borderRadius: SIZES.radius.md,
-    padding: getSpacing(16),
-    marginBottom: getSpacing(20),
+    padding: getSpacing(10),
+    marginBottom: getSpacing(10),
     borderWidth: 1,
     borderColor: COLORS.blueOpacity30,
   },
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
   // ============================================
   actionButtons: {
     ...COMMON_STYLES.rowCenter,
-    marginBottom: getSpacing(20),
+    marginBottom: getSpacing(10),
   },
   
   resetButton: {
@@ -354,9 +354,9 @@ const styles = StyleSheet.create({
   submitButton: {
     ...COMMON_STYLES.button.primary,
     borderRadius: SIZES.radius.lg,
-    paddingVertical: getSpacing(14),
+    paddingVertical: getSpacing(12),
     paddingHorizontal: getSpacing(24),
-    marginBottom: getSpacing(16),
+    marginBottom: getSpacing(12),
     width: "100%",
     borderWidth: 2,
     borderColor: COLORS.primaryDark,

@@ -10,14 +10,38 @@ import {
   Dimensions,
   TouchableOpacity,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { useSchemeSliders } from "../../Hooks/useSlider";
+import { useSchemes } from "../../Hooks/useScheme";
 import { IMAGE_BASE_URL } from "../../Config/BaseUrl";
 import { COLORS, SIZES, FONTS, SHADOWS, moderateScale } from "../../Utills/AppTheme";
+
+// index 0 → MemberCreation, rest → WebView URLs in order
+const SLIDE_LINKS = [
+  { type: 'screen', screen: 'MemberCreation' },
+  { type: 'web', url: 'https://jaigurujewellers.com/', title: 'Jaiguru Jewellers' },
+  { type: 'web', url: 'https://jaigurujewellers.com/why-us', title: 'Why Us' },
+  { type: 'web', url: 'https://jaigurujewellers.com/privacy-policy', title: 'Privacy Policy' },
+];
 
 const { width } = Dimensions.get("window");
 
 const SliderComponentSimple = () => {
+  const navigation = useNavigation();
   const { sliders, loading, error } = useSchemeSliders();
+  const { schemes } = useSchemes();
+
+  const handleSlidePress = (index) => {
+    const link = SLIDE_LINKS[index];
+    if (!link) return;
+    if (link.type === 'screen') {
+      // Pass the first available scheme (SchemeId 17) to MemberCreation
+      const scheme = schemes?.[0] || null;
+      navigation.navigate(link.screen, { scheme });
+    } else {
+      navigation.navigate('WebViewScreen', { url: link.url, title: link.title });
+    }
+  };
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef(null);
 
@@ -83,14 +107,18 @@ const SliderComponentSimple = () => {
         showsHorizontalScrollIndicator={false}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
-        renderItem={({ item }) => (
-          <View style={styles.slide}>
+        renderItem={({ item, index }) => (
+          <TouchableOpacity
+            style={styles.slide}
+            activeOpacity={0.9}
+            onPress={() => handleSlidePress(index)}
+          >
             <Image
               source={{ uri: `${IMAGE_BASE_URL}${item.image_path}` }}
               style={styles.image}
               resizeMode="cover"
             />
-          </View>
+          </TouchableOpacity>
         )}
       />
 

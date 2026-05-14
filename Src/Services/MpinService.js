@@ -4,7 +4,7 @@ import { MPIN_API_BASE_URL } from "../Config/BaseUrl";
 /**
  * Common POST Request
  */
-const postRequest = async (endpoint, params = {}) => {
+const postRequest = async (endpoint, params = {}, asBody = false) => {
   try {
     const token = await getAuthToken();
 
@@ -13,17 +13,14 @@ const postRequest = async (endpoint, params = {}) => {
       throw new Error("Authorization token not found");
     }
 
-    // Convert params to query string
-    const queryString = Object.keys(params)
-      .map(
-        (key) =>
-          `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`
-      )
-      .join("&");
+    let url = `${MPIN_API_BASE_URL}${endpoint}`;
 
-    const url = `${MPIN_API_BASE_URL}${endpoint}${
-      queryString ? `?${queryString}` : ""
-    }`;
+    if (!asBody) {
+      const queryString = Object.keys(params)
+        .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+        .join("&");
+      if (queryString) url += `?${queryString}`;
+    }
 
     console.log("===================================");
     console.log("📤 API Request URL:", url);
@@ -36,6 +33,7 @@ const postRequest = async (endpoint, params = {}) => {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
+      body: asBody ? JSON.stringify(params) : undefined,
     });
 
     console.log("📥 Raw Response Status:", response.status);
@@ -79,8 +77,8 @@ export const verifyMpin = (enteredMpin) =>
 export const resetMpinWithOld = (oldMpin, newMpin) =>
   postRequest("/resetMpin", { oldMpin, newMpin });
 
-export const resetMpinDirect = (newMpin) =>
-  postRequest("/reset", { newMpin });
+export const resetMpinDirect = (oldMpin, newMpin) =>
+  postRequest("/reset", { oldMpin, newMpin }, false);
 
 /** -----------------------------
  * 🔑 FORGOT MPIN APIs

@@ -329,15 +329,16 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     ...StyleSheet.absoluteFillObject,
-    paddingTop: Platform.OS === "ios" ? theme.SIZES.xxxl : theme.SIZES.xxl,
+    paddingTop: Platform.OS === "ios" ? theme.SIZES.xxxl : theme.SIZES.md,
   },
   topContainer: {
-    paddingHorizontal: theme.SIZES.padding.lg,
+    paddingHorizontal: theme.SIZES.padding.md,
     alignItems: "flex-end",
+    // paddingVertical: -30,
   },
   skipButton: {
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
-    paddingHorizontal: theme.SIZES.padding.xl,
+    backgroundColor: "rgba(0, 174, 255, 0.99)",
+    paddingHorizontal: theme.SIZES.padding.md,
     paddingVertical: theme.SIZES.padding.sm,
     borderRadius: theme.SIZES.radius.lg,
     borderWidth: 1,
@@ -346,7 +347,7 @@ const styles = StyleSheet.create({
   skipText: {
     ...theme.FONTS.labelUppercase,
     color: theme.COLORS.white,
-    fontSize: theme.SIZES.font.sm,
+    fontSize: theme.SIZES.font.md,
     letterSpacing: 1.5,
   },
   bottomContainer: {

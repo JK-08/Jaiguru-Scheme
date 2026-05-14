@@ -1,41 +1,41 @@
 {
   "project_info": {
-    "project_number": "764581659241",
-    "project_id": "jaiguru-scheme-735c2",
-    "storage_bucket": "jaiguru-scheme-735c2.firebasestorage.app"
+    "project_number": "985006297869",
+    "project_id": "jaiguru-scheme-e9ee9",
+    "storage_bucket": "jaiguru-scheme-e9ee9.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:764581659241:android:ca28fad9e5f52564e2d8f8",
+        "mobilesdk_app_id": "1:985006297869:android:283962a3a9d5363ea69644",
         "android_client_info": {
           "package_name": "com.brightechsoftware.jaiguruscheme2"
         }
       },
       "oauth_client": [
         {
-          "client_id": "764581659241-nehsb9k83fqoujekqqggsgaq3ps7bnrh.apps.googleusercontent.com",
+          "client_id": "985006297869-jljb62ho6i21tjkpogsotpbmigrc893m.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.brightechsoftware.jaiguruscheme2",
-            "certificate_hash": "d7e2ad937b2512876c2a280c96d22413a34d8e1f"
+            "certificate_hash": "9343a6e0fce807c3e0630f0511b6cebea8d4f062"
           }
         },
         {
-          "client_id": "764581659241-09cqj59ppmrcegcsm4a9i594p0uop00p.apps.googleusercontent.com",
+          "client_id": "985006297869-9mpqikboqvnesffmb9okfbuope80pg16.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAujuNCrAT-AGC0azAvGACqtkihQAkfEeU"
+          "current_key": "AIzaSyBzqwkUsHNBhUly_dfqF71tcfFSv6r4HnE"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "764581659241-09cqj59ppmrcegcsm4a9i594p0uop00p.apps.googleusercontent.com",
+              "client_id": "985006297869-9mpqikboqvnesffmb9okfbuope80pg16.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

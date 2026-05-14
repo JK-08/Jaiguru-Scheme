@@ -33,7 +33,7 @@ import { styles } from './RegisterStyles'; // Import styles from separate file
 
 // Configure Google Sign-In
 GoogleSignin.configure({
-  webClientId: "764581659241-09cqj59ppmrcegcsm4a9i594p0uop00p.apps.googleusercontent.com",
+  webClientId: "985006297869-9mpqikboqvnesffmb9okfbuope80pg16.apps.googleusercontent.com",
   offlineAccess: true,
   forceCodeForRefreshToken: true,
 });

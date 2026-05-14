@@ -1,70 +1,55 @@
 // screens/HomeScreen.js
 import React, { useRef, useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet, 
-  TouchableOpacity,
-  SafeAreaView,
-  ActivityIndicator,
-  Alert
+  View, Text, ScrollView, StyleSheet,
+  TouchableOpacity, SafeAreaView, ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 
+import { COLORS, FONTS, SIZES, SHADOWS, moderateScale } from '../../Utills/AppTheme';
 import HomeHeaderRedesigned from '../../Components/MainHeader/MainHeader';
 import SliderComponent from '../../Components/Slider/Slider';
 import SchemeDetailsCard from '../../Components/SchemeDetailsCard/SchemeDetailsCard';
 import SchemesList from '../../Components/SchemeCard/SchemeCard';
-import { useNavigation } from '@react-navigation/native';
 import PushNotificationService from '../../Services/PushNotificationService';
-import { 
-  registerForPushNotificationsAsync, 
-  wasTokenSent, 
+import {
+  registerForPushNotificationsAsync,
+  wasTokenSent,
   markTokenAsSent,
-  getStoredPushToken
+  getStoredPushToken,
 } from '../../Helpers/NotificationHelper';
 import BottomTab from '../../Components/BottomTab/BottomTab';
+import MainPageWithYouTube from '../../Components/Youtube/Youtube';
+
+
+const QUICK_ACTIONS = [
+  { icon: 'trending-up', color: COLORS.secondary,    label: 'Gold Rates',     route: 'Rates', params: { rateType: 'gold' } },
+  { icon: 'trending-up', color: COLORS.textSecondary, label: 'Silver Rates',  route: 'Rates', params: { rateType: 'silver' } },
+  { icon: 'person-add',  color: COLORS.primary,       label: 'Join Scheme',   route: 'MemberCreation', params: {} },
+];
 
 const HomeScreen = () => {
   const navigation = useNavigation();
   const scrollViewRef = useRef(null);
-  
-  // Notification states
-  const [notificationStatus, setNotificationStatus] = useState('checking'); // checking, registering, registered, failed
+
+  const [notificationStatus, setNotificationStatus] = useState('checking');
   const [userId, setUserId] = useState(null);
-  const [pushToken, setPushToken] = useState(null);
 
-  // Get user ID from storage on component mount
-  useEffect(() => {
-    getUserData();
-  }, []);
-
-  // Register for push notifications when userId is available
-  useEffect(() => {
-    if (userId) {
-      handlePushNotificationRegistration();
-    }
-  }, [userId]);
+  useEffect(() => { getUserData(); }, []);
+  useEffect(() => { if (userId) handlePushNotificationRegistration(); }, [userId]);
 
   const getUserData = async () => {
     try {
-      // Get user data from your auth storage method
-      // Adjust this based on how you store user data after login
       const userData = await AsyncStorage.getItem('userData');
-      const userToken = await AsyncStorage.getItem('userToken');
-      
       if (userData) {
         const user = JSON.parse(userData);
         setUserId(user.id || user.userId);
       } else {
-        // If no user data, you might want to skip notification registration
         setNotificationStatus('skipped');
-        console.log('No user logged in - skipping notification registration');
       }
-    } catch (error) {
-      console.error('Error getting user data:', error);
+    } catch {
       setNotificationStatus('failed');
     }
   };
@@ -72,36 +57,17 @@ const HomeScreen = () => {
   const handlePushNotificationRegistration = async () => {
     try {
       setNotificationStatus('registering');
-      
-      // First check if we already have a token
       const existingToken = await getStoredPushToken();
-      
       if (existingToken) {
-        setPushToken(existingToken);
-        
-        // Check if token was already sent to server
         const tokenSent = await wasTokenSent();
-        
-        if (!tokenSent) {
-          // Token exists but wasn't sent to server, send it now
-          await sendTokenToServer(existingToken);
-        } else {
-          setNotificationStatus('registered');
-          console.log('📱 Push notifications already registered');
-        }
+        if (!tokenSent) await sendTokenToServer(existingToken);
+        else setNotificationStatus('registered');
       } else {
-        // Generate new token
         const token = await registerForPushNotificationsAsync(userId);
-        
-        if (token) {
-          setPushToken(token);
-          await sendTokenToServer(token);
-        } else {
-          setNotificationStatus('failed');
-        }
+        if (token) await sendTokenToServer(token);
+        else setNotificationStatus('failed');
       }
-    } catch (error) {
-      console.error('Error in push notification registration:', error);
+    } catch {
       setNotificationStatus('failed');
     }
   };
@@ -109,86 +75,38 @@ const HomeScreen = () => {
   const sendTokenToServer = async (token) => {
     try {
       const success = await PushNotificationService.sendPushTokenToServer(token, userId);
-      
-      if (success) {
-        await markTokenAsSent();
-        setNotificationStatus('registered');
-        
-        // Optional: Show success message once
-        // Alert.alert('Success', 'Notifications enabled successfully');
-      } else {
-        setNotificationStatus('failed');
-      }
-    } catch (error) {
-      console.error('Error sending token to server:', error);
+      if (success) { await markTokenAsSent(); setNotificationStatus('registered'); }
+      else setNotificationStatus('failed');
+    } catch {
       setNotificationStatus('failed');
     }
   };
 
-  const handleRetryNotificationRegistration = () => {
-    if (userId) {
-      handlePushNotificationRegistration();
-    } else {
-      getUserData();
-    }
-  };
+  const renderNotificationBanner = () => {
+    if (notificationStatus === 'registered' || notificationStatus === 'skipped') return null;
 
-  const handleNotificationPress = () => {
-    console.log('Notifications pressed');
-    navigation.navigate('Notifications');
-  };
-
-  const handleLogoPress = () => {
-    scrollViewRef.current?.scrollTo({
-      y: 0,
-      animated: true,
-    });
-  };
-
-  const handleRatePress = (type) => {
-    console.log(`${type} rates pressed`);
-    navigation.navigate('Rates', { rateType: type });
-  };
-
-  // Render notification status banner
-  const renderNotificationStatus = () => {
-    if (notificationStatus === 'registered' || notificationStatus === 'skipped') {
-      return null; // Don't show banner if registered or skipped
-    }
+    const isLoading = notificationStatus === 'checking' || notificationStatus === 'registering';
+    const isFailed  = notificationStatus === 'failed';
 
     return (
-      <TouchableOpacity 
-        style={[
-          styles.notificationBanner,
-          notificationStatus === 'failed' && styles.notificationBannerError,
-          notificationStatus === 'registering' && styles.notificationBannerLoading
-        ]}
-        onPress={notificationStatus === 'failed' ? handleRetryNotificationRegistration : null}
-        disabled={notificationStatus === 'registering'}
+      <TouchableOpacity
+        style={[styles.banner, isFailed ? styles.bannerError : styles.bannerLoading]}
+        onPress={isFailed ? handlePushNotificationRegistration : null}
+        disabled={isLoading}
+        activeOpacity={0.8}
       >
-        {notificationStatus === 'registering' ? (
+        {isLoading ? (
           <>
-            <ActivityIndicator size="small" color="#fff" />
-            <Text style={styles.notificationBannerText}>
-              Setting up notifications...
-            </Text>
+            <ActivityIndicator size="small" color={COLORS.white} />
+            <Text style={styles.bannerText}>Setting up notifications…</Text>
           </>
-        ) : notificationStatus === 'failed' ? (
+        ) : (
           <>
-            <Icon name="notifications-off" size={20} color="#fff" />
-            <Text style={styles.notificationBannerText}>
-              Enable notifications to receive updates
-            </Text>
-            <Text style={styles.notificationBannerAction}>Tap to retry</Text>
+            <Icon name="notifications-off" size={SIZES.icon.md} color={COLORS.white} />
+            <Text style={styles.bannerText}>Enable notifications to receive updates</Text>
+            <Text style={styles.bannerAction}>Tap to retry</Text>
           </>
-        ) : notificationStatus === 'checking' ? (
-          <>
-            <ActivityIndicator size="small" color="#fff" />
-            <Text style={styles.notificationBannerText}>
-              Checking notification status...
-            </Text>
-          </>
-        ) : null}
+        )}
       </TouchableOpacity>
     );
   };
@@ -196,61 +114,61 @@ const HomeScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <HomeHeaderRedesigned
-        onNotificationPress={handleNotificationPress}
-        onLogoPress={handleLogoPress}
+        onNotificationPress={() => navigation.navigate('NotificationScreen')}
+        onLogoPress={() => scrollViewRef.current?.scrollTo({ y: 0, animated: true })}
       />
 
-      {/* Notification Status Banner */}
-      {renderNotificationStatus()}
+      {renderNotificationBanner()}
 
       <ScrollView
         ref={scrollViewRef}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        {/* Slider */}
         <SliderComponent />
-        
-        {/* Horizontal Scheme Cards */}
-        <SchemeDetailsCard layout="horizontal" />
-        
-        <SchemesList />
 
-        {/* Welcome Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Welcome!</Text>
-          <Text style={styles.sectionText}>
-            Your app content goes here. Explore rates, products, and more.
-          </Text>
-        </View>
+        {/* Scheme Summary Cards */}
+        <SchemeDetailsCard layout="horizontal" />
 
         {/* Quick Actions */}
-        <View style={styles.quickActions}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => handleRatePress('gold')}
-          >
-            <Icon name="trending-up" size={26} color="#FFD700" />
-            <Text style={styles.actionText}>Gold Rates</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => handleRatePress('silver')}
-          >
-            <Icon name="trending-up" size={26} color="#C0C0C0" />
-            <Text style={styles.actionText}>Silver Rates</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => navigation.navigate('MemberCreation')}
-          >
-            <Icon name="person-add" size={26} color="#4ECDC4" />
-            <Text style={styles.actionText}>Create Member</Text>
-          </TouchableOpacity>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
         </View>
+        <View style={styles.quickActions}>
+          {QUICK_ACTIONS.map((action, i) => (
+            <TouchableOpacity
+              key={i}
+              style={styles.actionCard}
+              onPress={() => navigation.navigate(action.route, action.params)}
+              activeOpacity={0.75}
+            >
+              <View style={[styles.actionIconWrap, { backgroundColor: action.color + '1A' }]}>
+                <Icon name={action.icon} size={SIZES.icon.lg} color={action.color} />
+              </View>
+              <Text style={styles.actionLabel}>{action.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Scheme List */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Our Schemes</Text>
+        </View>
+        <SchemesList />
+
+        {/* YouTube Section */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Promotions & Updates</Text>
+        </View>
+        <View style={styles.youtubeWrapper}>
+          <MainPageWithYouTube />
+        </View>
+
+        <View style={{ height: moderateScale(24) }} />
       </ScrollView>
-   <BottomTab activeScreen="HOME" />
+
+      <BottomTab activeScreen="HOME" />
     </SafeAreaView>
   );
 };
@@ -260,103 +178,85 @@ export default HomeScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffffff',
+    backgroundColor: COLORS.backgroundSecondary,
   },
   scrollContent: {
-    paddingBottom: 30,
-    paddingTop: 16,
+    paddingBottom: SIZES.tabBar.height + SIZES.padding.lg,
+    paddingTop: SIZES.padding.sm,
   },
-  section: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 16,
-    marginHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 4,
+
+  // ── Notification Banner ──
+  banner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: SIZES.padding.container,
+    marginTop: SIZES.margin.sm,
+    marginBottom: SIZES.margin.xs,
+    paddingVertical: SIZES.padding.sm,
+    paddingHorizontal: SIZES.padding.md,
+    borderRadius: SIZES.radius.md,
+    gap: SIZES.sm,
+  },
+  bannerLoading: { backgroundColor: COLORS.warning },
+  bannerError:   { backgroundColor: COLORS.error },
+  bannerText: {
+    ...FONTS.bodySmall,
+    color: COLORS.white,
+    flex: 1,
+  },
+  bannerAction: {
+    ...FONTS.caption,
+    color: COLORS.white,
+    textDecorationLine: 'underline',
+    fontFamily: FONTS.family.semiBold,
+  },
+
+  // ── Section Header ──
+  sectionHeader: {
+    paddingHorizontal: SIZES.padding.container,
+    marginTop: SIZES.margin.lg,
+    marginBottom: SIZES.margin.sm,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 6,
+    ...FONTS.h5,
+    color: COLORS.textPrimary,
   },
-  sectionText: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-  },
+
+  // ── Quick Actions ──
   quickActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
-    marginHorizontal: 16,
+    paddingHorizontal: SIZES.padding.container,
+    gap: SIZES.margin.sm,
   },
-  actionButton: {
+  actionCard: {
     flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    paddingVertical: 18,
+    backgroundColor: COLORS.white,
+    borderRadius: SIZES.radius.card,
+    paddingVertical: SIZES.padding.lg,
     alignItems: 'center',
-    marginHorizontal: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 4,
+    ...SHADOWS.sm,
   },
-  actionText: {
-    marginTop: 8,
-    fontSize: 12,
-    color: '#333',
-    fontWeight: '500',
-  },
-  // Notification banner styles
-  notificationBanner: {
-    flexDirection: 'row',
+  actionIconWrap: {
+    width: moderateScale(44),
+    height: moderateScale(44),
+    borderRadius: SIZES.radius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#007AFF',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginHorizontal: 16,
-    marginTop: 8,
-    borderRadius: 8,
-    gap: 8,
+    marginBottom: SIZES.margin.xs,
   },
-  notificationBannerError: {
-    backgroundColor: '#F44336',
+  actionLabel: {
+    ...FONTS.caption,
+    color: COLORS.textPrimary,
+    textAlign: 'center',
+    fontFamily: FONTS.family.medium,
   },
-  notificationBannerLoading: {
-    backgroundColor: '#FFA000',
-  },
-  notificationBannerText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '500',
-    flex: 1,
-  },
-  notificationBannerAction: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-    textDecorationLine: 'underline',
-  },
-  // Test button (development only)
-  testButton: {
-    backgroundColor: '#e0e0e0',
-    padding: 12,
-    marginHorizontal: 16,
-    marginTop: 20,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  testButtonText: {
-    color: '#333',
-    fontSize: 14,
-    fontWeight: '500',
+
+  // ── YouTube ──
+  youtubeWrapper: {
+    marginHorizontal: SIZES.padding.container,
+    borderRadius: SIZES.radius.card,
+    overflow: 'hidden',
+    backgroundColor: COLORS.black,
+    ...SHADOWS.md,
   },
 });

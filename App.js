@@ -23,8 +23,6 @@ export default function App() {
   useEffect(() => {
     const initApp = async () => {
       try {
-        // ✅ Only setup listeners, don't register for token
-        setupNotificationListeners();
         setAppReady(true);
       } catch (error) {
         console.error('App initialization error:', error);
@@ -33,6 +31,8 @@ export default function App() {
     };
 
     initApp();
+    const cleanup = setupNotificationListeners();
+    return cleanup;
   }, []);
 
   // Show loading until fonts are loaded and app is ready
