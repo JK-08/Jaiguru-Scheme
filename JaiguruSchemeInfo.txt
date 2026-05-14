@@ -1,0 +1,11 @@
+//Keystore data
+
+Keystore name : my-release-key
+keystore password : bmg@123
+alias name : my-key-alias
+
+//Google Login 
+Email : hkirubakarandeveloper08@gmail.com
+Web client ID : 985006297869-9mpqikboqvnesffmb9okfbuope80pg16.apps.googleusercontent.com
+Android client ID : 985006297869-jljb62ho6i21tjkpogsotpbmigrc893m.apps.googleusercontent.com
+

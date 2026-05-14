@@ -112,7 +112,7 @@ useFocusEffect(
 
   const formatDate = useCallback((dateString) => {
     if (!dateString) return "N/A";
-    return dateString.split("T")[0];
+    return dateString.split("T")[0].split(" ")[0];
   }, []);
 
   // Render individual account card
@@ -123,19 +123,23 @@ useFocusEffect(
       pName,
       joinDate,
       maturityDate,
-      totalAmount = 0,
-      bonusAmount = 0,
+      amount,
       schemeSummary,
       nextDueDate,
-      amount,
+      lastPaidDate,
     } = account;
 
-    const insPaid = schemeSummary?.schemaSummaryTransBalance?.insPaid || "0";
-    const instalment = schemeSummary?.instalment || "0";
+    const balance     = schemeSummary?.schemaSummaryTransBalance;
+    const insPaid     = parseInt(balance?.insPaid || "0");
+    const instalment  = parseInt(schemeSummary?.instalment || "0");
+    const amtRecd     = parseFloat(balance?.amtrecd || "0");
+    const totalWeight = parseFloat(schemeSummary?.totalWeight || "0");
+    const schemeName  = schemeSummary?.schemeName || "N/A";
     const schemeSName = schemeSummary?.schemeSName || "N/A";
-    const schemeName = schemeSummary?.schemeName || "N/A";
-    const schemeAmount = parseFloat(amount) || 0;
-    const isPaymentDue = nextDueDate && new Date(nextDueDate) <= new Date();
+    const schemeAmt   = parseFloat(amount) || 0;
+    const progress    = instalment > 0 ? insPaid / instalment : 0;
+    const isFullyPaid  = instalment > 0 && insPaid >= instalment;
+    const isPaymentDue = !isFullyPaid && nextDueDate && new Date(nextDueDate) <= new Date();
 
     return (
       <View style={[
@@ -146,13 +150,11 @@ useFocusEffect(
           styles.card,
           layout === "vertical" && styles.cardVertical
         ]}>
-          {/* Header with Badges */}
+          {/* Header */}
           <View style={styles.cardHeader}>
             <View style={styles.headerLeft}>
               <View style={styles.regBadge}>
-                <Text style={styles.regBadgeText}>
-                  {regNo} - {groupCode}
-                </Text>
+                <Text style={styles.regBadgeText}>{groupCode}-{regNo}</Text>
               </View>
               <View style={styles.schemeBadge}>
                 <Text style={styles.schemeBadgeText}>{schemeSName}</Text>
@@ -167,67 +169,62 @@ useFocusEffect(
 
           <View style={styles.divider} />
 
-          {/* Content */}
-          <View style={[
-            styles.cardContent,
-            layout === "vertical" && styles.cardContentVertical
-          ]}>
+          {/* Body */}
+          <View style={styles.cardContent}>
+
+            {/* Name + Scheme */}
             <View style={styles.nameSection}>
               <Text style={styles.nameText}>{pName}</Text>
-              <Text style={styles.schemeText} numberOfLines={2}>
-                {schemeName}
-              </Text>
+              <Text style={styles.schemeText} numberOfLines={2}>{schemeName}</Text>
             </View>
 
-            <View style={[
-              styles.amountSection,
-              layout === "vertical" && styles.amountSectionVertical
-            ]}>
-              <View style={[styles.amountCard, styles.bonusCard]}>
-                <Text style={styles.bonusLabel}>Amount</Text>
-                <Text style={styles.bonusValue}>₹{schemeAmount.toFixed(0)}</Text>
+            {/* 3 stat boxes */}
+            <View style={styles.amountSection}>
+              <View style={[styles.amountCard, styles.amtCard]}>
+                <Text style={styles.amountLabel}>Monthly Amt</Text>
+                <Text style={styles.amountValue}>₹{schemeAmt.toLocaleString("en-IN")}</Text>
               </View>
               <View style={styles.amountCard}>
-                <Text style={styles.amountLabel}>Total Paid</Text>
-                <Text style={styles.amountValue}>₹{totalAmount.toFixed(0)}</Text>
+                <Text style={styles.amountLabel}>Paid Amount</Text>
+                <Text style={styles.amountValue}>₹{amtRecd.toLocaleString("en-IN")}</Text>
               </View>
-              
               <View style={styles.amountCard}>
-                <Text style={styles.amountLabel}>Installment</Text>
-                <View style={styles.installmentRow}>
-                  <Text style={styles.installmentPaid}>{insPaid}</Text>
-                  <Text style={styles.installmentDivider}>/</Text>
-                  <Text style={styles.installmentTotal}>{instalment}</Text>
-                </View>
+                <Text style={styles.amountLabel}>Gold Weight</Text>
+                <Text style={styles.amountValue}>{totalWeight.toFixed(3)}g</Text>
               </View>
             </View>
 
-            <View style={[
-              styles.dateSection,
-              layout === "vertical" && styles.dateSectionVertical
-            ]}>
+            {/* Progress bar */}
+            <View style={styles.progressSection}>
+              <View style={styles.progressLabelRow}>
+                <Text style={styles.progressLabel}>Installments</Text>
+                <Text style={styles.progressCount}>{insPaid} / {instalment}</Text>
+              </View>
+              <View style={styles.progressBar}>
+                <View style={[styles.progressFill, { width: `${Math.min(progress * 100, 100)}%` }]} />
+              </View>
+            </View>
+
+            {/* Dates */}
+            <View style={styles.dateSection}>
               <View style={styles.dateCard}>
                 <Text style={styles.dateLabel}>Join Date</Text>
                 <Text style={styles.dateValue}>{formatDate(joinDate)}</Text>
               </View>
               <View style={styles.dateDivider} />
               <View style={styles.dateCard}>
-                <Text style={styles.dateLabel}>Maturity Date</Text>
+                <Text style={styles.dateLabel}>Last Paid</Text>
+                <Text style={styles.dateValue}>{formatDate(lastPaidDate)}</Text>
+              </View>
+              <View style={styles.dateDivider} />
+              <View style={styles.dateCard}>
+                <Text style={styles.dateLabel}>Maturity</Text>
                 <Text style={styles.dateValue}>{formatDate(maturityDate)}</Text>
               </View>
             </View>
 
-            {nextDueDate && (
-              <View style={styles.dueDateSection}>
-                <Text style={styles.dueDateLabel}>Next Due:</Text>
-                <Text style={styles.dueDateValue}>{formatDate(nextDueDate)}</Text>
-              </View>
-            )}
-
-            <View style={[
-              styles.buttonsSection,
-              layout === "vertical" && styles.buttonsSectionVertical
-            ]}>
+            {/* Buttons */}
+            <View style={styles.buttonsSection}>
               <TouchableOpacity
                 style={styles.viewButton}
                 onPress={() => handleViewDetails(account)}
@@ -235,15 +232,21 @@ useFocusEffect(
               >
                 <Text style={styles.viewButtonText}>View Details</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.payButton, isPaymentDue && styles.payButtonDue]}
-                onPress={() => handlePayNow(account)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.payButtonText}>
-                  {isPaymentDue ? "Pay Now" : "Make Payment"}
-                </Text>
-              </TouchableOpacity>
+              {isFullyPaid ? (
+                <View style={styles.fullyPaidBadge}>
+                  <Text style={styles.fullyPaidText}>✓ Fully Paid</Text>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.payButton, isPaymentDue && styles.payButtonDue]}
+                  onPress={() => handlePayNow(account)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.payButtonText}>
+                    {isPaymentDue ? "Pay Now" : "Make Payment"}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
 
@@ -479,15 +482,16 @@ const styles = StyleSheet.create({
     fontSize: SIZES.font.sm,
   },
   schemeBadge: {
-    backgroundColor: COLORS.goldPrimary,
+    backgroundColor: COLORS.secondaryLight,
     paddingHorizontal: SIZES.padding.sm,
     paddingVertical: SIZES.padding.xs,
     borderRadius: SIZES.radius.sm,
   },
   schemeBadgeText: {
     ...FONTS.caption,
-    color: COLORS.white,
+    color: COLORS.black,
     fontSize: SIZES.font.xs,
+    fontWeight: "bold",
   },
   dueBadge: {
     backgroundColor: COLORS.error,
@@ -519,12 +523,8 @@ const styles = StyleSheet.create({
   },
   amountSection: {
     flexDirection: "row",
-    marginBottom: SIZES.margin.lg,
-    gap: SIZES.margin.sm,
-  },
-  amountSectionVertical: {
-    flexDirection: "row",
     marginBottom: SIZES.margin.md,
+    gap: SIZES.margin.sm,
   },
   amountCard: {
     flex: 1,
@@ -535,7 +535,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.blueOpacity10,
   },
-  bonusCard: {
+  amtCard: {
     backgroundColor: COLORS.goldLight,
     borderColor: COLORS.goldOpacity30,
   },
@@ -544,49 +544,47 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginBottom: SIZES.margin.xs,
     fontSize: SIZES.font.xs,
-  },
-  bonusLabel: {
-    ...FONTS.caption,
-    color: COLORS.textGoldDark,
-    marginBottom: SIZES.margin.xs,
-    fontSize: SIZES.font.xs,
+    textAlign: "center",
   },
   amountValue: {
     ...FONTS.h4,
     color: COLORS.primary,
-    fontSize: SIZES.font.lg,
+    fontSize: SIZES.font.md,
+    fontWeight: "700",
   },
-  bonusValue: {
-    ...FONTS.h4,
-    color: COLORS.goldDark,
-    fontSize: SIZES.font.lg,
+  progressSection: {
+    marginBottom: SIZES.margin.lg,
   },
-  installmentRow: {
+  progressLabelRow: {
     flexDirection: "row",
-    alignItems: "baseline",
-    gap: SIZES.margin.xs,
+    justifyContent: "space-between",
+    marginBottom: SIZES.margin.xs,
   },
-  installmentPaid: {
-    ...FONTS.h4,
-    color: COLORS.primary,
-    fontSize: SIZES.font.lg,
-  },
-  installmentDivider: {
-    ...FONTS.body,
-    color: COLORS.textTertiary,
-  },
-  installmentTotal: {
-    ...FONTS.bodyMedium,
+  progressLabel: {
+    ...FONTS.caption,
     color: COLORS.textSecondary,
-    fontSize: SIZES.font.lg,
+    fontSize: SIZES.font.xs,
+  },
+  progressCount: {
+    ...FONTS.captionBold,
+    color: COLORS.primary,
+    fontSize: SIZES.font.sm,
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: COLORS.blueOpacity10,
+    borderRadius: SIZES.radius.sm,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: COLORS.primary,
+    borderRadius: SIZES.radius.sm,
   },
   dateSection: {
     flexDirection: "row",
-    marginBottom: SIZES.margin.md,
-    gap: SIZES.margin.md,
-  },
-  dateSectionVertical: {
-    marginBottom: SIZES.margin.sm,
+    marginBottom: SIZES.margin.lg,
+    gap: SIZES.margin.xs,
   },
   dateCard: {
     flex: 1,
@@ -641,9 +639,19 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
     ...SHADOWS.xs,
   },
-  payButtonDue: {
-    backgroundColor: COLORS.error,
-    borderColor: COLORS.error,
+  fullyPaidBadge: {
+    flex: 1,
+    backgroundColor: "#E8F5E9",
+    paddingVertical: SIZES.padding.md,
+    borderRadius: SIZES.radius.md,
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "#43A047",
+  },
+  fullyPaidText: {
+    ...FONTS.bodyBold,
+    color: "#2E7D32",
+    fontSize: SIZES.font.md,
   },
   payButtonText: {
     ...FONTS.bodyBold,

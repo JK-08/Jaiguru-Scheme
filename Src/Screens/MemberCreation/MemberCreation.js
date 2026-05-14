@@ -16,6 +16,8 @@ import { useMemberActions } from "../../Hooks/useMemberCreate";
 import { useRazorpayPayment } from "../../Hooks/useRazorPay";
 import PaymentModal from "./PaymentModal";
 import RazorpayWebView from "../../Components/RazorpayWebView";
+import CommonHeader from "../../Components/CommonHeader/CommonHeader";
+
 
 // Constants
 const STEPS = {
@@ -83,10 +85,7 @@ const { handleCreateMember: create, loading: createLoading } = useMemberActions(
 
   const handleNext = useCallback(() => {
     if (currentStep === STEPS.REGISTRATION && registrationFormRef.current) {
-      const isValid = registrationFormRef.current.validateAndSubmit();
-      if (isValid) {
-        setCurrentStep(STEPS.SCHEME_JOINING);
-      }
+      registrationFormRef.current.validateAndSubmit();
     }
   }, [currentStep]);
 
@@ -240,6 +239,12 @@ const formatDate = useCallback((dateStr) => {
 
   return (
     <View style={styles.container}>
+      <CommonHeader
+        title="Member Creation"
+        showBack
+        onBackPress={handleBack}
+      />
+
       {/* Step Indicator */}
       <StepIndicator currentStep={currentStep} />
 

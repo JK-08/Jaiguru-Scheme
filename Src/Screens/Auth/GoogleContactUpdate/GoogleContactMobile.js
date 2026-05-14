@@ -17,7 +17,8 @@ import CommonHeader from "../../../Components/CommonHeader/CommonHeader";
 import theme, { COLORS, SIZES, FONTS, SHADOWS, COMMON_STYLES } from "../../../Utills/AppTheme";
 
 const GoogleContactMobileScreen = ({ route, navigation }) => {
-  const { userId } = route.params;
+  const { userId, googleData } = route.params;
+  const resolvedUserId = userId ?? googleData?.userId;
   const { requestGoogleOtp, loading, error } = useAuth();
 
   const [mobile, setMobile] = useState("");
@@ -30,7 +31,7 @@ const GoogleContactMobileScreen = ({ route, navigation }) => {
     }
 
     const result = await requestGoogleOtp({
-      userId,
+      userId: resolvedUserId,
       newContactNumber: mobile,
     });
 
@@ -41,7 +42,7 @@ const GoogleContactMobileScreen = ({ route, navigation }) => {
         [{ text: "OK" }]
       );
       navigation.navigate("GoogleContactVerify", {
-        userId,
+        userId: resolvedUserId,
         mobile,
       });
     }

@@ -216,7 +216,7 @@ const handleSubmit = useCallback(async () => {
     setTimeout(() => {
       navigation.reset({
         index: 0,
-        routes: [{ name: "VerifyMpin" }],
+        routes: [{ name: "MpinVerify" }],
       });
     }, 1000);
   } catch (err) {

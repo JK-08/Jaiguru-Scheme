@@ -34,19 +34,13 @@ export const registerUser = async (username, mobileNumber) => {
 };
 
 // 🔹 Get Users List
-export const getUsersList = async (
-  mobileNumber,
-  fromDate,
-  toDate
-) => {
+export const getUsersList = async (mobileNumber, fromDate, toDate) => {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/logincheck/list?mobileNumber=${mobileNumber}&fromDate=${fromDate}&toDate=${toDate}`,
+      `https://scheme.jaigurujewellers.com/api/v1/logincheck/get?date=${fromDate}`,
       {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       }
     );
 

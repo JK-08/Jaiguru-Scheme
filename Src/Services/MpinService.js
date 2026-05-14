@@ -55,6 +55,7 @@ try {
       throw {
         message: data?.message || "Request failed",
         status: response.status,
+        code: response.status === 404 ? "MPIN_NOT_FOUND" : undefined,
       };
     }
 

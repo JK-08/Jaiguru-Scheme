@@ -115,6 +115,10 @@ const HelpCentreScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
+    const handleBackPress = () => {
+    navigation.navigate("MainDrawer");
+  };
+
   const fetchCompanyDetails = useCallback(async () => {
     try {
       const data = await getCompanyDetails();
@@ -170,7 +174,7 @@ const HelpCentreScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <CommonHeader title="Help Center" />
+      <CommonHeader title="Help Center" leftBtn onPress={handleBackPress} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}

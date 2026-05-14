@@ -202,9 +202,9 @@ export default function SchemeDetails() {
     schemeClosedSummary, lastPaidDate, remainingDays = 0,
   } = data;
 
-  const { schemeId, schemeName, schemeSName, instalment = "0", schemaSummaryTransBalance = {} } = schemeSummary || {};
-  const { totalAmount: transTotalAmount = "0.0", insPaid = "0" } = schemaSummaryTransBalance;
-  const { personalId, doorNo, address1, address2, area, city, state, pinCode, mobile } = personalInfo || {};
+  const { schemeId, schemeName, schemeSName, instalment = "0", schemaSummaryTransBalance = {}, totalWeight = "0", lastWeight = "0" } = schemeSummary || {};
+  const { amtrecd = "0.0", insPaid = "0" } = schemaSummaryTransBalance;
+  const { personalId, doorNo, address1, address2, area, city, state, pinCode, mobile, mobile2 } = personalInfo || {};
 
   const isClosed = schemeClosedSummary?.doClose && schemeClosedSummary.doClose !== "1900-01-01 00:00:00.0";
   const isPaymentDue = !isClosed && nextDueDate && new Date(nextDueDate) <= new Date();
@@ -245,15 +245,21 @@ export default function SchemeDetails() {
         <Text style={styles.paymentIndexText}>{index + 1}</Text>
       </View>
 
-      {/* Middle: date + installment */}
+      {/* Middle: date + installment + payment mode */}
       <View style={{ flex: 1, marginLeft: 10 }}>
-        <Text style={styles.paymentDate}>{formatDateShort(item.updateTime)}</Text>
+        <Text style={styles.paymentDate}>{formatDate(item.updateTime)}</Text>
         <Text style={styles.paymentInstall}>Installment #{item.installment || "—"}</Text>
+        {item.chqBank && item.chqBank !== "N/A" && (
+          <Text style={styles.paymentMode}>via {item.chqBank}</Text>
+        )}
       </View>
 
-      {/* Right: amount + badge */}
+      {/* Right: amount + weight */}
       <View style={{ alignItems: "flex-end" }}>
         <Text style={styles.paymentAmount}>{formatCurrency(item.amount)}</Text>
+        {item.weight && parseFloat(item.weight) > 0 && (
+          <Text style={styles.paymentWeight}>{parseFloat(item.weight).toFixed(3)}g</Text>
+        )}
         <View style={styles.paidBadge}>
           <Text style={styles.paidBadgeText}>Paid</Text>
         </View>
@@ -284,10 +290,10 @@ export default function SchemeDetails() {
         <View style={[styles.cardStrip, { backgroundColor: COLORS.primary }]}>
           <View style={{ flex: 1 }}>
             <Text style={styles.schemeNameLg} numberOfLines={1}>{schemeName}</Text>
-            <Text style={styles.schemeIdSm}>{schemeId} - {schemeSName || groupCode}</Text>
+            <Text style={styles.schemeIdSm}>{schemeSName}  •  {groupCode}-{regNo}</Text>
           </View>
           <View style={styles.regPill}>
-            <Text style={styles.regPillText}>{regNo}</Text>
+            <Text style={styles.regPillText}>#{regNo}</Text>
           </View>
         </View>
 
@@ -308,14 +314,15 @@ export default function SchemeDetails() {
 
           {/* Stats row */}
           <View style={styles.statsRow}>
-            <StatPill label="Scheme Amt" value={formatCurrency(amount)} valueColor={COLORS.primary} />
-            <StatPill label="Total Paid" value={formatCurrency(totalAmount)} valueColor="#2E7D32" bgColor="#E8F5E9" />
-            {/* <StatPill
-              label="Remaining"
-              value={formatCurrency(parseFloat(amount || 0) - parseFloat(totalAmount || 0))}
-              valueColor="#E65100"
-              bgColor="#FFF3E0"
-            /> */}
+            <StatPill label="Monthly Amt" value={formatCurrency(amount)} valueColor={COLORS.primary} />
+            <StatPill label="Paid Amount" value={formatCurrency(amtrecd)} valueColor="#2E7D32" bgColor="#E8F5E9" />
+            <StatPill label="Total Weight" value={`${parseFloat(totalWeight).toFixed(3)}g`} valueColor="#E65100" bgColor="#FFF3E0" />
+          </View>
+
+          {/* Last weight row */}
+          <View style={styles.lastWeightRow}>
+            <Text style={styles.lastWeightLabel}>⚖️  Last Installment Weight</Text>
+            <Text style={styles.lastWeightValue}>{parseFloat(lastWeight).toFixed(3)} g</Text>
           </View>
 
           {/* Date chips */}
@@ -324,7 +331,7 @@ export default function SchemeDetails() {
               <Text style={styles.dateChipIcon}>🗓</Text>
               <View>
                 <Text style={styles.dateChipLabel}>Join Date</Text>
-                <Text style={styles.dateChipValue}>{formatDateShort(joinDate)}</Text>
+                <Text style={styles.dateChipValue}>{formatDate(joinDate)}</Text>
               </View>
             </View>
 
@@ -332,7 +339,7 @@ export default function SchemeDetails() {
               <Text style={styles.dateChipIcon}>🎯</Text>
               <View>
                 <Text style={styles.dateChipLabel}>Maturity</Text>
-                <Text style={[styles.dateChipValue, { color: "#6A1B9A" }]}>{formatDateShort(maturityDate)}</Text>
+                <Text style={[styles.dateChipValue, { color: "#6A1B9A" }]}>{formatDate(maturityDate)}</Text>
               </View>
             </View>
           </View>
@@ -359,10 +366,20 @@ export default function SchemeDetails() {
               <Text style={styles.memberName}>{pName}</Text>
               <Text style={styles.memberId}>ID: {personalId || regNo}</Text>
             </View>
+          </View>
+
+          {/* Contact row */}
+          <View style={styles.contactRow}>
             {mobile && (
               <View style={styles.phonePill}>
                 <Text style={{ fontSize: 12 }}>📞</Text>
                 <Text style={styles.phoneText}>{mobile}</Text>
+              </View>
+            )}
+            {mobile2 && mobile2 !== mobile && (
+              <View style={[styles.phonePill, { backgroundColor: "#E3F2FD" }]}>
+                <Text style={{ fontSize: 12 }}>📱</Text>
+                <Text style={[styles.phoneText, { color: "#1565C0" }]}>{mobile2}</Text>
               </View>
             )}
           </View>
@@ -529,7 +546,19 @@ const styles = StyleSheet.create({
   progressPct: { fontSize: 11, color: COLORS.textSecondary, marginTop: 4, marginBottom: 14, textAlign: "right" },
 
   // Stats
-  statsRow: { flexDirection: "row", marginBottom: 14, marginHorizontal: -4 },
+  statsRow: { flexDirection: "row", marginBottom: 10, marginHorizontal: -4 },
+  lastWeightRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#FFF8E1",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 12,
+  },
+  lastWeightLabel: { fontSize: 12, color: COLORS.textSecondary },
+  lastWeightValue: { fontSize: 13, fontWeight: "700", color: "#E65100" },
 
   // Date chips
   dateRow: { flexDirection: "row", gap: 10, marginBottom: 12 },
@@ -552,6 +581,7 @@ const styles = StyleSheet.create({
   // Member
   sectionHeader: { marginBottom: 2 },
   memberRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
+  contactRow: { flexDirection: "row", gap: 8, marginBottom: 12, flexWrap: "wrap" },
   avatar: {
     width: 46,
     height: 46,
@@ -610,6 +640,8 @@ const styles = StyleSheet.create({
   paymentIndexText: { fontSize: 12, fontWeight: "700", color: COLORS.primary },
   paymentDate: { fontSize: 13, fontWeight: "600", color: COLORS.textPrimary },
   paymentInstall: { fontSize: 11, color: COLORS.textSecondary, marginTop: 2 },
+  paymentMode: { fontSize: 10, color: COLORS.textSecondary, marginTop: 1 },
+  paymentWeight: { fontSize: 11, color: "#E65100", fontWeight: "600", marginBottom: 2 },
   paymentAmount: { fontSize: 15, fontWeight: "800", color: COLORS.textPrimary },
   paidBadge: {
     backgroundColor: "#E8F5E9",

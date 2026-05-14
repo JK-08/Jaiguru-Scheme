@@ -28,6 +28,13 @@ import { COLORS, FONTS, SIZES, SHADOWS } from "../../Utills/AppTheme";
 // Menu items data - Add more items as needed
 const MENU_ITEMS = [
   {
+    key: "logincheck",
+    label: "LoginCheck",
+    icon: "security",
+    route: "LoginCheck",
+    badge: 0,
+  }, 
+  {
     key: "home",
     label: "Home",
     icon: "home",

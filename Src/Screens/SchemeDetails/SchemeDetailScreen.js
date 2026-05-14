@@ -17,7 +17,7 @@ export default function AllSchemesScreen() {
   const [filter, setFilter] = useState('all'); // all, active, due, completed
 
   const handleBackPress = () => {
-    navigation.goBack();
+    navigation.navigate("MainDrawer");
   };
 
   const FilterButton = ({ title, value, isActive }) => (

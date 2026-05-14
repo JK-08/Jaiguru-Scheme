@@ -484,7 +484,14 @@ const UserRegistrationForm = forwardRef(({ onSubmit, initialData = {} }, ref) =>
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const errorFields = Object.keys(newErrors);
+    if (errorFields.length > 0) {
+      scrollViewRef.current?.scrollToPosition(0, 0, true);
+      const errorList = errorFields.map((f) => `• ${newErrors[f]}`).join('\n');
+      Alert.alert('Please fix the following errors', errorList);
+      return false;
+    }
+    return true;
   };
 
   const formatAadhar = (text) => {
@@ -532,8 +539,80 @@ const UserRegistrationForm = forwardRef(({ onSubmit, initialData = {} }, ref) =>
     setShowDatePicker(null);
   };
 
+  const ITEM_HEIGHT = 44;
+  const VISIBLE_ITEMS = 5;
+  const SCROLL_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
+
+  const dayScrollRef = useRef(null);
+  const monthScrollRef = useRef(null);
+  const yearScrollRef = useRef(null);
+
+  const scrollToIndex = (ref, index) => {
+    ref.current?.scrollTo({ y: index * ITEM_HEIGHT, animated: true });
+  };
+
+  const handleDaySelect = (day) => {
+    setSelectedDate(prev => ({ ...prev, day }));
+    scrollToIndex(dayScrollRef, days.indexOf(day));
+  };
+
+  const handleMonthSelect = (month) => {
+    setSelectedDate(prev => ({ ...prev, month }));
+    scrollToIndex(monthScrollRef, months.indexOf(month));
+  };
+
+  const handleYearSelect = (year) => {
+    setSelectedDate(prev => ({ ...prev, year }));
+    scrollToIndex(yearScrollRef, years.indexOf(year));
+  };
+
+  const initScroll = () => {
+    setTimeout(() => {
+      scrollToIndex(dayScrollRef, days.indexOf(selectedDate.day));
+      scrollToIndex(monthScrollRef, months.indexOf(selectedDate.month));
+      scrollToIndex(yearScrollRef, years.indexOf(selectedDate.year));
+    }, 100);
+  };
+
+  const renderPickerColumn = (label, items, selectedValue, onSelect, scrollRef, displayFn) => (
+    <View style={styles.pickerColumn}>
+      <Text style={styles.pickerLabel}>{label}</Text>
+      <View style={{ height: SCROLL_HEIGHT }}>
+        {/* Center highlight */}
+        <View style={styles.pickerHighlight} pointerEvents="none" />
+        <ScrollView
+          ref={scrollRef}
+          style={styles.pickerScrollView}
+          showsVerticalScrollIndicator={false}
+          snapToInterval={ITEM_HEIGHT}
+          decelerationRate="fast"
+        >
+          {/* Top padding */}
+          <View style={{ height: ITEM_HEIGHT * Math.floor(VISIBLE_ITEMS / 2) }} />
+          {items.map((item, index) => (
+            <TouchableOpacity
+              key={item}
+              style={[styles.pickerItem, { height: ITEM_HEIGHT }]}
+              onPress={() => onSelect(item)}
+              activeOpacity={0.7}
+            >
+              <Text style={[
+                styles.pickerItemText,
+                selectedValue === item && styles.pickerItemTextSelected,
+              ]}>
+                {displayFn ? displayFn(item, index) : item}
+              </Text>
+            </TouchableOpacity>
+          ))}
+          {/* Bottom padding */}
+          <View style={{ height: ITEM_HEIGHT * Math.floor(VISIBLE_ITEMS / 2) }} />
+        </ScrollView>
+      </View>
+    </View>
+  );
+
   const renderDatePicker = () => (
-    <Modal visible={!!showDatePicker} transparent animationType="fade">
+    <Modal visible={!!showDatePicker} transparent animationType="fade" onShow={initScroll}>
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
@@ -550,71 +629,9 @@ const UserRegistrationForm = forwardRef(({ onSubmit, initialData = {} }, ref) =>
           </Text>
 
           <View style={styles.pickerContainer}>
-            {/* Day Picker */}
-            <View style={styles.pickerColumn}>
-              <Text style={styles.pickerLabel}>Day</Text>
-              <ScrollView style={styles.pickerScrollView} showsVerticalScrollIndicator={false}>
-                {days.map((day) => (
-                  <TouchableOpacity
-                    key={day}
-                    style={[
-                      styles.pickerItem,
-                      selectedDate.day === day && styles.pickerItemSelected,
-                    ]}
-                    onPress={() => setSelectedDate(prev => ({ ...prev, day }))}
-                  >
-                    <Text style={[
-                      styles.pickerItemText,
-                      selectedDate.day === day && styles.pickerItemTextSelected,
-                    ]}>{day}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-
-            {/* Month Picker */}
-            <View style={styles.pickerColumn}>
-              <Text style={styles.pickerLabel}>Month</Text>
-              <ScrollView style={styles.pickerScrollView} showsVerticalScrollIndicator={false}>
-                {months.map((month, index) => (
-                  <TouchableOpacity
-                    key={month}
-                    style={[
-                      styles.pickerItem,
-                      selectedDate.month === month && styles.pickerItemSelected,
-                    ]}
-                    onPress={() => setSelectedDate(prev => ({ ...prev, month }))}
-                  >
-                    <Text style={[
-                      styles.pickerItemText,
-                      selectedDate.month === month && styles.pickerItemTextSelected,
-                    ]}>{MONTHS[index]}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-
-            {/* Year Picker */}
-            <View style={styles.pickerColumn}>
-              <Text style={styles.pickerLabel}>Year</Text>
-              <ScrollView style={styles.pickerScrollView} showsVerticalScrollIndicator={false}>
-                {years.map((year) => (
-                  <TouchableOpacity
-                    key={year}
-                    style={[
-                      styles.pickerItem,
-                      selectedDate.year === year && styles.pickerItemSelected,
-                    ]}
-                    onPress={() => setSelectedDate(prev => ({ ...prev, year }))}
-                  >
-                    <Text style={[
-                      styles.pickerItemText,
-                      selectedDate.year === year && styles.pickerItemTextSelected,
-                    ]}>{year}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
+            {renderPickerColumn("Day", days, selectedDate.day, handleDaySelect, dayScrollRef, null)}
+            {renderPickerColumn("Month", months, selectedDate.month, handleMonthSelect, monthScrollRef, (m, i) => MONTHS[i])}
+            {renderPickerColumn("Year", years, selectedDate.year, handleYearSelect, yearScrollRef, null)}
           </View>
 
           <View style={styles.modalButtons}>
@@ -861,12 +878,14 @@ const UserRegistrationForm = forwardRef(({ onSubmit, initialData = {} }, ref) =>
             mandatory: true,
             keyboardType: "phone-pad",
             maxLength: 10,
+            editable: false,
           })}
 
           {renderInput("Email Address", "emailAddress", "example@email.com", {
             mandatory: true,
             keyboardType: "email-address",
             autoCapitalize: "none",
+            editable: false,
           })}
         </View>
 
@@ -1216,25 +1235,37 @@ const styles = StyleSheet.create({
     marginBottom: SIZES.padding.xs,
   },
   pickerScrollView: {
-    height: 200,
     width: "100%",
   },
+  pickerHighlight: {
+    position: "absolute",
+    top: 44 * 2,
+    left: 0,
+    right: 0,
+    height: 44,
+    backgroundColor: COLORS.primary + "15",
+    borderRadius: 8,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: COLORS.primary + "40",
+    zIndex: 1,
+  },
   pickerItem: {
-    paddingVertical: SIZES.padding.sm,
-    alignItems: "center",
     justifyContent: "center",
-    borderRadius: SIZES.radius.sm,
+    alignItems: "center",
   },
-  pickerItemSelected: {
-    backgroundColor: COLORS.primary + "20",
-  },
+  pickerItemSelected: {},
   pickerItemText: {
     ...FONTS.body,
-    color: COLORS.textPrimary,
+    color: COLORS.textSecondary,
+    textAlign: "center",
+    fontSize: 13,
   },
   pickerItemTextSelected: {
     color: COLORS.primary,
-    fontWeight: "600",
+    fontWeight: "700",
+    fontSize: 16,
+    textAlign: "center",
   },
   modalButtons: {
     flexDirection: "row",

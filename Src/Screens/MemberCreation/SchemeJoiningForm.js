@@ -19,20 +19,20 @@ const SchemeJoiningForm = forwardRef(({ scheme, onSubmit, initialData = null }, 
     useTransactionTypes();
 
   const [selectedScheme, setSelectedScheme] = useState("");
-  const [selectedPayment, setSelectedPayment] = useState("");
+  const [selectedPayment, setSelectedPayment] = useState("00001");
   const [formSubmitted, setFormSubmitted] = useState(false);
 
   // Initialize with initialData if provided
   useEffect(() => {
     if (initialData) {
       setSelectedScheme(initialData.selectedScheme || "");
-      setSelectedPayment(initialData.paymentType || "");
+      // setSelectedPayment(initialData.paymentType || "");
     } else if (schemes.length > 0 && !selectedScheme) {
       setSelectedScheme(schemes[0].GROUPCODE);
     }
-    if (transactionTypes.length > 0 && !selectedPayment) {
-      setSelectedPayment(transactionTypes[0].ACCOUNT);
-    }
+    // if (transactionTypes.length > 0 && !selectedPayment) {
+    //   setSelectedPayment(transactionTypes[0].ACCOUNT);
+    // }
   }, [schemes, transactionTypes, initialData]);
 
   // Expose validateAndSubmit method to parent
@@ -173,7 +173,7 @@ useImperativeHandle(ref, () => ({
       </View>
 
       {/* Payment Type Selection */}
-      <View style={styles.section}>
+      {/* <View style={styles.section}>
         <Text style={styles.sectionTitle}>Select Payment Method</Text>
         <Text style={styles.label}>Payment Type:</Text>
         <View style={styles.pickerContainer}>
@@ -204,6 +204,15 @@ useImperativeHandle(ref, () => ({
             </Text>
           </View>
         )}
+      </View> */}
+
+      {/* Payment Method - Hardcoded Online */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Payment Method</Text>
+        <View style={styles.paymentDetails}>
+          <Text style={styles.paymentLabel}>Payment Type:</Text>
+          <Text style={styles.paymentValue}>Online (00001)</Text>
+        </View>
       </View>
 
       {/* Summary Card */}
@@ -228,9 +237,7 @@ useImperativeHandle(ref, () => ({
           
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Payment Type:</Text>
-            <Text style={styles.summaryValue}>
-              {transactionTypes.find(t => t.ACCOUNT === selectedPayment)?.NAME}
-            </Text>
+            <Text style={styles.summaryValue}>Online (00001)</Text>
           </View>
           
           <View style={styles.summaryRow}>

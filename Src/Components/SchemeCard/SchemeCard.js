@@ -121,23 +121,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   knowMoreButton: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.secondary,
     borderWidth: 1,
     borderColor: COLORS.borderLight,
     marginRight: moderateScale(8),
   },
   joinButton: {
-    backgroundColor: COLORS.secondary,
+    backgroundColor: COLORS.primary,
     marginLeft: moderateScale(8),
+    padding: moderateScale(12),
   },
   knowMoreButtonText: {
     ...FONTS.bodySmall,
     color: COLORS.textPrimary,
-    fontWeight: "600",
+    fontWeight: "bold",
   },
   joinButtonText: {
     ...FONTS.bodySmall,
     color: COLORS.textInverse,
-    fontWeight: "600",
+    fontWeight: "bold",
   },
 });

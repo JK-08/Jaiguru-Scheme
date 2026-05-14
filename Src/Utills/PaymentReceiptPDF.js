@@ -4,6 +4,7 @@ import * as Sharing from "expo-sharing";
 import { Asset } from "expo-asset";
 import { Alert, Platform } from "react-native";
 import * as FileSystem from "expo-file-system/legacy";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getCompanyDetails } from "../Services/CompanyDetailsService";
 // import * as FileSystem from 'expo-file-system';
 
@@ -609,7 +610,7 @@ static async assetToBase64(moduleAsset) {
           <div class="customer-value">${customerInfo.customerName}</div>
         </div>
         <div class="customer-item">
-          <div class="customer-label">Transaction No:</div>
+          <div class="customer-label">Receipt No:</div>
           <div class="customer-value">${payment.receiptNo}</div>
         </div>
       </div>
@@ -619,8 +620,8 @@ static async assetToBase64(moduleAsset) {
           <div class="customer-value">${customerInfo.mobile}</div>
         </div>
         <div class="customer-item">
-          <div class="customer-label">Group Code:</div>
-          <div class="customer-value">${schemeInfo.groupCode}</div>
+          <div class="customer-label">Group Code - Reg No:</div>
+          <div class="customer-value">${schemeInfo.groupCode}-${schemeInfo.regNo}</div>
         </div>
       </div>
     </div>
@@ -730,12 +731,19 @@ static async generatePDF(responseData) {
     // ANDROID → SAVE TO DOWNLOADS
     // ============================
     if (Platform.OS === "android") {
-      const permissions =
-        await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+      let directoryUri = await AsyncStorage.getItem(this.STORAGE_KEYS.DOWNLOAD_DIR);
 
-      if (!permissions.granted) {
-        Alert.alert("Permission Needed", "Please allow storage access.");
-        throw new Error("Storage permission not granted");
+      if (!directoryUri) {
+        const permissions =
+          await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+
+        if (!permissions.granted) {
+          Alert.alert("Permission Needed", "Please allow storage access.");
+          throw new Error("Storage permission not granted");
+        }
+
+        directoryUri = permissions.directoryUri;
+        await AsyncStorage.setItem(this.STORAGE_KEYS.DOWNLOAD_DIR, directoryUri);
       }
 
       const base64 = await FileSystem.readAsStringAsync(uri, {
@@ -744,7 +752,7 @@ static async generatePDF(responseData) {
 
       const newUri =
         await FileSystem.StorageAccessFramework.createFileAsync(
-          permissions.directoryUri,
+          directoryUri,
           fileName,
           "application/pdf"
         );

@@ -38,11 +38,7 @@ export const useRegisterUser = () => {
 };
 
 // 🔹 Get Users Hook
-export const useUsersList = (
-  mobileNumber,
-  fromDate,
-  toDate
-) => {
+export const useUsersList = (mobileNumber, fromDate, toDate) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -51,13 +47,7 @@ export const useUsersList = (
     try {
       setLoading(true);
       setError(null);
-
-      const data = await getUsersList(
-        mobileNumber,
-        fromDate,
-        toDate
-      );
-
+      const data = await getUsersList(mobileNumber, fromDate, toDate);
       setUsers(data);
     } catch (err) {
       setError(err);
@@ -67,15 +57,8 @@ export const useUsersList = (
   };
 
   useEffect(() => {
-    if (mobileNumber && fromDate && toDate) {
-      fetchUsers();
-    }
-  }, [mobileNumber, fromDate, toDate]);
+    if (fromDate) fetchUsers();
+  }, [fromDate]);
 
-  return {
-    users,
-    loading,
-    error,
-    refetch: fetchUsers,
-  };
+  return { users, loading, error, refetch: fetchUsers };
 };

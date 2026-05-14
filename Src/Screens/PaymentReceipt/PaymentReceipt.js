@@ -25,7 +25,7 @@ export default function PaymentReceiptPage() {
   const route = useRoute();
   const { paymentData, schemeData, customerData } = route.params || {};
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  
+
   // Get company data from hook
   const { company: companyData } = useCompany();
 
@@ -35,7 +35,7 @@ export default function PaymentReceiptPage() {
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>No receipt data available</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.goBackButton}
             onPress={() => navigation.goBack()}
           >
@@ -72,7 +72,7 @@ export default function PaymentReceiptPage() {
   // Generate and download receipt
   const handleDownloadReceipt = async () => {
     setIsGeneratingPDF(true);
-    
+
     try {
       // Prepare data for PDF generation
       const responseData = {
@@ -89,13 +89,15 @@ export default function PaymentReceiptPage() {
         },
         customerInfo: {
           customerName: customerData?.pName || schemeData?.pName || "Customer",
-          mobile: customerData?.mobile || schemeData?.personalInfo?.mobile || "N/A",
+          mobile:
+            customerData?.mobile || schemeData?.personalInfo?.mobile || "N/A",
         },
         schemeInfo: {
-          schemeName: schemeData?.schemeSummary?.schemeName?.trim() || "Scheme Name",
+          schemeName:
+            schemeData?.schemeSummary?.schemeName?.trim() || "Scheme Name",
           groupCode: schemeData?.groupCode || schemeData?.groupcode || "N/A",
           regNo: schemeData?.regNo || schemeData?.regno || "N/A",
-        }
+        },
       };
 
       await PaymentReceiptPDF.generatePDF(responseData);
@@ -143,14 +145,16 @@ export default function PaymentReceiptPage() {
             <View style={styles.header}>
               <View style={styles.headerContent}>
                 {companyData?.CompanyLogoUrl ? (
-                  <Image 
+                  <Image
                     source={{ uri: companyData.CompanyLogoUrl }}
                     style={styles.logo}
                     resizeMode="contain"
                   />
                 ) : (
                   <View style={styles.logoPlaceholder}>
-                    <Text style={styles.logoPlaceholderText}>jaigurujewellers</Text>
+                    <Text style={styles.logoPlaceholderText}>
+                      jaigurujewellers
+                    </Text>
                   </View>
                 )}
                 <View style={styles.companyInfo}>
@@ -170,11 +174,14 @@ export default function PaymentReceiptPage() {
                 ✉ {companyData?.EMAIL || "Contact@jaigurujewellers.in"}
               </Text>
               <Text style={styles.contactText}>
-                📍 {[
+                📍{" "}
+                {[
                   companyData?.ADDRESS1,
                   companyData?.ADDRESS2,
-                  companyData?.ADDRESS3
-                ].filter(Boolean).join(', ') || "160, Melamasi St, Madurai-625001"}
+                  companyData?.ADDRESS3,
+                ]
+                  .filter(Boolean)
+                  .join(", ") || "160, Melamasi St, Madurai-625001"}
               </Text>
             </View>
 
@@ -190,7 +197,8 @@ export default function PaymentReceiptPage() {
                 <View style={styles.infoItem}>
                   <Text style={styles.infoLabel}>Scheme Name</Text>
                   <Text style={styles.infoValue}>
-                    {schemeData?.schemeSummary?.schemeName?.trim() || "Scheme Name"}
+                    {schemeData?.schemeSummary?.schemeName?.trim() ||
+                      "Scheme Name"}
                   </Text>
                 </View>
                 <View style={styles.infoItem}>
@@ -214,7 +222,7 @@ export default function PaymentReceiptPage() {
                     </Text>
                   </View>
                   <View style={styles.customerItem}>
-                    <Text style={styles.customerLabel}>Transaction No:</Text>
+                    <Text style={styles.customerLabel}>Receipt No:</Text>
                     <Text style={styles.customerValue}>
                       {paymentData.receiptNo || "N/A"}
                     </Text>
@@ -224,13 +232,16 @@ export default function PaymentReceiptPage() {
                   <View style={styles.customerItem}>
                     <Text style={styles.customerLabel}>Mobile:</Text>
                     <Text style={styles.customerValue}>
-                      {customerData?.mobile || schemeData?.personalInfo?.mobile || "N/A"}
+                      {customerData?.mobile ||
+                        schemeData?.personalInfo?.mobile ||
+                        "N/A"}
                     </Text>
                   </View>
                   <View style={styles.customerItem}>
-                    <Text style={styles.customerLabel}>Group Code:</Text>
+                    <Text style={styles.customerLabel}>Group Code-Reg No:</Text>
                     <Text style={styles.customerValue}>
-                      {schemeData?.groupCode || schemeData?.groupcode || "N/A"}
+                      {schemeData?.groupCode || schemeData?.groupcode || "N/A"}-
+                      {schemeData?.regNo || schemeData?.regno || "N/A"}
                     </Text>
                   </View>
                 </View>
@@ -241,7 +252,9 @@ export default function PaymentReceiptPage() {
             <View style={styles.tableContainer}>
               <View style={styles.tableHeader}>
                 <Text style={[styles.th, { flex: 0.5 }]}>S.No</Text>
-                <Text style={[styles.th, { flex: 1.8 }]}>Group Code Reg-No</Text>
+                <Text style={[styles.th, { flex: 1.8 }]}>
+                  Group Code Reg-No
+                </Text>
                 <Text style={[styles.th, { flex: 1 }]}>Installment</Text>
                 {paymentData.weight && parseFloat(paymentData.weight) > 0 && (
                   <Text style={[styles.th, { flex: 1 }]}>Weight</Text>

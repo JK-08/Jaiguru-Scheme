@@ -131,35 +131,18 @@ const MpinVerifyScreen = () => {
         }, 300);
       } catch (err) {
         // 🔑 MPIN NOT CREATED
-        if (err?.code === "MPIN_NOT_FOUND") {
-          // Don't reset immediately - wait for user action
-          setBlockAutoSubmit(true);
-          
+        if (err?.code === "MPIN_NOT_FOUND" || err?.status === 404) {
+          resetMpin();
+          setAttempts(0);
+          setBlockAutoSubmit(false);
+
           Alert.alert(
-            "MPIN Not Found",
-            "You have not created an MPIN yet. Do you want to create one now?",
+            "MPIN Not Created",
+            "You don't have an MPIN for this account. Please create one to continue.",
             [
-              { 
-                text: "Cancel", 
-                style: "cancel",
-                onPress: () => {
-                  // Reset only when user cancels
-                  resetMpin();
-                  setAttempts(0);
-                  mpinRefs.current[0]?.focus();
-                }
-              },
               {
                 text: "Create MPIN",
-                onPress: () => {
-                  // Reset state first
-                  resetMpin();
-                  setAttempts(0);
-                  // Use setTimeout to ensure Alert is dismissed before navigation
-                  setTimeout(() => {
-                    navigation.navigate("MpinCreate");
-                  }, 100);
-                },
+                onPress: () => navigation.navigate("MpinCreate"),
               },
             ],
             { cancelable: false }
