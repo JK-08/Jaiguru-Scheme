@@ -1,0 +1,516 @@
+import React, { useMemo, useState, useRef, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  SafeAreaView,
+  StatusBar,
+  Dimensions,
+  FlatList,
+  Animated,
+  Platform,
+} from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import theme from '../../Utills/AppTheme';
+import CommonHeader from '../../Components/CommonHeader/CommonHeader';
+import { AppButton } from '../../Components/ui/appcomponents';
+import { Account, PaymentHistoryItem } from '../../types/Account/Account';
+
+const { COLORS } = theme;
+
+interface AnimatedProgressBarProps {
+  percentage: number;
+  color?: string;
+}
+
+const AnimatedProgressBar = ({ percentage, color = COLORS.primary }: AnimatedProgressBarProps) => {
+  const anim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(anim, { toValue: percentage, duration: 900, useNativeDriver: false }).start();
+  }, [percentage]);
+
+  const width = anim.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] });
+
+  return (
+    <View style={pbStyles.track}>
+      <Animated.View style={[pbStyles.fill, { width, backgroundColor: color }]} />
+    </View>
+  );
+};
+
+const pbStyles = StyleSheet.create({
+  track: { height: 8, backgroundColor: COLORS.backgroundSecondary, borderRadius: 99, overflow: 'hidden' },
+  fill: { height: '100%', borderRadius: 99 },
+});
+
+interface StatPillProps {
+  label: string;
+  value: string;
+  valueColor?: string;
+  bgColor?: string;
+}
+
+const StatPill = ({ label, value, valueColor, bgColor }: StatPillProps) => (
+  <View style={[pillStyles.pill, bgColor ? { backgroundColor: bgColor } : undefined]}>
+    <Text style={pillStyles.label}>{label}</Text>
+    <Text style={[pillStyles.value, valueColor ? { color: valueColor } : undefined]}>{value}</Text>
+  </View>
+);
+
+const pillStyles = StyleSheet.create({
+  pill: { flex: 1, alignItems: 'center', paddingVertical: 10, paddingHorizontal: 8, borderRadius: 14, backgroundColor: COLORS.backgroundSecondary, marginHorizontal: 4 },
+  label: { fontSize: 10, color: COLORS.textSecondary, marginBottom: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
+  value: { fontSize: 16, fontWeight: '700', color: COLORS.textPrimary },
+});
+
+interface TagChipProps {
+  icon?: string;
+  label: string;
+  value: string;
+  danger?: boolean;
+}
+
+const TagChip = ({ icon, label, value, danger }: TagChipProps) => (
+  <View style={[tagStyles.chip, danger && tagStyles.chipDanger]}>
+    {icon ? <Text style={tagStyles.icon}>{icon}</Text> : null}
+    <Text style={tagStyles.label}>{label} </Text>
+    <Text style={[tagStyles.value, danger && tagStyles.valueDanger]}>{value}</Text>
+  </View>
+);
+
+const tagStyles = StyleSheet.create({
+  chip: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.backgroundSecondary, borderRadius: 99, paddingHorizontal: 10, paddingVertical: 5, marginRight: 6, marginBottom: 6 },
+  chipDanger: { backgroundColor: '#FFF1F1' },
+  icon: { fontSize: 12, marginRight: 3 },
+  label: { fontSize: 11, color: COLORS.textSecondary },
+  value: { fontSize: 11, fontWeight: '700', color: COLORS.textPrimary },
+  valueDanger: { color: '#D32F2F' },
+});
+
+interface SectionTitleProps {
+  icon: string;
+  title: string;
+  badge?: number;
+}
+
+const SectionTitle = ({ icon, title, badge }: SectionTitleProps) => (
+  <View style={secStyles.row}>
+    <Text style={secStyles.icon}>{icon}</Text>
+    <Text style={secStyles.title}>{title}</Text>
+    {badge != null && (
+      <View style={secStyles.badge}>
+        <Text style={secStyles.badgeText}>{badge}</Text>
+      </View>
+    )}
+  </View>
+);
+
+const secStyles = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  icon: { fontSize: 16, marginRight: 6 },
+  title: { fontSize: 15, fontWeight: '700', color: COLORS.textPrimary, flex: 1 },
+  badge: { backgroundColor: COLORS.primary, borderRadius: 99, paddingHorizontal: 8, paddingVertical: 2 },
+  badgeText: { fontSize: 11, color: '#fff', fontWeight: '700' },
+});
+
+const formatDate = (ds?: string) => {
+  if (!ds || ds === '1900-01-01 00:00:00.0') return 'N/A';
+  if (ds.includes('T')) return ds.split('T')[0];
+  if (ds.includes(' ')) return ds.split(' ')[0];
+  return ds;
+};
+
+const formatDateShort = (ds?: string) => {
+  const d = formatDate(ds);
+  if (d === 'N/A') return d;
+  const [, m, day] = d.split('-');
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${parseInt(day)} ${months[parseInt(m) - 1]}`;
+};
+
+const formatCurrency = (val: string | number | undefined) => {
+  const n = parseFloat(String(val)) || 0;
+  return `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+};
+
+interface RouteParams {
+  schemeData: Account | Account[];
+}
+
+export default function SchemeDetails() {
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const { schemeData } = (route.params as RouteParams) || {};
+  const [expandAddress, setExpandAddress] = useState(false);
+
+  if (!schemeData) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={{ fontSize: 48, marginBottom: 12 }}>📭</Text>
+          <Text style={styles.errorText}>No scheme data available</Text>
+          <AppButton label="← Go Back" onPress={() => navigation.goBack()} variant="primary" size="md" style={styles.goBackButton} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const data: Account = Array.isArray(schemeData) ? schemeData[0] : schemeData;
+
+  const {
+    regNo,
+    groupCode,
+    amount,
+    pName,
+    joinDate,
+    maturityDate,
+    totalAmount = 0,
+    schemeSummary,
+    personalInfo,
+    nextDueDate,
+    paymentHistoryList = [],
+    remainingDueDates = [],
+    schemeClosedSummary,
+    lastPaidDate,
+    remainingDays = 0,
+  } = data;
+
+  const { schemeId, schemeName, schemeSName, instalment = '0', schemaSummaryTransBalance = {}, totalWeight = '0', lastWeight = '0' } = schemeSummary || {};
+  const { amtrecd = '0.0', insPaid = '0' } = schemaSummaryTransBalance;
+  const { personalId, doorNo, address1, address2, area, city, state, pinCode, mobile, mobile2 } = personalInfo || {};
+
+  const isClosed = !!schemeClosedSummary?.doClose && schemeClosedSummary.doClose !== '1900-01-01 00:00:00.0';
+  const isPaymentDue = !isClosed && !!nextDueDate && new Date(nextDueDate) <= new Date();
+
+  const progressPercentage = useMemo(() => {
+    const paid = parseInt(insPaid) || 0;
+    const total = parseInt(instalment) || 1;
+    return Math.min((paid / total) * 100, 100);
+  }, [insPaid, instalment]);
+
+  const statusConfig = isClosed
+    ? { bg: '#E8F5E9', text: '#2E7D32', label: '✓ Scheme Closed', sub: `Closed: ${formatDateShort(schemeClosedSummary?.closeDate)}` }
+    : isPaymentDue
+      ? { bg: '#FFEBEE', text: '#C62828', label: '⚠ Payment Overdue', sub: `Due: ${formatDateShort(nextDueDate)}` }
+      : { bg: '#E3F2FD', text: COLORS.primary, label: '● Active', sub: `${remainingDays > 0 ? `${remainingDays} days remaining` : 'On track'}` };
+
+  const handleViewReceipt = (payment: PaymentHistoryItem) => {
+    navigation.navigate('PaymentReceipt', {
+      paymentData: payment,
+      schemeData: data,
+      customerData: { pName, mobile, address: [doorNo, address1, city, state, pinCode].filter(Boolean).join(', ') },
+    });
+  };
+
+  const handleMakePayment = () => {
+    navigation.navigate('Paynow', {
+      accountData: data,
+      fromScreen: 'SchemePassbook',
+      regNo,
+      groupCode,
+      memberName: pName,
+      schemeName,
+      schemeShortName: schemeSName,
+      schemeId,
+      totalAmount: totalAmount || 0,
+      amount: amount || 0,
+      nextDueDate,
+      installmentsPaid: insPaid || '0',
+      totalInstallments: instalment || '0',
+      joinDate,
+      maturityDate,
+    });
+  };
+
+  const renderPaymentItem = ({ item, index }: { item: PaymentHistoryItem; index: number }) => (
+    <TouchableOpacity style={styles.paymentRow} onPress={() => handleViewReceipt(item)} activeOpacity={0.75}>
+      <View style={styles.paymentIndex}>
+        <Text style={styles.paymentIndexText}>{index + 1}</Text>
+      </View>
+
+      <View style={{ flex: 1, marginLeft: 10 }}>
+        <Text style={styles.paymentDate}>{formatDate(item.updateTime)}</Text>
+        <Text style={styles.paymentInstall}>Installment #{item.installment || '—'}</Text>
+        {item.chqBank && item.chqBank !== 'N/A' && <Text style={styles.paymentMode}>via {item.chqBank}</Text>}
+      </View>
+
+      <View style={{ alignItems: 'flex-end' }}>
+        <Text style={styles.paymentAmount}>{formatCurrency(item.amount)}</Text>
+        {item.weight && parseFloat(item.weight) > 0 && <Text style={styles.paymentWeight}>{parseFloat(item.weight).toFixed(3)}g</Text>}
+        <View style={styles.paidBadge}>
+          <Text style={styles.paidBadgeText}>Paid</Text>
+        </View>
+      </View>
+
+      <View style={styles.receiptButton}>
+        <Text style={{ fontSize: 14 }}>👁</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const renderHeader = () => (
+    <>
+      <View style={[styles.statusBanner, { backgroundColor: statusConfig.bg }]}>
+        <View>
+          <Text style={[styles.statusLabel, { color: statusConfig.text }]}>{statusConfig.label}</Text>
+          <Text style={[styles.statusSub, { color: `${statusConfig.text}CC` }]}>{statusConfig.sub}</Text>
+        </View>
+        <View style={[styles.statusDot, { backgroundColor: statusConfig.text }]} />
+      </View>
+
+      <View style={styles.card}>
+        <View style={[styles.cardStrip, { backgroundColor: COLORS.primary }]}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.schemeNameLg} numberOfLines={1}>
+              {schemeName}
+            </Text>
+            <Text style={styles.schemeIdSm}>
+              {schemeSName} • {groupCode}-{regNo}
+            </Text>
+          </View>
+          <View style={styles.regPill}>
+            <Text style={styles.regPillText}>#{regNo}</Text>
+          </View>
+        </View>
+
+        <View style={{ padding: 16 }}>
+          <View style={styles.progressRow}>
+            <Text style={styles.progressLabel}>Instalments</Text>
+            <Text style={styles.progressCount}>
+              <Text style={{ color: COLORS.primary, fontWeight: '700' }}>{insPaid}</Text>
+              {' / '}
+              {instalment}
+            </Text>
+          </View>
+          <AnimatedProgressBar percentage={progressPercentage} color={isClosed ? '#43A047' : isPaymentDue ? '#E53935' : COLORS.primary} />
+          <Text style={styles.progressPct}>{Math.round(progressPercentage)}% complete</Text>
+
+          <View style={styles.statsRow}>
+            <StatPill label="Monthly Amt" value={formatCurrency(amount)} valueColor={COLORS.primary} />
+            <StatPill label="Paid Amount" value={formatCurrency(amtrecd)} valueColor="#2E7D32" bgColor="#E8F5E9" />
+            <StatPill label="Total Weight" value={`${parseFloat(totalWeight).toFixed(3)}g`} valueColor="#E65100" bgColor="#FFF3E0" />
+          </View>
+
+          <View style={styles.lastWeightRow}>
+            <Text style={styles.lastWeightLabel}>⚖️ Last Installment Weight</Text>
+            <Text style={styles.lastWeightValue}>{parseFloat(lastWeight).toFixed(3)} g</Text>
+          </View>
+
+          <View style={styles.dateRow}>
+            <View style={styles.dateChip}>
+              <Text style={styles.dateChipIcon}>🗓</Text>
+              <View>
+                <Text style={styles.dateChipLabel}>Join Date</Text>
+                <Text style={styles.dateChipValue}>{formatDate(joinDate)}</Text>
+              </View>
+            </View>
+
+            <View style={[styles.dateChip, { backgroundColor: '#F3E5F5' }]}>
+              <Text style={styles.dateChipIcon}>🎯</Text>
+              <View>
+                <Text style={styles.dateChipLabel}>Maturity</Text>
+                <Text style={[styles.dateChipValue, { color: '#6A1B9A' }]}>{formatDate(maturityDate)}</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.tagRow}>
+            {lastPaidDate && <TagChip icon="✅" label="Last paid" value={formatDateShort(lastPaidDate)} />}
+            {nextDueDate && <TagChip icon="🔔" label="Next due" value={formatDateShort(nextDueDate)} danger={isPaymentDue} />}
+            {remainingDays > 0 && <TagChip label="" value={`${remainingDays}d left`} />}
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.card}>
+        <View style={{ padding: 16 }}>
+          <SectionTitle icon="👤" title="Member Details" />
+
+          <View style={styles.memberRow}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{pName?.charAt(0)?.toUpperCase()}</Text>
+            </View>
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <Text style={styles.memberName}>{pName}</Text>
+              <Text style={styles.memberId}>ID: {personalId || regNo}</Text>
+            </View>
+          </View>
+
+          <View style={styles.contactRow}>
+            {mobile && (
+              <View style={styles.phonePill}>
+                <Text style={{ fontSize: 12 }}>📞</Text>
+                <Text style={styles.phoneText}>{mobile}</Text>
+              </View>
+            )}
+            {mobile2 && mobile2 !== mobile && (
+              <View style={[styles.phonePill, { backgroundColor: '#E3F2FD' }]}>
+                <Text style={{ fontSize: 12 }}>📱</Text>
+                <Text style={[styles.phoneText, { color: '#1565C0' }]}>{mobile2}</Text>
+              </View>
+            )}
+          </View>
+
+          {(address1 || city) && (
+            <TouchableOpacity style={styles.addressBox} onPress={() => setExpandAddress((p) => !p)} activeOpacity={0.8}>
+              <Text style={{ fontSize: 13 }}>📍</Text>
+              <Text style={styles.addressText} numberOfLines={expandAddress ? undefined : 1}>
+                {[doorNo, address1, address2, area, city, state, pinCode].filter(Boolean).join(', ')}
+              </Text>
+              <Text style={styles.expandIcon}>{expandAddress ? '▲' : '▼'}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {paymentHistoryList.length > 0 && (
+        <View style={styles.sectionHeader}>
+          <SectionTitle icon="💳" title="Payment History" badge={paymentHistoryList.length} />
+        </View>
+      )}
+    </>
+  );
+
+  const renderFooter = () => (
+    <>
+      {remainingDueDates.length > 0 && (
+        <View style={styles.card}>
+          <View style={{ padding: 16 }}>
+            <SectionTitle icon="📅" title="Upcoming Dues" badge={remainingDueDates.length} />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {remainingDueDates.map((date, i) => (
+                <View key={i} style={[styles.dueChip, i === 0 && styles.dueChipNext]}>
+                  <Text style={[styles.dueChipText, i === 0 && styles.dueChipTextNext]}>{formatDateShort(date)}</Text>
+                  {i === 0 && <Text style={styles.nextLabel}> Next</Text>}
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      )}
+
+      {!isClosed && (
+        <AppButton
+          label={isPaymentDue ? '🚨 Pay Now — Overdue' : '+ Add Payment'}
+          onPress={handleMakePayment}
+          variant="primary"
+          size="lg"
+          style={[styles.ctaButton, isPaymentDue && styles.ctaButtonDue]}
+        />
+      )}
+
+      <View style={{ height: 24 }} />
+    </>
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar backgroundColor={COLORS.primary} barStyle="light-content" />
+      <CommonHeader title="Scheme Details" />
+
+      <FlatList
+        data={paymentHistoryList}
+        keyExtractor={(_, i) => `pmt-${i}`}
+        renderItem={renderPaymentItem}
+        ListHeaderComponent={renderHeader}
+        ListFooterComponent={renderFooter}
+        ListEmptyComponent={
+          <View style={styles.emptyBox}>
+            <Text style={{ fontSize: 36, marginBottom: 8 }}>💸</Text>
+            <Text style={styles.emptyText}>No payments recorded yet</Text>
+          </View>
+        }
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+      />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F4F6FA' },
+  listContent: { padding: 16, paddingBottom: 32 },
+  errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
+  errorText: { fontSize: 16, color: COLORS.error, marginBottom: 20, textAlign: 'center' },
+  goBackButton: { paddingHorizontal: 28 },
+  statusBanner: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 14 },
+  statusLabel: { fontSize: 15, fontWeight: '700' },
+  statusSub: { fontSize: 12, marginTop: 2 },
+  statusDot: { width: 10, height: 10, borderRadius: 5 },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    marginBottom: 14,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8 },
+      android: { elevation: 3 },
+    }),
+    overflow: 'hidden',
+  },
+  cardStrip: { flexDirection: 'row', alignItems: 'center', padding: 16, paddingBottom: 14 },
+  schemeNameLg: { fontSize: 16, fontWeight: '800', color: '#fff', marginBottom: 2 },
+  schemeIdSm: { fontSize: 11, color: 'rgba(255,255,255,0.75)' },
+  regPill: { backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 99, paddingHorizontal: 10, paddingVertical: 4, marginLeft: 10 },
+  regPillText: { fontSize: 11, color: '#fff', fontWeight: '700' },
+  progressRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  progressLabel: { fontSize: 12, color: COLORS.textSecondary },
+  progressCount: { fontSize: 13, color: COLORS.textSecondary },
+  progressPct: { fontSize: 11, color: COLORS.textSecondary, marginTop: 4, marginBottom: 14, textAlign: 'right' },
+  statsRow: { flexDirection: 'row', marginBottom: 10, marginHorizontal: -4 },
+  lastWeightRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#FFF8E1', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 12 },
+  lastWeightLabel: { fontSize: 12, color: COLORS.textSecondary },
+  lastWeightValue: { fontSize: 13, fontWeight: '700', color: '#E65100' },
+  dateRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+  dateChip: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#EEF5FF', borderRadius: 14, padding: 10, gap: 8 },
+  dateChipIcon: { fontSize: 18 },
+  dateChipLabel: { fontSize: 10, color: COLORS.textSecondary, textTransform: 'uppercase', letterSpacing: 0.4 },
+  dateChipValue: { fontSize: 14, fontWeight: '700', color: COLORS.primary, marginTop: 1 },
+  tagRow: { flexDirection: 'row', flexWrap: 'wrap' },
+  sectionHeader: { marginBottom: 2 },
+  memberRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  contactRow: { flexDirection: 'row', gap: 8, marginBottom: 12, flexWrap: 'wrap' },
+  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' },
+  avatarText: { fontSize: 20, fontWeight: '800', color: '#fff' },
+  memberName: { fontSize: 16, fontWeight: '700', color: COLORS.textPrimary },
+  memberId: { fontSize: 12, color: COLORS.textSecondary, marginTop: 1 },
+  phonePill: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F5E9', borderRadius: 99, paddingHorizontal: 10, paddingVertical: 6, gap: 5 },
+  phoneText: { fontSize: 12, fontWeight: '600', color: '#2E7D32' },
+  addressBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F9FAFB', borderRadius: 12, padding: 10, gap: 8, borderWidth: 1, borderColor: '#E5E7EB' },
+  addressText: { flex: 1, fontSize: 12, color: COLORS.textSecondary, lineHeight: 18 },
+  expandIcon: { fontSize: 10, color: COLORS.textSecondary },
+  paymentRow: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4 },
+      android: { elevation: 2 },
+    }),
+  },
+  paymentIndex: { width: 28, height: 28, borderRadius: 14, backgroundColor: `${COLORS.primary}15`, justifyContent: 'center', alignItems: 'center' },
+  paymentIndexText: { fontSize: 12, fontWeight: '700', color: COLORS.primary },
+  paymentDate: { fontSize: 13, fontWeight: '600', color: COLORS.textPrimary },
+  paymentInstall: { fontSize: 11, color: COLORS.textSecondary, marginTop: 2 },
+  paymentMode: { fontSize: 10, color: COLORS.textSecondary, marginTop: 1 },
+  paymentWeight: { fontSize: 11, color: '#E65100', fontWeight: '600', marginBottom: 2 },
+  paymentAmount: { fontSize: 15, fontWeight: '800', color: COLORS.textPrimary },
+  paidBadge: { backgroundColor: '#E8F5E9', borderRadius: 99, paddingHorizontal: 8, paddingVertical: 2, marginTop: 4, alignSelf: 'flex-end' },
+  paidBadgeText: { fontSize: 10, fontWeight: '700', color: '#2E7D32' },
+  receiptButton: { marginLeft: 10, width: 32, height: 32, borderRadius: 16, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center' },
+  emptyBox: { backgroundColor: '#fff', borderRadius: 20, padding: 32, alignItems: 'center', marginTop: 8 },
+  emptyText: { fontSize: 14, color: COLORS.textSecondary },
+  dueChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', borderRadius: 99, paddingHorizontal: 14, paddingVertical: 8, marginRight: 8 },
+  dueChipNext: { backgroundColor: '#FFF8E1', borderWidth: 1, borderColor: '#FFB300' },
+  dueChipText: { fontSize: 13, fontWeight: '600', color: COLORS.textPrimary },
+  dueChipTextNext: { color: '#E65100' },
+  nextLabel: { fontSize: 10, fontWeight: '700', color: '#E65100' },
+  ctaButton: { marginTop: 4 },
+  ctaButtonDue: { backgroundColor: '#C62828' },
+});

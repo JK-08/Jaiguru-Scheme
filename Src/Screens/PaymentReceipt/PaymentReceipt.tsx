@@ -1,28 +1,32 @@
-// PaymentReceiptPage.js - Updated with Professional Receipt Styling
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
-  Alert,
-  Image,
-  ActivityIndicator,
-} from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import CommonHeader from "../../Components/CommonHeader/CommonHeader";
-import PaymentReceiptPDF from "../../Utills/PaymentReceiptPDF";
-import { useCompany } from "../../Hooks/useCompany";
-import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+// Src/Screens/PaymentReceipt/PaymentReceipt.tsx
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, StatusBar, Alert, Image, ActivityIndicator } from 'react-native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import CommonHeader from '../../Components/CommonHeader/CommonHeader';
+import PaymentReceiptPDF from '../../Utills/PaymentReceiptPDF';
+import { useCompany } from '../../api/hooks/Company/useCompany';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const moderateScale = (size) => size;
+const moderateScale = (size: number) => size;
+
+export interface PaymentReceiptRouteParams {
+  paymentData?: {
+    amount?: number | string;
+    weight?: string;
+    receiptNo?: string | number;
+    updateTime?: string;
+    chqBank?: string;
+    chqBranch?: string;
+    chq_CardNo?: string;
+    installment?: string | number;
+  };
+  schemeData?: any;
+  customerData?: { pName?: string; mobile?: string };
+}
 
 export default function PaymentReceiptPage() {
-  const navigation = useNavigation();
-  const route = useRoute();
+  const navigation = useNavigation<any>();
+  const route = useRoute<RouteProp<Record<string, PaymentReceiptRouteParams>, string>>();
   const { paymentData, schemeData, customerData } = route.params || {};
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
@@ -35,10 +39,7 @@ export default function PaymentReceiptPage() {
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>No receipt data available</Text>
-          <TouchableOpacity
-            style={styles.goBackButton}
-            onPress={() => navigation.goBack()}
-          >
+          <TouchableOpacity style={styles.goBackButton} onPress={() => navigation.goBack()}>
             <Text style={styles.goBackButtonText}>Go Back</Text>
           </TouchableOpacity>
         </View>
@@ -46,27 +47,25 @@ export default function PaymentReceiptPage() {
     );
   }
 
-  const formatDate = (dateString) => {
-    if (!dateString || dateString === "1900-01-01 00:00:00.0") return "N/A";
+  const formatDate = (dateString?: string) => {
+    if (!dateString || dateString === '1900-01-01 00:00:00.0') return 'N/A';
     try {
-      const dateStringFormatted = dateString.includes(" ")
-        ? dateString.replace(" ", "T").replace(/\.\d+$/, "")
-        : dateString;
+      const dateStringFormatted = dateString.includes(' ') ? dateString.replace(' ', 'T').replace(/\.\d+$/, '') : dateString;
       const date = new Date(dateStringFormatted);
-      if (isNaN(date.getTime())) return "Invalid Date";
-      return date.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
+      if (isNaN(date.getTime())) return 'Invalid Date';
+      return date.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
       });
     } catch {
-      return "Invalid Date";
+      return 'Invalid Date';
     }
   };
 
-  const formatCurrency = (amount) => {
-    const numAmount = parseFloat(amount) || 0;
-    return `₹${numAmount.toLocaleString("en-IN")}`;
+  const formatCurrency = (amount: unknown) => {
+    const numAmount = parseFloat(String(amount)) || 0;
+    return `₹${numAmount.toLocaleString('en-IN')}`;
   };
 
   // Generate and download receipt
@@ -79,7 +78,7 @@ export default function PaymentReceiptPage() {
         schemeData: schemeData,
         payment: {
           amount: paymentData.amount,
-          weight: paymentData.weight || "0.0",
+          weight: paymentData.weight || '0.0',
           receiptNo: paymentData.receiptNo,
           updateTime: paymentData.updateTime,
           chqBank: paymentData.chqBank,
@@ -88,22 +87,20 @@ export default function PaymentReceiptPage() {
           installment: paymentData.installment,
         },
         customerInfo: {
-          customerName: customerData?.pName || schemeData?.pName || "Customer",
-          mobile:
-            customerData?.mobile || schemeData?.personalInfo?.mobile || "N/A",
+          customerName: customerData?.pName || schemeData?.pName || 'Customer',
+          mobile: customerData?.mobile || schemeData?.personalInfo?.mobile || 'N/A',
         },
         schemeInfo: {
-          schemeName:
-            schemeData?.schemeSummary?.schemeName?.trim() || "Scheme Name",
-          groupCode: schemeData?.groupCode || schemeData?.groupcode || "N/A",
-          regNo: schemeData?.regNo || schemeData?.regno || "N/A",
+          schemeName: schemeData?.schemeSummary?.schemeName?.trim() || 'Scheme Name',
+          groupCode: schemeData?.groupCode || schemeData?.groupcode || 'N/A',
+          regNo: schemeData?.regNo || schemeData?.regno || 'N/A',
         },
       };
 
       await PaymentReceiptPDF.generatePDF(responseData);
     } catch (error) {
-      console.error("Error generating receipt:", error);
-      Alert.alert("Error", "Failed to generate receipt. Please try again.");
+      console.error('Error generating receipt:', error);
+      Alert.alert('Error', 'Failed to generate receipt. Please try again.');
     } finally {
       setIsGeneratingPDF(false);
     }
@@ -122,11 +119,7 @@ export default function PaymentReceiptPage() {
           textColor="#000000"
           centerTitle
           rightComponent={
-            <TouchableOpacity
-              onPress={handleDownloadReceipt}
-              style={styles.actionButton}
-              disabled={isGeneratingPDF}
-            >
+            <TouchableOpacity onPress={handleDownloadReceipt} style={styles.actionButton} disabled={isGeneratingPDF}>
               {isGeneratingPDF ? (
                 <ActivityIndicator size="small" color="#4C0B0B" />
               ) : (
@@ -135,53 +128,33 @@ export default function PaymentReceiptPage() {
             </TouchableOpacity>
           }
         />
-        <ScrollView
-          contentContainerStyle={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-        >
+        <ScrollView contentContainerStyle={styles.scrollView} showsVerticalScrollIndicator={false}>
           {/* A4 Paper Container */}
           <View style={styles.receiptContainer}>
             {/* Company Header */}
             <View style={styles.header}>
               <View style={styles.headerContent}>
                 {companyData?.CompanyLogoUrl ? (
-                  <Image
-                    source={{ uri: companyData.CompanyLogoUrl }}
-                    style={styles.logo}
-                    resizeMode="contain"
-                  />
+                  <Image source={{ uri: companyData.CompanyLogoUrl }} style={styles.logo} resizeMode="contain" />
                 ) : (
                   <View style={styles.logoPlaceholder}>
-                    <Text style={styles.logoPlaceholderText}>
-                      jaigurujewellers
-                    </Text>
+                    <Text style={styles.logoPlaceholderText}>jaigurujewellers</Text>
                   </View>
                 )}
                 <View style={styles.companyInfo}>
-                  <Text style={styles.companyName}>
-                    {companyData?.COMPANYNAME || "Jaiguru Jewellers"}
-                  </Text>
+                  <Text style={styles.companyName}>{companyData?.COMPANYNAME || 'Jaiguru Jewellers'}</Text>
                 </View>
               </View>
             </View>
 
             {/* Contact Information */}
             <View style={styles.contactSection}>
+              <Text style={styles.contactText}>📞 {companyData?.PHONE || '+91-95143 33601, +91-95143 33609'}</Text>
+              <Text style={styles.contactText}>✉ {companyData?.EMAIL || 'Contact@jaigurujewellers.in'}</Text>
               <Text style={styles.contactText}>
-                📞 {companyData?.PHONE || "+91-95143 33601, +91-95143 33609"}
-              </Text>
-              <Text style={styles.contactText}>
-                ✉ {companyData?.EMAIL || "Contact@jaigurujewellers.in"}
-              </Text>
-              <Text style={styles.contactText}>
-                📍{" "}
-                {[
-                  companyData?.ADDRESS1,
-                  companyData?.ADDRESS2,
-                  companyData?.ADDRESS3,
-                ]
-                  .filter(Boolean)
-                  .join(", ") || "160, Melamasi St, Madurai-625001"}
+                📍{' '}
+                {[companyData?.ADDRESS1, companyData?.ADDRESS2, companyData?.ADDRESS3].filter(Boolean).join(', ') ||
+                  '160, Melamasi St, Madurai-625001'}
               </Text>
             </View>
 
@@ -196,16 +169,11 @@ export default function PaymentReceiptPage() {
               <View style={styles.infoRow}>
                 <View style={styles.infoItem}>
                   <Text style={styles.infoLabel}>Scheme Name</Text>
-                  <Text style={styles.infoValue}>
-                    {schemeData?.schemeSummary?.schemeName?.trim() ||
-                      "Scheme Name"}
-                  </Text>
+                  <Text style={styles.infoValue}>{schemeData?.schemeSummary?.schemeName?.trim() || 'Scheme Name'}</Text>
                 </View>
                 <View style={styles.infoItem}>
                   <Text style={styles.infoLabel}>Transaction Date</Text>
-                  <Text style={styles.infoValue}>
-                    {formatDate(paymentData.updateTime)}
-                  </Text>
+                  <Text style={styles.infoValue}>{formatDate(paymentData.updateTime)}</Text>
                 </View>
               </View>
             </View>
@@ -217,31 +185,22 @@ export default function PaymentReceiptPage() {
                 <View style={styles.customerRow}>
                   <View style={styles.customerItem}>
                     <Text style={styles.customerLabel}>Name:</Text>
-                    <Text style={styles.customerValue}>
-                      {customerData?.pName || schemeData?.pName || "Customer"}
-                    </Text>
+                    <Text style={styles.customerValue}>{customerData?.pName || schemeData?.pName || 'Customer'}</Text>
                   </View>
                   <View style={styles.customerItem}>
                     <Text style={styles.customerLabel}>Receipt No:</Text>
-                    <Text style={styles.customerValue}>
-                      {paymentData.receiptNo || "N/A"}
-                    </Text>
+                    <Text style={styles.customerValue}>{paymentData.receiptNo || 'N/A'}</Text>
                   </View>
                 </View>
                 <View style={styles.customerRow}>
                   <View style={styles.customerItem}>
                     <Text style={styles.customerLabel}>Mobile:</Text>
-                    <Text style={styles.customerValue}>
-                      {customerData?.mobile ||
-                        schemeData?.personalInfo?.mobile ||
-                        "N/A"}
-                    </Text>
+                    <Text style={styles.customerValue}>{customerData?.mobile || schemeData?.personalInfo?.mobile || 'N/A'}</Text>
                   </View>
                   <View style={styles.customerItem}>
                     <Text style={styles.customerLabel}>Group Code-Reg No:</Text>
                     <Text style={styles.customerValue}>
-                      {schemeData?.groupCode || schemeData?.groupcode || "N/A"}-
-                      {schemeData?.regNo || schemeData?.regno || "N/A"}
+                      {schemeData?.groupCode || schemeData?.groupcode || 'N/A'}-{schemeData?.regNo || schemeData?.regno || 'N/A'}
                     </Text>
                   </View>
                 </View>
@@ -252,70 +211,51 @@ export default function PaymentReceiptPage() {
             <View style={styles.tableContainer}>
               <View style={styles.tableHeader}>
                 <Text style={[styles.th, { flex: 0.5 }]}>S.No</Text>
-                <Text style={[styles.th, { flex: 1.8 }]}>
-                  Group Code Reg-No
-                </Text>
+                <Text style={[styles.th, { flex: 1.8 }]}>Group Code Reg-No</Text>
                 <Text style={[styles.th, { flex: 1 }]}>Installment</Text>
-                {paymentData.weight && parseFloat(paymentData.weight) > 0 && (
-                  <Text style={[styles.th, { flex: 1 }]}>Weight</Text>
-                )}
+                {paymentData.weight && parseFloat(paymentData.weight) > 0 && <Text style={[styles.th, { flex: 1 }]}>Weight</Text>}
                 <Text style={[styles.th, { flex: 1.2 }]}>Amount</Text>
               </View>
 
               <View style={styles.tableRow}>
                 <Text style={[styles.td, { flex: 0.5 }]}>1</Text>
                 <Text style={[styles.td, { flex: 1.8 }]}>
-                  {schemeData?.groupCode || schemeData?.groupcode || "N/A"}-
-                  {schemeData?.regNo || schemeData?.regno || "N/A"}
+                  {schemeData?.groupCode || schemeData?.groupcode || 'N/A'}-{schemeData?.regNo || schemeData?.regno || 'N/A'}
                 </Text>
-                <Text style={[styles.td, { flex: 1 }]}>
-                  {paymentData.installment || "1"}
-                </Text>
+                <Text style={[styles.td, { flex: 1 }]}>{paymentData.installment || '1'}</Text>
                 {paymentData.weight && parseFloat(paymentData.weight) > 0 && (
-                  <Text style={[styles.td, { flex: 1 }]}>
-                    {parseFloat(paymentData.weight).toFixed(3)}
-                  </Text>
+                  <Text style={[styles.td, { flex: 1 }]}>{parseFloat(paymentData.weight).toFixed(3)}</Text>
                 )}
-                <Text style={[styles.td, { flex: 1.2 }]}>
-                  {formatCurrency(paymentData.amount)}
-                </Text>
+                <Text style={[styles.td, { flex: 1.2 }]}>{formatCurrency(paymentData.amount)}</Text>
               </View>
             </View>
 
             {/* Total Amount */}
             <View style={styles.totalSection}>
               <Text style={styles.totalLabel}>Total Amount Paid:</Text>
-              <Text style={styles.totalAmount}>
-                {formatCurrency(paymentData.amount)}
-              </Text>
+              <Text style={styles.totalAmount}>{formatCurrency(paymentData.amount)}</Text>
             </View>
 
             {/* Payment Mode Details (if available) */}
             {(paymentData.chqBank || paymentData.chq_CardNo) && (
               <View style={styles.paymentModeSection}>
                 <Text style={styles.paymentModeTitle}>Payment Details:</Text>
-                {paymentData.chqBank && paymentData.chqBank !== "N/A" && (
+                {paymentData.chqBank && paymentData.chqBank !== 'N/A' && (
                   <View style={styles.paymentModeRow}>
                     <Text style={styles.paymentModeLabel}>Mode:</Text>
-                    <Text style={styles.paymentModeValue}>
-                      {paymentData.chqBank}
-                    </Text>
+                    <Text style={styles.paymentModeValue}>{paymentData.chqBank}</Text>
                   </View>
                 )}
-                {paymentData.chqBranch && paymentData.chqBranch !== "N/A" && (
+                {paymentData.chqBranch && paymentData.chqBranch !== 'N/A' && (
                   <View style={styles.paymentModeRow}>
                     <Text style={styles.paymentModeLabel}>Branch:</Text>
-                    <Text style={styles.paymentModeValue}>
-                      {paymentData.chqBranch}
-                    </Text>
+                    <Text style={styles.paymentModeValue}>{paymentData.chqBranch}</Text>
                   </View>
                 )}
-                {paymentData.chq_CardNo && paymentData.chq_CardNo !== "N/A" && (
+                {paymentData.chq_CardNo && paymentData.chq_CardNo !== 'N/A' && (
                   <View style={styles.paymentModeRow}>
                     <Text style={styles.paymentModeLabel}>Ref No:</Text>
-                    <Text style={styles.paymentModeValue}>
-                      {paymentData.chq_CardNo}
-                    </Text>
+                    <Text style={styles.paymentModeValue}>{paymentData.chq_CardNo}</Text>
                   </View>
                 )}
               </View>
@@ -323,12 +263,8 @@ export default function PaymentReceiptPage() {
 
             {/* Footer */}
             <View style={styles.footer}>
-              <Text style={styles.footerText}>
-                Thank you for being our valued customer
-              </Text>
-              <Text style={styles.footerSubText}>
-                This is a computer generated receipt
-              </Text>
+              <Text style={styles.footerText}>Thank you for being our valued customer</Text>
+              <Text style={styles.footerSubText}>This is a computer generated receipt</Text>
             </View>
           </View>
         </ScrollView>
@@ -340,43 +276,43 @@ export default function PaymentReceiptPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: '#F5F5F5',
   },
   safeArea: {
     flex: 1,
   },
   errorContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: moderateScale(20),
   },
   errorText: {
     fontSize: moderateScale(18),
-    fontWeight: "600",
-    color: "#FF0000",
+    fontWeight: '600',
+    color: '#FF0000',
     marginBottom: moderateScale(20),
   },
   goBackButton: {
-    backgroundColor: "#4C0B0B",
+    backgroundColor: '#4C0B0B',
     paddingHorizontal: moderateScale(20),
     paddingVertical: moderateScale(12),
     borderRadius: moderateScale(8),
   },
   goBackButtonText: {
     fontSize: moderateScale(16),
-    fontWeight: "600",
-    color: "#FFFFFF",
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   scrollView: {
     padding: moderateScale(16),
     paddingBottom: moderateScale(32),
   },
   receiptContainer: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: '#FFFFFF',
     borderRadius: moderateScale(8),
     padding: moderateScale(20),
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -387,8 +323,8 @@ const styles = StyleSheet.create({
     marginBottom: moderateScale(16),
   },
   headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   logo: {
     width: moderateScale(60),
@@ -400,61 +336,61 @@ const styles = StyleSheet.create({
     width: moderateScale(60),
     height: moderateScale(60),
     borderRadius: moderateScale(30),
-    backgroundColor: "#4C0B0B",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: '#4C0B0B',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: moderateScale(12),
   },
   logoPlaceholderText: {
     fontSize: moderateScale(20),
-    fontWeight: "bold",
-    color: "#FFFFFF",
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
   companyInfo: {
     flex: 1,
   },
   companyName: {
-    color: "#4C0B0B",
+    color: '#4C0B0B',
     fontSize: moderateScale(18),
-    fontWeight: "bold",
+    fontWeight: 'bold',
     letterSpacing: 0.5,
   },
   contactSection: {
-    backgroundColor: "#FFF9F0",
+    backgroundColor: '#FFF9F0',
     padding: moderateScale(12),
     borderRadius: moderateScale(6),
     marginBottom: moderateScale(16),
   },
   contactText: {
-    color: "#333",
+    color: '#333',
     fontSize: moderateScale(11),
     lineHeight: moderateScale(18),
     marginBottom: moderateScale(2),
   },
   divider: {
     height: 2,
-    backgroundColor: "#4C0B0B",
+    backgroundColor: '#4C0B0B',
     marginVertical: moderateScale(16),
   },
   receiptTitle: {
     fontSize: moderateScale(20),
-    fontWeight: "bold",
-    color: "#4C0B0B",
-    textAlign: "center",
+    fontWeight: 'bold',
+    color: '#4C0B0B',
+    textAlign: 'center',
     marginBottom: moderateScale(20),
     letterSpacing: 1,
   },
   infoSection: {
-    backgroundColor: "#F8F9FA",
+    backgroundColor: '#F8F9FA',
     padding: moderateScale(14),
     borderRadius: moderateScale(6),
     marginBottom: moderateScale(16),
     borderLeftWidth: 4,
-    borderLeftColor: "#4C0B0B",
+    borderLeftColor: '#4C0B0B',
   },
   infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: moderateScale(12),
   },
   infoItem: {
@@ -462,36 +398,36 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: moderateScale(11),
-    color: "#666",
+    color: '#666',
     marginBottom: moderateScale(4),
-    fontWeight: "600",
-    textTransform: "uppercase",
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   infoValue: {
     fontSize: moderateScale(13),
-    color: "#000",
-    fontWeight: "bold",
+    color: '#000',
+    fontWeight: 'bold',
   },
   receiptToSection: {
     marginBottom: moderateScale(16),
   },
   sectionTitle: {
     fontSize: moderateScale(13),
-    fontWeight: "bold",
-    color: "#4C0B0B",
+    fontWeight: 'bold',
+    color: '#4C0B0B',
     marginBottom: moderateScale(10),
-    textTransform: "uppercase",
+    textTransform: 'uppercase',
   },
   customerBox: {
     borderWidth: 1,
-    borderColor: "#DDD",
+    borderColor: '#DDD',
     borderRadius: moderateScale(6),
     padding: moderateScale(12),
-    backgroundColor: "#FAFAFA",
+    backgroundColor: '#FAFAFA',
   },
   customerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: moderateScale(10),
     gap: moderateScale(12),
   },
@@ -500,123 +436,123 @@ const styles = StyleSheet.create({
   },
   customerLabel: {
     fontSize: moderateScale(11),
-    fontWeight: "600",
-    color: "#555",
+    fontWeight: '600',
+    color: '#555',
     marginBottom: moderateScale(4),
   },
   customerValue: {
     fontSize: moderateScale(12),
-    color: "#000",
-    fontWeight: "500",
+    color: '#000',
+    fontWeight: '500',
   },
   tableContainer: {
     borderWidth: 1,
-    borderColor: "#DDD",
+    borderColor: '#DDD',
     borderRadius: moderateScale(6),
-    overflow: "hidden",
+    overflow: 'hidden',
     marginBottom: moderateScale(16),
   },
   tableHeader: {
-    flexDirection: "row",
-    backgroundColor: "#4C0B0B",
+    flexDirection: 'row',
+    backgroundColor: '#4C0B0B',
     paddingVertical: moderateScale(10),
     paddingHorizontal: moderateScale(8),
   },
   th: {
-    color: "#FFFFFF",
-    textAlign: "center",
-    fontWeight: "bold",
+    color: '#FFFFFF',
+    textAlign: 'center',
+    fontWeight: 'bold',
     fontSize: moderateScale(11),
-    textTransform: "uppercase",
+    textTransform: 'uppercase',
   },
   tableRow: {
-    flexDirection: "row",
-    backgroundColor: "#FFFFFF",
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
     paddingVertical: moderateScale(12),
     paddingHorizontal: moderateScale(8),
     borderTopWidth: 1,
-    borderTopColor: "#E0E0E0",
+    borderTopColor: '#E0E0E0',
   },
   td: {
-    textAlign: "center",
-    color: "#333",
+    textAlign: 'center',
+    color: '#333',
     fontSize: moderateScale(12),
-    fontWeight: "500",
+    fontWeight: '500',
   },
   totalSection: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    backgroundColor: "#FFF9F0",
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    backgroundColor: '#FFF9F0',
     padding: moderateScale(14),
     borderRadius: moderateScale(6),
     marginBottom: moderateScale(20),
     borderWidth: 1,
-    borderColor: "#FFD700",
+    borderColor: '#FFD700',
   },
   totalLabel: {
     fontSize: moderateScale(14),
-    fontWeight: "600",
-    color: "#333",
+    fontWeight: '600',
+    color: '#333',
     marginRight: moderateScale(12),
   },
   totalAmount: {
     fontSize: moderateScale(18),
-    fontWeight: "bold",
-    color: "#4C0B0B",
+    fontWeight: 'bold',
+    color: '#4C0B0B',
   },
   paymentModeSection: {
-    backgroundColor: "#F8F9FA",
+    backgroundColor: '#F8F9FA',
     padding: moderateScale(14),
     borderRadius: moderateScale(6),
     marginBottom: moderateScale(16),
   },
   paymentModeTitle: {
     fontSize: moderateScale(12),
-    fontWeight: "bold",
-    color: "#4C0B0B",
+    fontWeight: 'bold',
+    color: '#4C0B0B',
     marginBottom: moderateScale(8),
   },
   paymentModeRow: {
-    flexDirection: "row",
+    flexDirection: 'row',
     marginBottom: moderateScale(4),
   },
   paymentModeLabel: {
     fontSize: moderateScale(11),
-    fontWeight: "600",
-    color: "#666",
+    fontWeight: '600',
+    color: '#666',
     width: moderateScale(70),
   },
   paymentModeValue: {
     fontSize: moderateScale(11),
-    color: "#333",
+    color: '#333',
     flex: 1,
   },
   footer: {
     marginTop: moderateScale(30),
     paddingTop: moderateScale(16),
     borderTopWidth: 1,
-    borderTopColor: "#E0E0E0",
-    alignItems: "center",
+    borderTopColor: '#E0E0E0',
+    alignItems: 'center',
   },
   footerText: {
     fontSize: moderateScale(12),
-    color: "#555",
-    fontWeight: "600",
+    color: '#555',
+    fontWeight: '600',
     marginBottom: moderateScale(6),
   },
   footerSubText: {
     fontSize: moderateScale(10),
-    color: "#999",
-    fontStyle: "italic",
+    color: '#999',
+    fontStyle: 'italic',
   },
   actionButton: {
     padding: moderateScale(8),
-    backgroundColor: "#F0F0F0",
+    backgroundColor: '#F0F0F0',
     borderRadius: moderateScale(20),
     width: moderateScale(40),
     height: moderateScale(40),
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

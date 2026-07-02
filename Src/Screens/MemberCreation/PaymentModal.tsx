@@ -1,39 +1,41 @@
-// Components/PaymentModal.js
+// Src/Screens/MemberCreation/PaymentModal.tsx
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Modal,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, StyleSheet, Modal, ActivityIndicator } from 'react-native';
 
-const PaymentModal = ({ visible, step, error }) => {
+export type PaymentModalStep = 'creating_order' | 'verifying' | 'failed' | string;
+
+export interface PaymentModalProps {
+  visible: boolean;
+  step?: PaymentModalStep;
+  error?: string | null;
+}
+
+const PaymentModal = ({ visible, step, error }: PaymentModalProps) => {
   const getContent = () => {
     switch (step) {
       case 'creating_order':
         return {
           title: 'Creating Order',
           message: 'Please wait while we create your payment order...',
-          icon: '🔄'
+          icon: '🔄',
         };
       case 'verifying':
         return {
           title: 'Verifying Payment',
           message: 'Please wait while we verify your payment...',
-          icon: '✓'
+          icon: '✓',
         };
       case 'failed':
         return {
           title: 'Payment Failed',
           message: error || 'Something went wrong. Please try again.',
-          icon: '✗'
+          icon: '✗',
         };
       default:
         return {
           title: 'Processing',
           message: 'Please wait...',
-          icon: '⏳'
+          icon: '⏳',
         };
     }
   };
@@ -41,19 +43,13 @@ const PaymentModal = ({ visible, step, error }) => {
   const content = getContent();
 
   return (
-    <Modal
-      visible={visible}
-      transparent={true}
-      animationType="fade"
-    >
+    <Modal visible={visible} transparent animationType="fade">
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <Text style={styles.icon}>{content.icon}</Text>
           <Text style={styles.title}>{content.title}</Text>
           <Text style={styles.message}>{content.message}</Text>
-          {step !== 'failed' && (
-            <ActivityIndicator size="large" color="#4CAF50" style={styles.spinner} />
-          )}
+          {step !== 'failed' && <ActivityIndicator size="large" color="#4CAF50" style={styles.spinner} />}
         </View>
       </View>
     </Modal>

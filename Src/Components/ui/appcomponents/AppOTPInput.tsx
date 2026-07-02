@@ -24,6 +24,7 @@ import {
   TextInput,
   TextInputKeyPressEventData,
   View,
+  StyleProp,
   ViewStyle,
   Pressable,
 } from 'react-native';
@@ -51,7 +52,7 @@ export interface AppOTPInputProps {
   hint?: string;
   boxSize?: number;
   gap?: number;
-  containerStyle?: ViewStyle;
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
 const AppOTPInput = forwardRef<AppOTPInputRef, AppOTPInputProps>(

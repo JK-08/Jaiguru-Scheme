@@ -1,15 +1,15 @@
+// Src/Screens/AccountDelete/AccountDelete.tsx
 import React, { useState, useEffect } from 'react';
-import {
-  SafeAreaView, Alert, View, TouchableOpacity,
-  ActivityIndicator, Text, ScrollView, StyleSheet,
-} from 'react-native';
+import { SafeAreaView, Alert, View, TouchableOpacity, ActivityIndicator, Text, ScrollView, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
-import { COLORS, SIZES, FONTS, SHADOWS, verticalScale, moderateScale } from '../../Utills/AppTheme';
-import { API_BASE_URL } from '../../Config/BaseUrl';
+import theme from '../../Utills/AppTheme';
 import { getUserId } from '../../Utills/AsynchStorageHelper';
+import { useDeleteAccount } from '../../api/hooks/User/useDeleteAccount';
+
+const { COLORS, SIZES, FONTS, SHADOWS, verticalScale, moderateScale } = theme;
 
 const CONSEQUENCES = [
   'Your profile will be permanently removed',
@@ -27,9 +27,9 @@ const CONSIDERATIONS = [
 ];
 
 function DeleteAccount() {
-  const navigation = useNavigation();
-  const [loading, setLoading] = useState(false);
-  const [userId, setUserId] = useState(null);
+  const navigation = useNavigation<any>();
+  const [userId, setUserId] = useState<string | number | null>(null);
+  const { deleteAccount, loading } = useDeleteAccount();
 
   useEffect(() => {
     getUserId().then(setUserId);
@@ -57,32 +57,17 @@ function DeleteAccount() {
       return;
     }
 
-    setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/user/delete/${userId}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        await AsyncStorage.clear();
-        Alert.alert(
-          'Account Deleted',
-          result.message || 'Your account has been permanently deleted.',
-          [{
-            text: 'OK',
-            onPress: () => navigation.reset({ index: 0, routes: [{ name: 'Login' }] }),
-          }]
-        );
-      } else {
-        Alert.alert('Deletion Failed', result.message || 'Failed to delete account. Please try again.');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to delete account. Please check your connection and try again.');
-    } finally {
-      setLoading(false);
+      const result: any = await deleteAccount(userId);
+      await AsyncStorage.clear();
+      Alert.alert('Account Deleted', result?.message || 'Your account has been permanently deleted.', [
+        {
+          text: 'OK',
+          onPress: () => navigation.reset({ index: 0, routes: [{ name: 'Login' }] }),
+        },
+      ]);
+    } catch (error: any) {
+      Alert.alert('Deletion Failed', error?.message || 'Failed to delete account. Please check your connection and try again.');
     }
   };
 
@@ -90,19 +75,14 @@ function DeleteAccount() {
     <SafeAreaView style={styles.container}>
       <CommonHeader title="Delete Account" onBackPress={() => navigation.goBack()} />
 
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Warning Banner */}
         <View style={styles.warningBanner}>
           <View style={styles.warningIconWrap}>
             <Icon name="warning" size={moderateScale(36)} color={COLORS.error} />
           </View>
           <Text style={styles.warningTitle}>Delete Your Account</Text>
-          <Text style={styles.warningSubtitle}>
-            This action is permanent and cannot be undone
-          </Text>
+          <Text style={styles.warningSubtitle}>This action is permanent and cannot be undone</Text>
         </View>
 
         {/* What Happens */}
@@ -136,18 +116,11 @@ function DeleteAccount() {
         {/* Final Warning */}
         <View style={styles.finalWarning}>
           <Icon name="error-outline" size={SIZES.icon.lg} color={COLORS.error} />
-          <Text style={styles.finalWarningText}>
-            Once deleted, your account and all data cannot be recovered.
-          </Text>
+          <Text style={styles.finalWarningText}>Once deleted, your account and all data cannot be recovered.</Text>
         </View>
 
         {/* Buttons */}
-        <TouchableOpacity
-          style={[styles.deleteBtn, loading && styles.btnDisabled]}
-          onPress={confirmDelete}
-          disabled={loading}
-          activeOpacity={0.8}
-        >
+        <TouchableOpacity style={[styles.deleteBtn, loading && styles.btnDisabled]} onPress={confirmDelete} disabled={loading} activeOpacity={0.8}>
           {loading ? (
             <ActivityIndicator color={COLORS.white} size="small" />
           ) : (
@@ -158,12 +131,7 @@ function DeleteAccount() {
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.cancelBtn}
-          onPress={() => navigation.goBack()}
-          disabled={loading}
-          activeOpacity={0.8}
-        >
+        <TouchableOpacity style={styles.cancelBtn} onPress={() => navigation.goBack()} disabled={loading} activeOpacity={0.8}>
           <Text style={styles.cancelBtnText}>Cancel</Text>
         </TouchableOpacity>
       </ScrollView>

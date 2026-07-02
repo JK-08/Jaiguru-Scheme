@@ -1,6 +1,6 @@
 // Src/Components/ui/appcomponents/AppLoader.tsx
 import React from 'react';
-import { View, Text, ActivityIndicator, Modal, ViewStyle } from 'react-native';
+import { View, Text, ActivityIndicator, Modal, StyleProp, ViewStyle } from 'react-native';
 import theme from '../../../Utills/AppTheme';
 
 const { COLORS, SIZES, FONTS } = theme;
@@ -12,7 +12,7 @@ export interface AppLoaderProps {
   message?: string;
   size?: 'small' | 'large';
   color?: string;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 export default function AppLoader({

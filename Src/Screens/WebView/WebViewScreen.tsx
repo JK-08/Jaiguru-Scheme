@@ -1,12 +1,20 @@
+// Src/Screens/WebView/WebViewScreen.tsx
 import React from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
-import { COLORS } from '../../Utills/AppTheme';
+import theme from '../../Utills/AppTheme';
+
+const { COLORS } = theme;
+
+export interface WebViewScreenRouteParams {
+  url?: string;
+  title?: string;
+}
 
 const WebViewScreen = () => {
-  const { params } = useRoute();
+  const { params } = useRoute<RouteProp<Record<string, WebViewScreenRouteParams>, string>>();
   const { url, title } = params || {};
 
   return (
@@ -15,13 +23,7 @@ const WebViewScreen = () => {
       <WebView
         source={{ uri: url }}
         startInLoadingState
-        renderLoading={() => (
-          <ActivityIndicator
-            style={StyleSheet.absoluteFill}
-            size="large"
-            color={COLORS.primary}
-          />
-        )}
+        renderLoading={() => <ActivityIndicator style={StyleSheet.absoluteFill} size="large" color={COLORS.primary} />}
       />
     </View>
   );

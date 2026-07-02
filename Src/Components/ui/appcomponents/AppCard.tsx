@@ -1,6 +1,6 @@
 // Src/Components/ui/appcomponents/AppCard.tsx
 import React from 'react';
-import { View, ViewStyle, TouchableOpacity } from 'react-native';
+import { View, StyleProp, ViewStyle, TouchableOpacity } from 'react-native';
 import theme from '../../../Utills/AppTheme';
 
 const { COLORS, SIZES, SHADOWS } = theme;
@@ -11,7 +11,7 @@ export interface AppCardProps {
   children: React.ReactNode;
   variant?: CardVariant;
   onPress?: () => void;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   padded?: boolean;
 }
 
@@ -26,12 +26,14 @@ export default function AppCard({ children, variant = 'default', onPress, style,
     flat: { backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.border },
   };
 
-  const cardStyle: ViewStyle = {
-    borderRadius: SIZES.radius.card,
-    padding: padded ? SIZES.card.padding : 0,
-    ...variantStyles[variant],
-    ...style,
-  };
+  const cardStyle: StyleProp<ViewStyle> = [
+    {
+      borderRadius: SIZES.radius.card,
+      padding: padded ? SIZES.card.padding : 0,
+      ...variantStyles[variant],
+    },
+    style,
+  ];
 
   if (onPress) {
     return (

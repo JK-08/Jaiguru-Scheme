@@ -1,50 +1,44 @@
-import React, { useState, useRef, useEffect } from "react";
-import {
-  View,
-  ActivityIndicator,
-  Image,
-  FlatList,
-  StyleSheet,
-  Dimensions,
-  TouchableOpacity,
-  Text,
-  Platform,
-  StatusBar,
-  Animated,
-} from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useOnboardBanners } from "../../Hooks/useOnboardBanner";
-import theme from "../../Utills/AppTheme";
-import { IMAGE_BASE_URL } from "../../Config/BaseUrl";
-import { LinearGradient } from "expo-linear-gradient";
+// Src/Screens/Onboard/OnboardingScreen.tsx
+import React, { useState, useRef, useEffect } from 'react';
+import { View, ActivityIndicator, Image, FlatList, StyleSheet, Dimensions, TouchableOpacity, Text, Platform, StatusBar, Animated } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useOnboardBanners } from '../../api/hooks/Onboard/useOnboardingBanners';
+import { OnboardBanner } from '../../types/HomeBanner/HomeBanner';
+import theme from '../../Utills/AppTheme';
+import { IMAGE_BASE_URL } from '../../Config/BaseUrl';
+import { LinearGradient } from 'expo-linear-gradient';
 
-const { width, height } = Dimensions.get("window");
+const { width, height } = Dimensions.get('window');
 
-const OnboardingScreen = ({ navigation }) => {
+export interface OnboardingScreenProps {
+  navigation: { replace: (route: string) => void };
+}
+
+const OnboardingScreen = ({ navigation }: OnboardingScreenProps) => {
   const { banners, loading, error: bannerError, refresh } = useOnboardBanners();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showGetStarted, setShowGetStarted] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
-  const flatListRef = useRef(null);
+  const flatListRef = useRef<FlatList<OnboardBanner>>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Check if user is already logged in
     const checkAuth = async () => {
       try {
-        const userToken = await AsyncStorage.getItem("authToken");
-        const userDataStr = await AsyncStorage.getItem("userData");
+        const userToken = await AsyncStorage.getItem('authToken');
+        const userDataStr = await AsyncStorage.getItem('userData');
 
         if (userToken && userDataStr) {
           const userData = JSON.parse(userDataStr);
           if (userData && userData.id) {
             // User is already logged in, skip onboarding and go to home
-            navigation.replace("MainDrawer");
+            navigation.replace('MainDrawer');
             return;
           }
         }
       } catch (error) {
-        console.error("Error checking auth:", error);
+        console.error('Error checking auth:', error);
       }
     };
 
@@ -58,7 +52,7 @@ const OnboardingScreen = ({ navigation }) => {
       duration: 300,
       useNativeDriver: true,
     }).start();
-  }, [showGetStarted]);
+  }, [showGetStarted, fadeAnim]);
 
   const completeOnboarding = async () => {
     try {
@@ -66,11 +60,11 @@ const OnboardingScreen = ({ navigation }) => {
       await AsyncStorage.setItem('hasSeenOnboarding', 'true');
 
       // Navigate to Login screen
-      navigation.replace("Login");
+      navigation.replace('Login');
     } catch (error) {
-      console.error("Error completing onboarding:", error);
+      console.error('Error completing onboarding:', error);
       // Fallback navigation
-      navigation.replace("Login");
+      navigation.replace('Login');
     }
   };
 
@@ -82,13 +76,13 @@ const OnboardingScreen = ({ navigation }) => {
     try {
       await refresh();
     } catch (error) {
-      console.error("Retry error:", error);
+      console.error('Retry error:', error);
     } finally {
       setIsRetrying(false);
     }
   };
 
-  const onScrollEnd = (e) => {
+  const onScrollEnd = (e: any) => {
     const contentOffset = e.nativeEvent.contentOffset.x;
     const index = Math.round(contentOffset / width);
     setCurrentIndex(index);
@@ -115,9 +109,7 @@ const OnboardingScreen = ({ navigation }) => {
             }}
             activeOpacity={0.7}
           >
-            <View
-              style={[styles.dot, currentIndex === index && styles.activeDot]}
-            />
+            <View style={[styles.dot, currentIndex === index && styles.activeDot]} />
           </TouchableOpacity>
         ))}
       </View>
@@ -129,9 +121,7 @@ const OnboardingScreen = ({ navigation }) => {
     return (
       <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color={theme.COLORS.goldPrimary} />
-        <Text style={styles.loadingText}>
-          {isRetrying ? "Retrying..." : "Loading..."}
-        </Text>
+        <Text style={styles.loadingText}>{isRetrying ? 'Retrying...' : 'Loading...'}</Text>
       </View>
     );
   }
@@ -141,17 +131,8 @@ const OnboardingScreen = ({ navigation }) => {
       <View style={styles.errorContainer}>
         <Text style={styles.errorTitle}>Connection Error</Text>
         <Text style={styles.errorText}>{bannerError}</Text>
-        <TouchableOpacity
-          style={styles.retryButton}
-          onPress={handleRetry}
-          activeOpacity={0.8}
-          disabled={isRetrying}
-        >
-          {isRetrying ? (
-            <ActivityIndicator size="small" color={theme.COLORS.primary} />
-          ) : (
-            <Text style={styles.retryText}>Retry</Text>
-          )}
+        <TouchableOpacity style={styles.retryButton} onPress={handleRetry} activeOpacity={0.8} disabled={isRetrying}>
+          {isRetrying ? <ActivityIndicator size="small" color={theme.COLORS.primary} /> : <Text style={styles.retryText}>Retry</Text>}
         </TouchableOpacity>
       </View>
     );
@@ -162,36 +143,27 @@ const OnboardingScreen = ({ navigation }) => {
       <View style={styles.errorContainer}>
         <Text style={styles.errorTitle}>No Content Available</Text>
         <Text style={styles.errorText}>Please try again later</Text>
-        <TouchableOpacity
-          style={styles.retryButton}
-          onPress={handleRetry}
-          activeOpacity={0.8}
-          disabled={isRetrying}
-        >
-          {isRetrying ? (
-            <ActivityIndicator size="small" color={theme.COLORS.primary} />
-          ) : (
-            <Text style={styles.retryText}>Retry</Text>
-          )}
+        <TouchableOpacity style={styles.retryButton} onPress={handleRetry} activeOpacity={0.8} disabled={isRetrying}>
+          {isRetrying ? <ActivityIndicator size="small" color={theme.COLORS.primary} /> : <Text style={styles.retryText}>Retry</Text>}
         </TouchableOpacity>
       </View>
     );
   }
 
-  const renderItem = ({ item, index }) => (
+  const renderItem = ({ item, index }: { item: OnboardBanner; index: number }) => (
     <View style={styles.slideContainer}>
       <Image
         source={{ uri: `${IMAGE_BASE_URL}${item.image_path}` }}
         style={styles.image}
         resizeMode="cover"
         onError={(error) => {
-          console.log("Image loading error:", error.nativeEvent.error);
+          console.log('Image loading error:', error.nativeEvent.error);
         }}
       />
 
       {/* Gradient overlay */}
       <LinearGradient
-        colors={["rgba(0,0,0,0.7)", "transparent", "rgba(0,0,0,0.7)"]}
+        colors={['rgba(0,0,0,0.7)', 'transparent', 'rgba(0,0,0,0.7)']}
         style={styles.gradientOverlay}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
@@ -202,11 +174,7 @@ const OnboardingScreen = ({ navigation }) => {
         {/* Top skip button */}
         {index !== banners.length - 1 && (
           <View style={styles.topContainer}>
-            <TouchableOpacity
-              style={styles.skipButton}
-              onPress={handleSkip}
-              activeOpacity={0.7}
-            >
+            <TouchableOpacity style={styles.skipButton} onPress={handleSkip} activeOpacity={0.7}>
               <Text style={styles.skipText}>SKIP</Text>
             </TouchableOpacity>
           </View>
@@ -214,22 +182,15 @@ const OnboardingScreen = ({ navigation }) => {
 
         {/* Bottom content */}
         <View style={styles.bottomContainer}>
-
           {/* Get Started Button with fade animation */}
-          <Animated.View
-            style={[styles.getStartedContainer, { opacity: fadeAnim }]}
-          >
+          <Animated.View style={[styles.getStartedContainer, { opacity: fadeAnim }]}>
             {showGetStarted && (
-              <TouchableOpacity
-                style={styles.getStartedButton}
-                onPress={handleGetStarted}
-                activeOpacity={0.8}
-              >
+              <TouchableOpacity style={styles.getStartedButton} onPress={handleGetStarted} activeOpacity={0.8}>
                 <Text style={styles.getStartedText}>GET STARTED</Text>
               </TouchableOpacity>
             )}
           </Animated.View>
-           {/* Navigation dots */}
+          {/* Navigation dots */}
           {renderDots()}
         </View>
       </View>
@@ -238,18 +199,12 @@ const OnboardingScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="transparent"
-        translucent
-      />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
       <FlatList
         ref={flatListRef}
         data={banners}
-        keyExtractor={(item) =>
-          item.BannerId?.toString() || `banner-${Math.random()}`
-        }
+        keyExtractor={(item) => item.BannerId?.toString() || `banner-${Math.random()}`}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
@@ -274,8 +229,8 @@ const styles = StyleSheet.create({
   loaderContainer: {
     flex: 1,
     backgroundColor: theme.COLORS.backgroundDark,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loadingText: {
     ...theme.FONTS.body,
@@ -286,20 +241,20 @@ const styles = StyleSheet.create({
   errorContainer: {
     flex: 1,
     backgroundColor: theme.COLORS.backgroundDark,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: theme.SIZES.padding.xl,
   },
   errorTitle: {
     ...theme.FONTS.h2,
     color: theme.COLORS.white,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: theme.SIZES.sm,
   },
   errorText: {
     ...theme.FONTS.body,
     color: theme.COLORS.gray400,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: theme.SIZES.xl,
     lineHeight: theme.SIZES.font.md * 1.6,
   },
@@ -310,39 +265,41 @@ const styles = StyleSheet.create({
     borderRadius: theme.SIZES.radius.lg,
     minWidth: 120,
     minHeight: 50,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     ...theme.SHADOWS.md,
   },
   retryText: {
     ...theme.FONTS.button,
     color: theme.COLORS.primary,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   slideContainer: {
     width: width,
     height: height,
   },
   image: {
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
+  },
+  gradientOverlay: {
+    ...StyleSheet.absoluteFillObject,
   },
   contentContainer: {
     ...StyleSheet.absoluteFillObject,
-    paddingTop: Platform.OS === "ios" ? theme.SIZES.xxxl : theme.SIZES.md,
+    paddingTop: Platform.OS === 'ios' ? theme.SIZES.xxxl : theme.SIZES.md,
   },
   topContainer: {
     paddingHorizontal: theme.SIZES.padding.md,
-    alignItems: "flex-end",
-    // paddingVertical: -30,
+    alignItems: 'flex-end',
   },
   skipButton: {
-    backgroundColor: "rgba(0, 174, 255, 0.99)",
+    backgroundColor: 'rgba(0, 174, 255, 0.99)',
     paddingHorizontal: theme.SIZES.padding.md,
     paddingVertical: theme.SIZES.padding.sm,
     borderRadius: theme.SIZES.radius.lg,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.3)",
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   skipText: {
     ...theme.FONTS.labelUppercase,
@@ -351,16 +308,16 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   bottomContainer: {
-    position: "absolute",
-    bottom: Platform.OS === "ios" ? 60 : 40,
-    width: "100%",
-    alignItems: "center",
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 60 : 40,
+    width: '100%',
+    alignItems: 'center',
     paddingHorizontal: theme.SIZES.padding.lg,
     marginBottom: theme.SIZES.lg,
   },
   getStartedContainer: {
-    width: "100%",
-    alignItems: "center",
+    width: '100%',
+    alignItems: 'center',
     marginBottom: theme.SIZES.lg,
   },
   getStartedButton: {
@@ -375,13 +332,13 @@ const styles = StyleSheet.create({
     ...theme.FONTS.buttonLarge,
     color: theme.COLORS.primary,
     letterSpacing: 1,
-    textAlign: "center",
+    textAlign: 'center',
   },
   dotsContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     paddingHorizontal: theme.SIZES.padding.md,
     paddingVertical: theme.SIZES.padding.xs,
     borderRadius: theme.SIZES.radius.lg,
@@ -391,7 +348,7 @@ const styles = StyleSheet.create({
     width: theme.SIZES.sm,
     height: theme.SIZES.sm,
     borderRadius: theme.SIZES.sm / 2,
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
     marginHorizontal: theme.SIZES.xs,
   },
   activeDot: {

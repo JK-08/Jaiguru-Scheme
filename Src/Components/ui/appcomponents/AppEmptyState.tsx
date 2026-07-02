@@ -1,6 +1,6 @@
 // Src/Components/ui/appcomponents/AppEmptyState.tsx
 import React from 'react';
-import { View, Text, ViewStyle } from 'react-native';
+import { View, Text, StyleProp, ViewStyle } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import theme from '../../../Utills/AppTheme';
 import AppButton from './AppButton';
@@ -13,7 +13,7 @@ export interface AppEmptyStateProps {
   message?: string;
   actionLabel?: string;
   onAction?: () => void;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   iconSize?: number;
 }
 

@@ -164,7 +164,7 @@ const RegisterScreen = () => {
       const payload = {
         username: formData.username.trim(),
         password: formData.password,
-        mobileNumber: formData.contactNumber.trim(),
+        contactNumber: formData.contactNumber.trim(),
         email: formData.email.trim().toLowerCase(),
         hashKey: formData.hashKey || appSignature || 'd4riq2SwBaq',
         ...(showReferral && formData.referralCode.trim() && { referralCode: formData.referralCode.trim() }),

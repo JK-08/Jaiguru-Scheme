@@ -5,7 +5,7 @@
 // each change — so there's no per-box backspace/onKeyPress logic to get
 // wrong in the first place.
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { Animated, StyleSheet, Text, TextInput, View, ViewStyle, Pressable, Vibration } from 'react-native';
+import { Animated, StyleSheet, Text, TextInput, View, StyleProp, ViewStyle, Pressable, Vibration } from 'react-native';
 import theme from '../../../Utills/AppTheme';
 
 const { COLORS, FONTS, SIZES, SHADOWS } = theme;
@@ -31,7 +31,7 @@ export interface AppPinInputProps {
   dotSize?: number;
   gap?: number;
   vibrateOnError?: boolean;
-  containerStyle?: ViewStyle;
+  containerStyle?: StyleProp<ViewStyle>;
   /** When false, the actual digit is shown instead of a masked dot/bullet. Defaults to true (masked). */
   secureTextEntry?: boolean;
 }

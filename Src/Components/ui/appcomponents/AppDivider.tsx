@@ -1,6 +1,6 @@
 // Src/Components/ui/appcomponents/AppDivider.tsx
 import React from 'react';
-import { View, Text, ViewStyle } from 'react-native';
+import { View, Text, StyleProp, ViewStyle } from 'react-native';
 import theme from '../../../Utills/AppTheme';
 
 const { COLORS, SIZES, FONTS } = theme;
@@ -11,7 +11,7 @@ export interface AppDividerProps {
   thickness?: number;
   spacing?: number;
   label?: string;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 export default function AppDivider({

@@ -1,86 +1,57 @@
-import React, { useRef } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-  RefreshControl,
-  Alert,
-  Animated,
-  Dimensions,
-  Platform,
-} from "react-native";
-import { Swipeable } from "react-native-gesture-handler";
-import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
-import * as Haptics from "expo-haptics";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import useNotifications from "../../Hooks/useNotifications";
-import NotificationService from "../../Services/NotificationService";
-import CommonHeader from "../../Components/CommonHeader/CommonHeader";
-
-const { width } = Dimensions.get("window");
+// Src/Screens/Notification/NotificationScreen.tsx
+import React, { useRef } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Alert, Animated, Platform } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import useNotifications, { FormattedNotification } from '../../api/hooks/Notifications/useNotifications';
+import NotificationService from '../../Services/NotificationService';
+import CommonHeader from '../../Components/CommonHeader/CommonHeader';
 
 const NotificationScreen = () => {
-  const swipeableRefs = useRef(new Map());
-  
-  const {
-    notifications,
-    unreadCount,
-    loading,
-    refresh,
-    markAsRead,
-    markAllAsRead,
-    deleteNotification,
-    deleteAllNotifications,
-  } = useNotifications();
+  const swipeableRefs = useRef(new Map<number | string, Swipeable>());
+
+  const { notifications, unreadCount, loading, refresh, markAsRead, markAllAsRead, deleteNotification, deleteAllNotifications } =
+    useNotifications();
 
   const handleDeleteAll = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert(
-      "Clear All Notifications",
-      "Are you sure you want to delete all notifications? This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Clear All", 
-          onPress: async () => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            await deleteAllNotifications();
-          },
-          style: "destructive"
+    Alert.alert('Clear All Notifications', 'Are you sure you want to delete all notifications? This action cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Clear All',
+        onPress: async () => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          await deleteAllNotifications();
         },
-      ]
-    );
+        style: 'destructive',
+      },
+    ]);
   };
 
-  const handleDeleteSingle = (id) => {
+  const handleDeleteSingle = (id: number | string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Alert.alert(
-      "Delete Notification",
-      "Remove this notification?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete", 
-          onPress: async () => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            // Close swipeable before deleting
-            const swipeable = swipeableRefs.current.get(id);
-            if (swipeable) {
-              swipeable.close();
-            }
-            await deleteNotification(id);
-          },
-          style: "destructive"
+    Alert.alert('Delete Notification', 'Remove this notification?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        onPress: async () => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          // Close swipeable before deleting
+          const swipeable = swipeableRefs.current.get(id);
+          if (swipeable) {
+            swipeable.close();
+          }
+          await deleteNotification(id);
         },
-      ]
-    );
+        style: 'destructive',
+      },
+    ]);
   };
 
-  const handleMarkAsRead = async (item) => {
+  const handleMarkAsRead = async (item: FormattedNotification) => {
     if (!item.isRead) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       await markAsRead(item.id);
@@ -94,7 +65,7 @@ const NotificationScreen = () => {
     }
   };
 
-  const getNotificationIcon = (title, isRead) => {
+  const getNotificationIcon = (title?: string) => {
     if (title?.toLowerCase().includes('welcome')) {
       return { name: 'hand-wave', color: '#4CAF50', bg: '#E8F5E9' };
     } else if (title?.toLowerCase().includes('gold') || title?.toLowerCase().includes('silver')) {
@@ -106,15 +77,17 @@ const NotificationScreen = () => {
     }
   };
 
-  const NotificationItem = ({
-    item,
-    swipeableRefs,
-    handleDeleteSingle,
-    handleMarkAsRead,
-  }) => {
+  interface NotificationItemProps {
+    item: FormattedNotification;
+    swipeableRefs: React.RefObject<Map<number | string, Swipeable>>;
+    handleDeleteSingle: (id: number | string) => void;
+    handleMarkAsRead: (item: FormattedNotification) => void;
+  }
+
+  const NotificationItem = ({ item, swipeableRefs, handleDeleteSingle, handleMarkAsRead }: NotificationItemProps) => {
     const scaleAnim = useRef(new Animated.Value(1)).current;
     const isRead = item.isRead;
-    const icon = getNotificationIcon(item.title, isRead);
+    const icon = getNotificationIcon(item.title);
 
     const handlePressIn = () => {
       Animated.spring(scaleAnim, {
@@ -131,12 +104,7 @@ const NotificationScreen = () => {
     };
 
     return (
-      <Animated.View
-        style={[
-          styles.cardWrapper,
-          { transform: [{ scale: scaleAnim }] },
-        ]}
-      >
+      <Animated.View style={[styles.cardWrapper, { transform: [{ scale: scaleAnim }] }]}>
         <Swipeable
           ref={(ref) => {
             if (ref) {
@@ -145,59 +113,26 @@ const NotificationScreen = () => {
               swipeableRefs.current.delete(item.id);
             }
           }}
-          renderRightActions={(progress, dragX) => (
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => handleDeleteSingle(item.id)}
-            >
-              <LinearGradient
-                colors={["#ff6b6b", "#ee5253"]}
-                style={styles.deleteSwipe}
-              >
-                <MaterialCommunityIcons
-                  name="delete-outline"
-                  size={24}
-                  color="#fff"
-                />
+          renderRightActions={() => (
+            <TouchableOpacity activeOpacity={0.8} onPress={() => handleDeleteSingle(item.id)}>
+              <LinearGradient colors={['#ff6b6b', '#ee5253']} style={styles.deleteSwipe}>
+                <MaterialCommunityIcons name="delete-outline" size={24} color="#fff" />
                 <Text style={styles.deleteText}>Delete</Text>
               </LinearGradient>
             </TouchableOpacity>
           )}
           overshootRight={false}
         >
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={() => handleMarkAsRead(item)}
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
-          >
-            <LinearGradient
-              colors={
-                isRead
-                  ? ["#ffffff", "#fafafa"]
-                  : ["#F8F4FF", "#F0E6FF"]
-              }
-              style={[styles.card, !isRead && styles.unreadCard]}
-            >
+          <TouchableOpacity activeOpacity={0.9} onPress={() => handleMarkAsRead(item)} onPressIn={handlePressIn} onPressOut={handlePressOut}>
+            <LinearGradient colors={isRead ? ['#ffffff', '#fafafa'] : ['#F8F4FF', '#F0E6FF']} style={[styles.card, !isRead && styles.unreadCard]}>
               <View style={styles.cardContent}>
-                <View
-                  style={[
-                    styles.iconContainer,
-                    { backgroundColor: icon.bg },
-                  ]}
-                >
-                  <MaterialCommunityIcons
-                    name={icon.name}
-                    size={24}
-                    color={icon.color}
-                  />
+                <View style={[styles.iconContainer, { backgroundColor: icon.bg }]}>
+                  <MaterialCommunityIcons name={icon.name as any} size={24} color={icon.color} />
                 </View>
 
                 <View style={styles.textContainer}>
                   <View style={styles.titleContainer}>
-                    <Text style={[styles.title, !isRead && styles.unreadTitle]}>
-                      {item.title}
-                    </Text>
+                    <Text style={[styles.title, !isRead && styles.unreadTitle]}>{item.title}</Text>
                     {!isRead && (
                       <View style={styles.unreadBadge}>
                         <Text style={styles.unreadBadgeText}>NEW</Text>
@@ -209,11 +144,7 @@ const NotificationScreen = () => {
                   </Text>
                   <View style={styles.metaContainer}>
                     <Ionicons name="time-outline" size={12} color="#999" />
-                    <Text style={styles.date}>
-                      {NotificationService.formatNotificationDate(
-                        item.createdAt
-                      )}
-                    </Text>
+                    <Text style={styles.date}>{NotificationService.formatNotificationDate(item.createdAt)}</Text>
                   </View>
                 </View>
               </View>
@@ -264,17 +195,8 @@ const NotificationScreen = () => {
             </LinearGradient>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={handleDeleteAll}
-            activeOpacity={0.7}
-          >
-            <LinearGradient
-              colors={['#FF5252', '#FF1744']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.actionGradient}
-            >
+          <TouchableOpacity style={styles.actionBtn} onPress={handleDeleteAll} activeOpacity={0.7}>
+            <LinearGradient colors={['#FF5252', '#FF1744']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.actionGradient}>
               <Ionicons name="trash-outline" size={18} color="#fff" />
               <Text style={styles.actionBtnText}>Delete All</Text>
             </LinearGradient>
@@ -299,47 +221,28 @@ const NotificationScreen = () => {
   return (
     <View style={styles.container}>
       <CommonHeader title="Notifications" />
-      
+
       {renderHeader()}
 
       <FlatList
         data={notifications}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <NotificationItem
-            item={item}
-            swipeableRefs={swipeableRefs}
-            handleDeleteSingle={handleDeleteSingle}
-            handleMarkAsRead={handleMarkAsRead}
-          />
+          <NotificationItem item={item} swipeableRefs={swipeableRefs} handleDeleteSingle={handleDeleteSingle} handleMarkAsRead={handleMarkAsRead} />
         )}
         refreshControl={
-          <RefreshControl 
-            refreshing={loading} 
-            onRefresh={refresh}
-            colors={["#6200ee"]}
-            tintColor="#6200ee"
-            progressBackgroundColor="#fff"
-          />
+          <RefreshControl refreshing={loading} onRefresh={refresh} colors={['#6200ee']} tintColor="#6200ee" progressBackgroundColor="#fff" />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <LinearGradient
-              colors={['#F3E5F5', '#EDE7F6']}
-              style={styles.emptyIconContainer}
-            >
+            <LinearGradient colors={['#F3E5F5', '#EDE7F6']} style={styles.emptyIconContainer}>
               <MaterialCommunityIcons name="bell-off-outline" size={64} color="#6200ee" />
             </LinearGradient>
             <Text style={styles.emptyText}>All Caught Up!</Text>
-            <Text style={styles.emptySubText}>
-              You have no notifications at the moment
-            </Text>
+            <Text style={styles.emptySubText}>You have no notifications at the moment</Text>
           </View>
         }
-        contentContainerStyle={[
-          styles.listContent,
-          notifications.length === 0 && styles.emptyListContent
-        ]}
+        contentContainerStyle={[styles.listContent, notifications.length === 0 && styles.emptyListContent]}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         initialNumToRender={10}
@@ -354,9 +257,9 @@ const NotificationScreen = () => {
 export default NotificationScreen;
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#f8f9fa' 
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
   },
 
   loadingContainer: {

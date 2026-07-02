@@ -1,26 +1,38 @@
-import React, { useState, useCallback, useMemo } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Platform,
-  StatusBar,
-} from "react-native";
-import { useRoute, useNavigation } from "@react-navigation/native";
-import { useRazorpayPayment } from "../../Hooks/useRazorPay";
-import { useMemberActions } from "../../Hooks/useMemberCreate";
-import RazorpayWebView from "../../Components/RazorpayWebView";
-import CommonHeader from "../../Components/CommonHeader/CommonHeader";
-import { COLORS, SIZES, FONTS, SHADOWS } from "../../Utills/AppTheme";
+// Src/Screens/PayNow/PayNow.tsx
+import React, { useState, useCallback, useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform, StatusBar } from 'react-native';
+import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
+import { useRazorpayPayment } from '../../api/hooks/Razorpay/useRazorpay';
+import { useMemberActions } from '../../api/hooks/Member/useMemberCreate';
+import RazorpayWebView from '../../Components/RazorpayWebView';
+import CommonHeader from '../../Components/CommonHeader/CommonHeader';
+import theme from '../../Utills/AppTheme';
 
-const STATUS = { IDLE: "idle", SUCCESS: "success", FAILED: "failed" };
+const { COLORS, SIZES, FONTS, SHADOWS } = theme;
+
+const STATUS = { IDLE: 'idle', SUCCESS: 'success', FAILED: 'failed' } as const;
+type Status = (typeof STATUS)[keyof typeof STATUS];
+
+export interface PayNowRouteParams {
+  accountData?: any;
+  regNo?: string | number;
+  groupCode?: string;
+  memberName?: string;
+  schemeName?: string;
+  schemeShortName?: string;
+  amount?: number | string;
+  totalAmount?: number | string;
+  installmentsPaid?: number | string;
+  totalInstallments?: number | string;
+  joinDate?: string;
+  maturityDate?: string;
+  nextDueDate?: string;
+  schemeId?: number | string;
+}
 
 const PayNow = () => {
-  const route = useRoute();
-  const navigation = useNavigation();
+  const route = useRoute<RouteProp<Record<string, PayNowRouteParams>, string>>();
+  const navigation = useNavigation<any>();
   const {
     accountData,
     regNo,
@@ -38,111 +50,100 @@ const PayNow = () => {
     schemeId,
   } = route.params || {};
 
-  const [status, setStatus] = useState(STATUS.IDLE);
-  const [statusMsg, setStatusMsg] = useState("");
-  const [paymentId, setPaymentId] = useState("");
+  const [status, setStatus] = useState<Status>(STATUS.IDLE);
+  const [statusMsg, setStatusMsg] = useState('');
+  const [paymentId, setPaymentId] = useState('');
 
   const {
     loading: paymentLoading,
     startPayment,
     resetState: resetPayment,
-    PAYMENT_STEPS,
     webViewVisible,
     razorpayOptions,
     handlePaymentSuccess,
     handlePaymentDismiss,
   } = useRazorpayPayment();
 
-  const { handleInsertInstallment, loading: insertLoading } =
-    useMemberActions();
+  const { handleInsertInstallment, loading: insertLoading } = useMemberActions();
 
-  const formatCurrency = useCallback((value) => {
-    const n = parseFloat(value) || 0;
-    return `₹${n.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+  const formatCurrency = useCallback((value: unknown) => {
+    const n = parseFloat(String(value)) || 0;
+    return `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
   }, []);
 
-  const formatDate = useCallback((d) => {
-    if (!d) return "N/A";
-    return new Date(d).toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
+  const formatDate = useCallback((d?: string) => {
+    if (!d) return 'N/A';
+    return new Date(d).toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
     });
   }, []);
 
-  const paymentAmount = useMemo(() => parseFloat(amount) || 0, [amount]);
-  const nextInstallment = useMemo(
-    () => (parseInt(installmentsPaid) || 0) + 1,
-    [installmentsPaid],
-  );
+  const paymentAmount = useMemo(() => parseFloat(String(amount)) || 0, [amount]);
+  const nextInstallment = useMemo(() => (parseInt(String(installmentsPaid), 10) || 0) + 1, [installmentsPaid]);
   const progress = useMemo(() => {
-    const paid = parseInt(installmentsPaid) || 0;
-    const total = parseInt(totalInstallments) || 1;
+    const paid = parseInt(String(installmentsPaid), 10) || 0;
+    const total = parseInt(String(totalInstallments), 10) || 1;
     return (paid / total) * 100;
   }, [installmentsPaid, totalInstallments]);
 
-  const formatApiDate = (date = new Date()) => {
+  const formatApiDate = (date: Date = new Date()) => {
     const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${d} 00:00:00`;
   };
 
   const handlePayment = useCallback(async () => {
     setStatus(STATUS.IDLE);
-    setStatusMsg("");
+    setStatusMsg('');
 
     const result = await startPayment(
       paymentAmount,
       {
-        name: memberName || "Customer",
-        phone: accountData?.personalInfo?.mobile || "9999999999",
-        email: accountData?.personalInfo?.email || "customer@example.com",
+        name: memberName || 'Customer',
+        phone: accountData?.personalInfo?.mobile || '9999999999',
+        email: accountData?.personalInfo?.email || 'customer@example.com',
       },
-      regNo?.toString() || "1",
-      groupCode || "MAN",
+      regNo?.toString() || '1',
+      groupCode || 'MAN'
     );
 
     if (result.success) {
       try {
         const today = formatApiDate();
         await handleInsertInstallment({
-          groupCode: groupCode || "",
-          regNo: parseInt(regNo) || 0,
+          groupCode: groupCode || '',
+          regNo: parseInt(String(regNo), 10) || 0,
           rDate: today,
           amount: paymentAmount,
           modePay: 4,
-          accCode: "00001",
+          accCode: '00001',
           updateTime: today,
           installment: nextInstallment,
           weight:
-            accountData?.schemeSummary?.weightLedger === "Y"
-              ? parseFloat(accountData?.schemeSummary?.totalWeight || 0)
-              : 0,
+            accountData?.schemeSummary?.weightLedger === 'Y' ? parseFloat(accountData?.schemeSummary?.totalWeight || 0) : 0,
           sWeight:
-            accountData?.schemeSummary?.weightLedger === "Y"
-              ? parseFloat(accountData?.schemeSummary?.lastWeight || 0)
-              : 0,
+            accountData?.schemeSummary?.weightLedger === 'Y' ? parseFloat(accountData?.schemeSummary?.lastWeight || 0) : 0,
           userID: 999,
-          schemeId: parseInt(schemeId) || 0,
+          schemeId: parseInt(String(schemeId), 10) || 0,
           chqBankCode: 4,
-          chqCardNo: result.paymentId || "",
-          chqBranch: "Online",
-          chkBank: "Razorpay",
-          chqRtnReason: result.orderId || "",
+          chqCardNo: result.paymentId || '',
+          chqBranch: 'Online',
+          chkBank: 'Razorpay',
+          chqRtnReason: result.orderId || '',
         });
-        setPaymentId(result.paymentId);
+        setPaymentId(result.paymentId || '');
         setStatus(STATUS.SUCCESS);
         resetPayment();
       } catch (e) {
-        setStatusMsg(
-          `Payment successful but record update failed.\nPayment ID: ${result.paymentId}\nPlease contact support.`,
-        );
+        setStatusMsg(`Payment successful but record update failed.\nPayment ID: ${result.paymentId}\nPlease contact support.`);
         setStatus(STATUS.FAILED);
         resetPayment();
       }
-    } else if (result.message !== "Payment cancelled by user") {
-      setStatusMsg(result.message || "Payment failed. Please try again.");
+    } else if (result.message !== 'Payment cancelled by user') {
+      setStatusMsg(result.message || 'Payment failed. Please try again.');
       setStatus(STATUS.FAILED);
       resetPayment();
     }
@@ -169,30 +170,23 @@ const PayNow = () => {
         <View style={styles.statusContainer}>
           <Text style={styles.statusIcon}>✅</Text>
           <Text style={styles.statusTitle}>Payment Successful!</Text>
-          <Text style={styles.statusSub}>
-            {formatCurrency(paymentAmount)} paid successfully
-          </Text>
+          <Text style={styles.statusSub}>{formatCurrency(paymentAmount)} paid successfully</Text>
           <Text style={styles.statusDetail}>
             Installment {nextInstallment}/{totalInstallments}
           </Text>
-          {paymentId ? (
-            <Text style={styles.paymentIdText}>ID: {paymentId}</Text>
-          ) : null}
+          {paymentId ? <Text style={styles.paymentIdText}>ID: {paymentId}</Text> : null}
           <TouchableOpacity
             style={styles.primaryBtn}
             onPress={() =>
-              navigation.navigate("AllSchemes", {
+              navigation.navigate('AllSchemes', {
                 schemeData: accountData,
-                fromScreen: "PayNow",
+                fromScreen: 'PayNow',
               })
             }
           >
             <Text style={styles.primaryBtnText}>View Scheme</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.secondaryBtn}
-            onPress={() => navigation.goBack()}
-          >
+          <TouchableOpacity style={styles.secondaryBtn} onPress={() => navigation.goBack()}>
             <Text style={styles.secondaryBtnText}>Go Back</Text>
           </TouchableOpacity>
         </View>
@@ -208,19 +202,11 @@ const PayNow = () => {
         <View style={styles.statusContainer}>
           <Text style={styles.statusIcon}>❌</Text>
           <Text style={styles.statusTitle}>Payment Failed</Text>
-          <Text style={styles.statusSub}>
-            {statusMsg || "Something went wrong. Please try again."}
-          </Text>
-          <TouchableOpacity
-            style={styles.primaryBtn}
-            onPress={() => setStatus(STATUS.IDLE)}
-          >
+          <Text style={styles.statusSub}>{statusMsg || 'Something went wrong. Please try again.'}</Text>
+          <TouchableOpacity style={styles.primaryBtn} onPress={() => setStatus(STATUS.IDLE)}>
             <Text style={styles.primaryBtnText}>Try Again</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.secondaryBtn}
-            onPress={() => navigation.goBack()}
-          >
+          <TouchableOpacity style={styles.secondaryBtn} onPress={() => navigation.goBack()}>
             <Text style={styles.secondaryBtnText}>Go Back</Text>
           </TouchableOpacity>
         </View>
@@ -233,18 +219,12 @@ const PayNow = () => {
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       <CommonHeader title="Pay Now" />
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Scheme Card */}
         <View style={styles.card}>
           <View style={styles.badgeRow}>
             <View style={styles.schemeBadge}>
-              <Text style={styles.schemeBadgeText}>
-                {schemeShortName || "SCHEME"}
-              </Text>
+              <Text style={styles.schemeBadgeText}>{schemeShortName || 'SCHEME'}</Text>
             </View>
             <View style={styles.regBadge}>
               <Text style={styles.regBadgeText}>REG: {regNo}</Text>
@@ -265,9 +245,7 @@ const PayNow = () => {
           </Text>
 
           <View style={styles.nextBadge}>
-            <Text style={styles.nextBadgeText}>
-              Next Installment: #{nextInstallment}
-            </Text>
+            <Text style={styles.nextBadgeText}>Next Installment: #{nextInstallment}</Text>
           </View>
 
           <View style={styles.dateRow}>
@@ -283,9 +261,7 @@ const PayNow = () => {
 
           {nextDueDate && (
             <View style={styles.dueBadge}>
-              <Text style={styles.dueText}>
-                Next Due: {formatDate(nextDueDate)}
-              </Text>
+              <Text style={styles.dueText}>Next Due: {formatDate(nextDueDate)}</Text>
             </View>
           )}
         </View>
@@ -304,9 +280,7 @@ const PayNow = () => {
           <View style={styles.divider} />
           <View style={styles.row}>
             <Text style={styles.totalLabel}>Due Amount</Text>
-            <Text style={styles.totalValue}>
-              {formatCurrency(paymentAmount)}
-            </Text>
+            <Text style={styles.totalValue}>{formatCurrency(paymentAmount)}</Text>
           </View>
         </View>
 
@@ -317,9 +291,7 @@ const PayNow = () => {
             <Text style={styles.methodIcon}>💰</Text>
             <View style={styles.methodInfo}>
               <Text style={styles.methodTitle}>Razorpay</Text>
-              <Text style={styles.methodDesc}>
-                UPI, Card, NetBanking, Wallet
-              </Text>
+              <Text style={styles.methodDesc}>UPI, Card, NetBanking, Wallet</Text>
             </View>
             <View style={styles.selectedBadge}>
               <Text style={styles.selectedText}>Selected</Text>
@@ -327,21 +299,14 @@ const PayNow = () => {
           </View>
           <View style={styles.secureRow}>
             <Text>🔒 </Text>
-            <Text style={styles.secureText}>
-              Secure payment powered by Razorpay
-            </Text>
+            <Text style={styles.secureText}>Secure payment powered by Razorpay</Text>
           </View>
         </View>
 
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      <RazorpayWebView
-        visible={webViewVisible}
-        options={razorpayOptions}
-        onSuccess={handlePaymentSuccess}
-        onDismiss={handlePaymentDismiss}
-      />
+      <RazorpayWebView visible={webViewVisible} options={razorpayOptions} onSuccess={handlePaymentSuccess} onDismiss={handlePaymentDismiss} />
 
       <View style={styles.bottomBar}>
         <TouchableOpacity
@@ -354,16 +319,12 @@ const PayNow = () => {
             <ActivityIndicator color={COLORS.white} size="small" />
           ) : (
             <View style={styles.payBtnContent}>
-              <Text style={styles.payBtnAmount}>
-                {formatCurrency(paymentAmount)}
-              </Text>
+              <Text style={styles.payBtnAmount}>{formatCurrency(paymentAmount)}</Text>
               <Text style={styles.payBtnText}>Pay Now</Text>
             </View>
           )}
         </TouchableOpacity>
-        <Text style={styles.payNote}>
-          You'll be redirected to Razorpay secure checkout
-        </Text>
+        <Text style={styles.payNote}>You'll be redirected to Razorpay secure checkout</Text>
       </View>
     </View>
   );
@@ -374,19 +335,18 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   scrollContent: { padding: SIZES.padding.lg },
 
+  // Scheme card
+  badgeRow: {
+    flexDirection: 'row',
+    gap: SIZES.sm,
+    marginBottom: SIZES.margin.sm,
+  },
   card: {
     backgroundColor: COLORS.white,
     borderRadius: SIZES.radius.card,
     padding: SIZES.card.paddingLg,
     marginBottom: SIZES.margin.md,
     ...SHADOWS.sm,
-  },
-
-  // Scheme card
-  badgeRow: {
-    flexDirection: "row",
-    gap: SIZES.sm,
-    marginBottom: SIZES.margin.sm,
   },
   schemeBadge: {
     backgroundColor: COLORS.primary,
@@ -415,7 +375,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.family.bold,
     color: COLORS.gray800,
     marginBottom: SIZES.xs,
-    textTransform:"uppercase",
+    textTransform: 'uppercase',
   },
   schemeName: {
     fontSize: SIZES.font.md,
@@ -432,11 +392,11 @@ const styles = StyleSheet.create({
     height: 8,
     backgroundColor: COLORS.gray200,
     borderRadius: SIZES.radius.full,
-    overflow: "hidden",
+    overflow: 'hidden',
     marginBottom: SIZES.sm,
   },
   progressFill: {
-    height: "100%",
+    height: '100%',
     backgroundColor: COLORS.primary,
     borderRadius: SIZES.radius.full,
   },
@@ -449,7 +409,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primaryPale,
     padding: SIZES.padding.sm,
     borderRadius: SIZES.radius.sm,
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: SIZES.sm,
   },
   nextBadgeText: {
@@ -458,8 +418,8 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.family.semiBold,
   },
   dateRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: SIZES.sm,
   },
   dateLabel: {
@@ -476,7 +436,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.secondaryLighter,
     padding: SIZES.padding.sm,
     borderRadius: SIZES.radius.sm,
-    alignItems: "center",
+    alignItems: 'center',
   },
   dueText: {
     color: COLORS.accentDark,
@@ -492,8 +452,8 @@ const styles = StyleSheet.create({
     marginBottom: SIZES.md,
   },
   row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: SIZES.sm,
   },
   rowLabel: {
@@ -519,8 +479,8 @@ const styles = StyleSheet.create({
 
   // Payment method card
   methodRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: COLORS.gray100,
     padding: SIZES.padding.lg,
     borderRadius: SIZES.radius.md,
@@ -550,8 +510,8 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.family.semiBold,
   },
   secureRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: COLORS.gray50,
     padding: SIZES.padding.md,
     borderRadius: SIZES.radius.sm,
@@ -565,7 +525,7 @@ const styles = StyleSheet.create({
 
   // Bottom bar
   bottomBar: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
@@ -573,17 +533,17 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
     padding: SIZES.padding.lg,
-    paddingBottom: Platform.OS === "ios" ? 34 : SIZES.padding.lg,
+    paddingBottom: Platform.OS === 'ios' ? 34 : SIZES.padding.lg,
   },
   payBtn: {
     backgroundColor: COLORS.primary,
     borderRadius: SIZES.radius.button,
     paddingVertical: SIZES.padding.lg,
-    alignItems: "center",
+    alignItems: 'center',
     ...SHADOWS.blue,
   },
   payBtnDisabled: { backgroundColor: COLORS.gray400, ...SHADOWS.none },
-  payBtnContent: { flexDirection: "row", alignItems: "center" },
+  payBtnContent: { flexDirection: 'row', alignItems: 'center' },
   payBtnAmount: {
     color: COLORS.white,
     fontSize: SIZES.font.xl,
@@ -596,7 +556,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.family.semiBold,
   },
   payNote: {
-    textAlign: "center",
+    textAlign: 'center',
     fontSize: SIZES.font.xs,
     color: COLORS.gray400,
     marginTop: SIZES.sm,
@@ -606,8 +566,8 @@ const styles = StyleSheet.create({
   // Status screens
   statusContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: SIZES.padding.xxxl,
   },
   statusIcon: { fontSize: 64, marginBottom: SIZES.md },
@@ -620,7 +580,7 @@ const styles = StyleSheet.create({
   statusSub: {
     fontSize: SIZES.font.md,
     color: COLORS.gray500,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: SIZES.sm,
     lineHeight: SIZES.font.md * 1.6,
     fontFamily: FONTS.family.regular,
@@ -643,8 +603,8 @@ const styles = StyleSheet.create({
     paddingVertical: SIZES.padding.lg,
     paddingHorizontal: SIZES.padding.xxxl,
     marginBottom: SIZES.sm,
-    width: "100%",
-    alignItems: "center",
+    width: '100%',
+    alignItems: 'center',
     ...SHADOWS.blue,
   },
   primaryBtnText: {
@@ -658,8 +618,8 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.radius.button,
     paddingVertical: SIZES.padding.lg,
     paddingHorizontal: SIZES.padding.xxxl,
-    width: "100%",
-    alignItems: "center",
+    width: '100%',
+    alignItems: 'center',
   },
   secondaryBtnText: {
     color: COLORS.gray500,

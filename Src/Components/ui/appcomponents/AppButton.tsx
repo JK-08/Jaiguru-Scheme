@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Animated,
   ActivityIndicator,
+  StyleProp,
   ViewStyle,
   TextStyle,
 } from 'react-native';
@@ -28,8 +29,8 @@ export interface AppButtonProps {
   rightIcon?: string;
   iconSize?: number;
   fullWidth?: boolean;
-  style?: ViewStyle;
-  textStyle?: TextStyle;
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
 }
 
 export default function AppButton({

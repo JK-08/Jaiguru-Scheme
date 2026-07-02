@@ -30,7 +30,7 @@ export interface AuthApiResponse {
 export interface RegisterPayload {
   username: string;
   email?: string;
-  mobileNumber: string;
+  contactNumber: string;
   referralCode?: string;
   [key: string]: unknown;
 }

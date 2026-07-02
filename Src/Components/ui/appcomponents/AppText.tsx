@@ -1,6 +1,6 @@
 // Src/Components/ui/appcomponents/AppText.tsx
 import React from 'react';
-import { Text, TextStyle } from 'react-native';
+import { Text, StyleProp, TextStyle } from 'react-native';
 import theme from '../../../Utills/AppTheme';
 
 const { FONTS, COLORS } = theme;
@@ -18,7 +18,7 @@ export interface AppTextProps {
   color?: string;
   align?: 'left' | 'center' | 'right';
   numberOfLines?: number;
-  style?: TextStyle | TextStyle[];
+  style?: StyleProp<TextStyle>;
 }
 
 export default function AppText({

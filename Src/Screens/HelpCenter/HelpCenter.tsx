@@ -1,33 +1,21 @@
+// Src/Screens/HelpCenter/HelpCenter.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Image,
-  Linking,
-  TouchableOpacity,
-  ActivityIndicator,
-  SafeAreaView,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, Linking, TouchableOpacity, ActivityIndicator, SafeAreaView, RefreshControl } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
-import { getCompanyDetails } from '../../Services/CompanyDetailsService';
+import { companyService } from '../../api/services/companyService';
+import { Company } from '../../types/Company/Company';
 import { API_BASE_URL, IMAGE_BASE_URL } from '../../Config/BaseUrl';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
-import BottomTab from "../../Components/BottomTab/BottomTab"
+import BottomTab from '../../Components/BottomTab/BottomTab';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-const trimObject = (obj) =>
-  Object.entries(obj).reduce((acc, [k, v]) => {
-    acc[k] = typeof v === 'string' ? v.trim() : v;
-    return acc;
-  }, {});
+const trimObject = (obj: Company): Company =>
+  Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, typeof v === 'string' ? v.trim() : v])) as Company;
 
-const resolveLogoUrl = (c) => {
+const resolveLogoUrl = (c: Company): string => {
   if (c.CompanyLogoUrl?.startsWith('http')) return c.CompanyLogoUrl;
   if (c.LOGO?.startsWith('http')) return c.LOGO;
   if (c.BASEURL && c.LOGO) {
@@ -42,33 +30,32 @@ const resolveLogoUrl = (c) => {
   return `${API_BASE_URL}/uploads/companyLogo/default-logo.png`;
 };
 
-const openUrl = (url) => url?.trim() && Linking.openURL(url);
-const openPhone = (phone) => Linking.openURL(`tel:${phone}`);
-const openEmail = (email) => Linking.openURL(`mailto:${email}`);
-const openMaps = (addr) =>
-  Linking.openURL(`https://maps.google.com/?q=${encodeURIComponent(addr)}`);
+const openUrl = (url?: string) => url?.trim() && Linking.openURL(url);
+const openPhone = (phone: string) => Linking.openURL(`tel:${phone}`);
+const openEmail = (email: string) => Linking.openURL(`mailto:${email}`);
+const openMaps = (addr: string) => Linking.openURL(`https://maps.google.com/?q=${encodeURIComponent(addr)}`);
 
 // ─── Sub-components ─────────────────────────────────────────────────────────
 
-const InfoRow = ({ icon, label, value, onPress, isLink, multiline }) => {
+interface InfoRowProps {
+  icon: string;
+  label: string;
+  value?: string | null;
+  onPress?: (() => void) | null;
+  isLink?: boolean;
+  multiline?: boolean;
+}
+
+const InfoRow = ({ icon, label, value, onPress, isLink, multiline }: InfoRowProps) => {
   if (!value) return null;
   return (
-    <TouchableOpacity
-      style={styles.infoRow}
-      onPress={onPress}
-      disabled={!onPress}
-      activeOpacity={onPress ? 0.65 : 1}
-    >
+    <TouchableOpacity style={styles.infoRow} onPress={onPress ?? undefined} disabled={!onPress} activeOpacity={onPress ? 0.65 : 1}>
       <View style={styles.iconBox}>
         <Icon name={icon} size={20} color="#6366F1" />
       </View>
-      <View style={[styles.infoContent, multiline && { paddingVertical: 2 }]}>
+      <View style={[styles.infoContent, multiline ? { paddingVertical: 2 } : undefined]}>
         <Text style={styles.infoLabel}>{label}</Text>
-        <Text
-          style={[styles.infoValue, isLink && styles.linkText]}
-          numberOfLines={multiline ? 3 : 1}
-          ellipsizeMode="tail"
-        >
+        <Text style={[styles.infoValue, isLink && styles.linkText]} numberOfLines={multiline ? 3 : 1} ellipsizeMode="tail">
           {value}
         </Text>
       </View>
@@ -77,27 +64,33 @@ const InfoRow = ({ icon, label, value, onPress, isLink, multiline }) => {
   );
 };
 
-const SocialButton = ({ iconName, link, label }) => {
+interface SocialButtonProps {
+  iconName: string;
+  link?: string;
+  label: string;
+}
+
+const SocialButton = ({ iconName, link, label }: SocialButtonProps) => {
   if (!link) return null;
   return (
     <TouchableOpacity style={styles.socialBtn} onPress={() => openUrl(link)}>
-      <MaterialCommunityIcons name={iconName} size={22} color="#6366F1" />
+      <MaterialCommunityIcons name={iconName as any} size={22} color="#6366F1" />
       <Text style={styles.socialBtnLabel}>{label}</Text>
     </TouchableOpacity>
   );
 };
 
-const AppStoreButton = ({ iconName, link, label }) => {
+const AppStoreButton = ({ iconName, link, label }: SocialButtonProps) => {
   if (!link) return null;
   return (
     <TouchableOpacity style={styles.appButton} onPress={() => openUrl(link)}>
-      <MaterialCommunityIcons name={iconName} size={20} color="#6366F1" />
+      <MaterialCommunityIcons name={iconName as any} size={20} color="#6366F1" />
       <Text style={styles.appButtonText}>{label}</Text>
     </TouchableOpacity>
   );
 };
 
-const SectionWrapper = ({ title, children }) => {
+const SectionWrapper = ({ title, children }: { title: string; children: React.ReactNode }) => {
   const hasContent = React.Children.toArray(children).some((c) => c !== null && c !== false && c !== undefined);
   if (!hasContent) return null;
   return (
@@ -111,11 +104,11 @@ const SectionWrapper = ({ title, children }) => {
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 
 const HelpCentreScreen = () => {
-  const [company, setCompany] = useState(null);
+  const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState(null);
-  const navigation = useNavigation();
+  const [error, setError] = useState<string | null>(null);
+  const navigation = useNavigation<any>();
 
   const handleBackPress = () => {
     if (navigation.canGoBack()) navigation.goBack();
@@ -124,23 +117,28 @@ const HelpCentreScreen = () => {
 
   const fetchCompanyDetails = useCallback(async () => {
     try {
-      const data = await getCompanyDetails();
+      const data = await companyService.getAll();
       if (!Array.isArray(data) || data.length === 0) throw new Error('No company data found');
 
       const cleaned = trimObject(data[0]);
       setCompany({ ...cleaned, CompanyLogoUrl: resolveLogoUrl(cleaned) });
       setError(null);
-    } catch (err) {
-      setError(err.message || 'Failed to fetch company details');
+    } catch (err: any) {
+      setError(err?.message || 'Failed to fetch company details');
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, []);
 
-  useEffect(() => { fetchCompanyDetails(); }, [fetchCompanyDetails]);
+  useEffect(() => {
+    fetchCompanyDetails();
+  }, [fetchCompanyDetails]);
 
-  const onRefresh = () => { setRefreshing(true); fetchCompanyDetails(); };
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchCompanyDetails();
+  };
 
   // ── Loading ──
   if (loading) {
@@ -167,10 +165,8 @@ const HelpCentreScreen = () => {
   }
 
   // ── Derived values ──
-  const fullAddress = [company.ADDRESS1, company.ADDRESS2, company.ADDRESS3]
-    .filter(Boolean).join(', ');
-  const cityStateZip = [company.ADDRESS4, company.AREACODE]
-    .filter(Boolean).join(' – ');
+  const fullAddress = [company.ADDRESS1, company.ADDRESS2, company.ADDRESS3].filter(Boolean).join(', ');
+  const cityStateZip = [company.ADDRESS4, company.AREACODE].filter(Boolean).join(' – ');
   const addressDisplay = [fullAddress, cityStateZip].filter(Boolean).join('\n');
 
   const isActive = company.ACTIVE === 'Y';
@@ -184,26 +180,19 @@ const HelpCentreScreen = () => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366F1" />}
       >
         {/* ── Hero Banner ── */}
-        <View style={styles.heroBanner}>
-        </View>
+        <View style={styles.heroBanner} />
 
         {/* ── Company Card ── */}
         <View style={styles.companyCard}>
           {company.CompanyLogoUrl ? (
-            <Image
-              source={{ uri: company.CompanyLogoUrl }}
-              style={styles.logo}
-              resizeMode="contain"
-            />
+            <Image source={{ uri: company.CompanyLogoUrl }} style={styles.logo} resizeMode="contain" />
           ) : (
             <View style={styles.logoPlaceholder}>
               <Icon name="business" size={44} color="#A5B4FC" />
             </View>
           )}
 
-          {company.COMPANYNAME ? (
-            <Text style={styles.companyName}>{company.COMPANYNAME}</Text>
-          ) : null}
+          {company.COMPANYNAME ? <Text style={styles.companyName}>{company.COMPANYNAME}</Text> : null}
 
           <View style={styles.metaRow}>
             {company.COMPANYID ? <Text style={styles.metaText}>ID: {company.COMPANYID}</Text> : null}
@@ -219,20 +208,8 @@ const HelpCentreScreen = () => {
 
         {/* ── Contact ── */}
         <SectionWrapper title="📞 Contact Information">
-          <InfoRow
-            icon="phone"
-            label="Phone"
-            value={company.PHONE}
-            onPress={company.PHONE ? () => openPhone(company.PHONE) : null}
-            isLink
-          />
-          <InfoRow
-            icon="email"
-            label="Email"
-            value={company.EMAIL}
-            onPress={company.EMAIL ? () => openEmail(company.EMAIL) : null}
-            isLink
-          />
+          <InfoRow icon="phone" label="Phone" value={company.PHONE} onPress={company.PHONE ? () => openPhone(company.PHONE!) : null} isLink />
+          <InfoRow icon="email" label="Email" value={company.EMAIL} onPress={company.EMAIL ? () => openEmail(company.EMAIL!) : null} isLink />
           <InfoRow
             icon="location-on"
             label="Address"
@@ -245,13 +222,13 @@ const HelpCentreScreen = () => {
 
         {/* ── Tax ── */}
         <SectionWrapper title="💰 Tax Information">
-          <InfoRow icon="qr-code"              label="GST No"       value={company.GSTNO} />
-          <InfoRow icon="assignment"           label="PAN No"       value={company.PANNO} />
-          <InfoRow icon="local-offer"          label="TIN No"       value={company.TINNO} />
-          <InfoRow icon="receipt"              label="TAN No"       value={company.TANNO} />
-          <InfoRow icon="local-atm"            label="TDS No"       value={company.TDSNO} />
-          <InfoRow icon="confirmation-number"  label="CST No"       value={company.CSTNO} />
-          <InfoRow icon="local-taxi"           label="Local Tax No" value={company.LOCALTAXNO} />
+          <InfoRow icon="qr-code" label="GST No" value={company.GSTNO} />
+          <InfoRow icon="assignment" label="PAN No" value={company.PANNO} />
+          <InfoRow icon="local-offer" label="TIN No" value={company.TINNO} />
+          <InfoRow icon="receipt" label="TAN No" value={company.TANNO} />
+          <InfoRow icon="local-atm" label="TDS No" value={company.TDSNO} />
+          <InfoRow icon="confirmation-number" label="CST No" value={company.CSTNO} />
+          <InfoRow icon="local-taxi" label="Local Tax No" value={company.LOCALTAXNO} />
         </SectionWrapper>
 
         {/* ── Digital Presence ── */}
@@ -265,16 +242,15 @@ const HelpCentreScreen = () => {
           />
 
           {/* Social Media – only render row if at least one link exists */}
-          {(company.FACEBOOKLINK || company.TWITTERLINK || company.INSTALINK ||
-            company.YOUTUBELINK || company.WHATSAPPLINK) && (
+          {(company.FACEBOOKLINK || company.TWITTERLINK || company.INSTALINK || company.YOUTUBELINK || company.WHATSAPPLINK) && (
             <View style={styles.socialSection}>
               <Text style={styles.subSectionLabel}>Social Media</Text>
               <View style={styles.socialGrid}>
-                <SocialButton iconName="facebook"  link={company.FACEBOOKLINK}  label="Facebook" />
-                <SocialButton iconName="twitter"   link={company.TWITTERLINK}   label="Twitter" />
-                <SocialButton iconName="instagram" link={company.INSTALINK}     label="Instagram" />
-                <SocialButton iconName="youtube"   link={company.YOUTUBELINK}   label="YouTube" />
-                <SocialButton iconName="whatsapp"  link={company.WHATSAPPLINK}  label="WhatsApp" />
+                <SocialButton iconName="facebook" link={company.FACEBOOKLINK} label="Facebook" />
+                <SocialButton iconName="twitter" link={company.TWITTERLINK} label="Twitter" />
+                <SocialButton iconName="instagram" link={company.INSTALINK} label="Instagram" />
+                <SocialButton iconName="youtube" link={company.YOUTUBELINK} label="YouTube" />
+                <SocialButton iconName="whatsapp" link={company.WHATSAPPLINK} label="WhatsApp" />
               </View>
             </View>
           )}
@@ -284,8 +260,8 @@ const HelpCentreScreen = () => {
             <View style={styles.appSection}>
               <Text style={styles.subSectionLabel}>Mobile Apps</Text>
               <View style={styles.appRow}>
-                <AppStoreButton iconName="google-play" link={company.ANDROIDLINK}  label="Android App" />
-                <AppStoreButton iconName="apple"       link={company.APPSTORELINK} label="iOS App" />
+                <AppStoreButton iconName="google-play" link={company.ANDROIDLINK} label="Android App" />
+                <AppStoreButton iconName="apple" link={company.APPSTORELINK} label="iOS App" />
               </View>
             </View>
           )}
@@ -306,7 +282,7 @@ const HelpCentreScreen = () => {
           <Text style={styles.footerSub}>Contact us through any of the channels above</Text>
         </View>
       </ScrollView>
-      <BottomTab activeScreen={"SUPPORT"} />
+      <BottomTab activeScreen="SUPPORT" />
     </SafeAreaView>
   );
 };
@@ -322,23 +298,23 @@ const TEXT_SECONDARY = '#6B7280';
 const BORDER = '#E5E7EB';
 
 const styles = StyleSheet.create({
-  container:    { flex: 1, backgroundColor: BG },
-  center:       { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: BG, padding: 24 },
+  container: { flex: 1, backgroundColor: BG },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: BG, padding: 24 },
 
   // Loading / Error
-  loadingText:  { marginTop: 12, fontSize: 15, color: TEXT_SECONDARY },
-  errorTitle:   { marginTop: 16, fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY },
-  errorMsg:     { marginTop: 8, fontSize: 14, color: TEXT_SECONDARY, textAlign: 'center', lineHeight: 20 },
-  retryBtn:     { marginTop: 20, paddingHorizontal: 28, paddingVertical: 12, backgroundColor: INDIGO, borderRadius: 10 },
+  loadingText: { marginTop: 12, fontSize: 15, color: TEXT_SECONDARY },
+  errorTitle: { marginTop: 16, fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY },
+  errorMsg: { marginTop: 8, fontSize: 14, color: TEXT_SECONDARY, textAlign: 'center', lineHeight: 20 },
+  retryBtn: { marginTop: 20, paddingHorizontal: 28, paddingVertical: 12, backgroundColor: INDIGO, borderRadius: 10 },
   retryBtnText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
 
   // Hero
-  heroBanner:   { backgroundColor: INDIGO, paddingHorizontal: 20, paddingTop: 24, paddingBottom: 32 },
-  heroTitle:    { fontSize: 26, fontWeight: '800', color: '#FFF', letterSpacing: -0.5 },
+  heroBanner: { backgroundColor: INDIGO, paddingHorizontal: 20, paddingTop: 24, paddingBottom: 32 },
+  heroTitle: { fontSize: 26, fontWeight: '800', color: '#FFF', letterSpacing: -0.5 },
   heroSubtitle: { fontSize: 14, color: '#C7D2FE', marginTop: 4 },
 
   // Company Card
-  companyCard:  {
+  companyCard: {
     backgroundColor: SURFACE,
     marginHorizontal: 16,
     marginTop: -18,
@@ -352,20 +328,20 @@ const styles = StyleSheet.create({
     elevation: 5,
     marginBottom: 12,
   },
-  logo:            { width: 100, height: 100, borderRadius: 50, backgroundColor: INDIGO_LIGHT },
+  logo: { width: 100, height: 100, borderRadius: 50, backgroundColor: INDIGO_LIGHT },
   logoPlaceholder: { width: 100, height: 100, borderRadius: 50, backgroundColor: INDIGO_LIGHT, justifyContent: 'center', alignItems: 'center' },
-  companyName:     { fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY, marginTop: 12, textAlign: 'center' },
-  metaRow:         { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-  metaText:        { fontSize: 13, color: TEXT_SECONDARY },
-  metaDivider:     { fontSize: 13, color: TEXT_SECONDARY, marginHorizontal: 6 },
-  badge:           { flexDirection: 'row', alignItems: 'center', marginTop: 10, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 20 },
-  badgeActive:     { backgroundColor: '#ECFDF5' },
-  badgeInactive:   { backgroundColor: '#FEF2F2' },
-  badgeDot:        { width: 7, height: 7, borderRadius: 4, marginRight: 5 },
-  badgeText:       { fontSize: 12, color: TEXT_SECONDARY, fontWeight: '500' },
+  companyName: { fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY, marginTop: 12, textAlign: 'center' },
+  metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  metaText: { fontSize: 13, color: TEXT_SECONDARY },
+  metaDivider: { fontSize: 13, color: TEXT_SECONDARY, marginHorizontal: 6 },
+  badge: { flexDirection: 'row', alignItems: 'center', marginTop: 10, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 20 },
+  badgeActive: { backgroundColor: '#ECFDF5' },
+  badgeInactive: { backgroundColor: '#FEF2F2' },
+  badgeDot: { width: 7, height: 7, borderRadius: 4, marginRight: 5 },
+  badgeText: { fontSize: 12, color: TEXT_SECONDARY, fontWeight: '500' },
 
   // Section
-  section:      { backgroundColor: SURFACE, marginBottom: 10, paddingBottom: 4 },
+  section: { backgroundColor: SURFACE, marginBottom: 10, paddingBottom: 4 },
   sectionTitle: {
     fontSize: 15,
     fontWeight: '700',
@@ -378,7 +354,7 @@ const styles = StyleSheet.create({
   },
 
   // InfoRow
-  infoRow:     {
+  infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
@@ -386,7 +362,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: BORDER,
   },
-  iconBox:     {
+  iconBox: {
     width: 36,
     height: 36,
     borderRadius: 10,
@@ -396,15 +372,15 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   infoContent: { flex: 1 },
-  infoLabel:   { fontSize: 11, color: TEXT_SECONDARY, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 },
-  infoValue:   { fontSize: 15, color: TEXT_PRIMARY, fontWeight: '500' },
-  linkText:    { color: INDIGO },
+  infoLabel: { fontSize: 11, color: TEXT_SECONDARY, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 },
+  infoValue: { fontSize: 15, color: TEXT_PRIMARY, fontWeight: '500' },
+  linkText: { color: INDIGO },
 
   // Social
-  socialSection:     { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 6 },
-  subSectionLabel:   { fontSize: 13, fontWeight: '600', color: TEXT_SECONDARY, marginBottom: 10 },
-  socialGrid:        { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  socialBtn:         {
+  socialSection: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 6 },
+  subSectionLabel: { fontSize: 13, fontWeight: '600', color: TEXT_SECONDARY, marginBottom: 10 },
+  socialGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  socialBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
@@ -413,12 +389,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
   },
-  socialBtnLabel:    { fontSize: 13, color: INDIGO, fontWeight: '500' },
+  socialBtnLabel: { fontSize: 13, color: INDIGO, fontWeight: '500' },
 
   // App buttons
-  appSection:    { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 14 },
-  appRow:        { flexDirection: 'row', gap: 10 },
-  appButton:     {
+  appSection: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 14 },
+  appRow: { flexDirection: 'row', gap: 10 },
+  appButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
@@ -430,7 +406,7 @@ const styles = StyleSheet.create({
   appButtonText: { color: INDIGO, fontSize: 14, fontWeight: '500' },
 
   // Footer
-  footer:     {
+  footer: {
     backgroundColor: SURFACE,
     paddingVertical: 28,
     alignItems: 'center',
@@ -438,7 +414,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   footerTitle: { fontSize: 16, fontWeight: '700', color: TEXT_PRIMARY },
-  footerSub:   { fontSize: 13, color: TEXT_SECONDARY },
+  footerSub: { fontSize: 13, color: TEXT_SECONDARY },
 });
 
 export default HelpCentreScreen;

@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Animated,
   TextInputProps,
+  StyleProp,
   ViewStyle,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -28,7 +29,7 @@ export interface AppInputProps extends TextInputProps {
   rightIcon?: string;
   onRightIconPress?: () => void;
   isPassword?: boolean;
-  containerStyle?: ViewStyle;
+  containerStyle?: StyleProp<ViewStyle>;
   required?: boolean;
   size?: 'sm' | 'md';
   shakeOnError?: boolean;

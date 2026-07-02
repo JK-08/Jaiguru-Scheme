@@ -1,6 +1,6 @@
 // Src/Components/ui/appcomponents/ScreenWrapper.tsx
 import React from 'react';
-import { View, ScrollView, RefreshControl, StyleSheet, ViewStyle, StatusBar } from 'react-native';
+import { View, ScrollView, RefreshControl, StyleSheet, StyleProp, ViewStyle, StatusBar } from 'react-native';
 import { SafeAreaView, Edge } from 'react-native-safe-area-context';
 import theme from '../../../Utills/AppTheme';
 
@@ -20,8 +20,8 @@ export interface ScreenWrapperProps {
   header?: React.ReactNode;
   footer?: React.ReactNode;
   edges?: Edge[];
-  style?: ViewStyle;
-  contentStyle?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
+  contentStyle?: StyleProp<ViewStyle>;
 }
 
 export default function ScreenWrapper({

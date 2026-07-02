@@ -1,6 +1,6 @@
 // Src/Components/ui/appcomponents/AppBadge.tsx
 import React from 'react';
-import { View, Text, ViewStyle, TextStyle } from 'react-native';
+import { View, Text, StyleProp, ViewStyle, TextStyle } from 'react-native';
 import theme from '../../../Utills/AppTheme';
 
 const { COLORS, SIZES, FONTS } = theme;
@@ -12,8 +12,8 @@ export interface AppBadgeProps {
   label: string;
   variant?: BadgeVariant;
   size?: BadgeSize;
-  style?: ViewStyle;
-  textStyle?: TextStyle;
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
 }
 
 export default function AppBadge({ label, variant = 'primary', size = 'md', style, textStyle }: AppBadgeProps) {
