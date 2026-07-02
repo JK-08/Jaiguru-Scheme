@@ -96,8 +96,10 @@ const PayNow = () => {
   };
 
   const handlePayment = useCallback(async () => {
+    if (isLoading) return;
     setStatus(STATUS.IDLE);
     setStatusMsg('');
+    resetPayment();
 
     const result = await startPayment(
       paymentAmount,
@@ -113,7 +115,7 @@ const PayNow = () => {
     if (result.success) {
       try {
         const today = formatApiDate();
-        await handleInsertInstallment({
+        const installmentPayload = {
           groupCode: groupCode || '',
           regNo: parseInt(String(regNo), 10) || 0,
           rDate: today,
@@ -133,7 +135,10 @@ const PayNow = () => {
           chqBranch: 'Online',
           chkBank: 'Razorpay',
           chqRtnReason: result.orderId || '',
-        });
+        };
+        console.log('[PayNow] insertInstallment PARAMS:', installmentPayload);
+        const insertResponse = await handleInsertInstallment(installmentPayload);
+        console.log('[PayNow] insertInstallment RESPONSE:', insertResponse);
         setPaymentId(result.paymentId || '');
         setStatus(STATUS.SUCCESS);
         resetPayment();
@@ -148,6 +153,7 @@ const PayNow = () => {
       resetPayment();
     }
   }, [
+    isLoading,
     paymentAmount,
     memberName,
     accountData,

@@ -41,7 +41,7 @@ interface InfoRowProps {
   icon: string;
   label: string;
   value?: string | null;
-  onPress?: (() => void) | null;
+  onPress?: (() => void) | undefined;
   isLink?: boolean;
   multiline?: boolean;
 }
@@ -91,7 +91,7 @@ const AppStoreButton = ({ iconName, link, label }: SocialButtonProps) => {
 };
 
 const SectionWrapper = ({ title, children }: { title: string; children: React.ReactNode }) => {
-  const hasContent = React.Children.toArray(children).some((c) => c !== null && c !== false && c !== undefined);
+  const hasContent = React.Children.toArray(children).some(Boolean);
   if (!hasContent) return null;
   return (
     <View style={styles.section}>
@@ -208,13 +208,13 @@ const HelpCentreScreen = () => {
 
         {/* ── Contact ── */}
         <SectionWrapper title="📞 Contact Information">
-          <InfoRow icon="phone" label="Phone" value={company.PHONE} onPress={company.PHONE ? () => openPhone(company.PHONE!) : null} isLink />
-          <InfoRow icon="email" label="Email" value={company.EMAIL} onPress={company.EMAIL ? () => openEmail(company.EMAIL!) : null} isLink />
+          <InfoRow icon="phone" label="Phone" value={company.PHONE} onPress={company.PHONE ? () => openPhone(company.PHONE!) : undefined} isLink />
+          <InfoRow icon="email" label="Email" value={company.EMAIL} onPress={company.EMAIL ? () => openEmail(company.EMAIL!) : undefined} isLink />
           <InfoRow
             icon="location-on"
             label="Address"
             value={addressDisplay}
-            onPress={addressDisplay ? () => openMaps(addressDisplay) : null}
+            onPress={addressDisplay ? () => openMaps(addressDisplay) : undefined}
             isLink
             multiline
           />
@@ -237,7 +237,7 @@ const HelpCentreScreen = () => {
             icon="language"
             label="Website"
             value={company.BASEURL ? company.BASEURL.replace(/^https?:\/\//, '') : null}
-            onPress={company.BASEURL ? () => openUrl(company.BASEURL) : null}
+            onPress={company.BASEURL ? () => openUrl(company.BASEURL) : undefined}
             isLink
           />
 
@@ -270,7 +270,7 @@ const HelpCentreScreen = () => {
             icon="business-center"
             label="Google Business"
             value={company.GOOGLEBUSINESSLINK ? 'View on Google Maps' : null}
-            onPress={company.GOOGLEBUSINESSLINK ? () => openUrl(company.GOOGLEBUSINESSLINK) : null}
+            onPress={company.GOOGLEBUSINESSLINK ? () => openUrl(company.GOOGLEBUSINESSLINK) : undefined}
             isLink
           />
         </SectionWrapper>

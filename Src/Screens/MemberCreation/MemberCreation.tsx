@@ -199,9 +199,10 @@ const MemberCreation = () => {
     async (formData: any, paymentId?: string, orderId?: string) => {
       try {
         const payload = createMemberPayload(formData, paymentId, orderId);
-        console.log('Creating member with payload:', payload);
+        console.log('[MemberCreation] createMember PARAMS:', JSON.stringify(payload, null, 2));
 
         const response: any = await create(payload);
+        console.log('[MemberCreation] createMember RESPONSE:', response);
 
         // Parse the message string into an object
         const msgStr = response?.message || '';
@@ -234,6 +235,7 @@ const MemberCreation = () => {
     if (!isValid) return;
 
     const formData = schemeFormRef.current.getFormData();
+    console.log('[MemberCreation] startPayment PARAMS:', { amount: formData.amount, regNo: 3, groupCode: formData.selectedScheme || 'MAN', userDetails: { name: userRegistrationData.userName, phone: userRegistrationData.mobileNumber, email: userRegistrationData.emailAddress } });
     const regNo = 3;
     const groupCode = formData.selectedScheme || 'MAN';
 

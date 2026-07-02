@@ -183,30 +183,35 @@ const RazorpayWebView = ({ visible, options, onSuccess, onDismiss }) => {
     try { msg = JSON.parse(event.nativeEvent.data); }
     catch { return; }
 
+    console.log('[RazorpayWebView] message received:', msg);
     switch (msg.type) {
       case "success": {
         paymentDone.current = true;
         setBankUrl(null);
+        console.log('[RazorpayWebView] payment SUCCESS data:', msg.data);
         onSuccess(msg.data);
         break;
       }
       case "failed": {
-        paymentDone.current = true;
-        setBankUrl(null);
-        onSuccess({ failed: true, error: msg.data });
-        break;
-      }
-      case "dismiss": {
-        if (!paymentDone.current && !msg.paymentDone && !dismissed.current) {
-          dismissed.current = true;
+        if (!dismissed.current) {
+          paymentDone.current = true;
           setBankUrl(null);
-          // Let parent decide: treat dismissed as user cancellation
-          onDismiss?.();
-          onSuccess({ failed: true, error: "Payment cancelled by user" });
+          console.log('[RazorpayWebView] payment FAILED error:', msg.data);
+          onSuccess({ failed: true, error: msg.data });
         }
         break;
       }
+      case "dismiss": {
+        // If paymentDone is already true (success/failed already handled), ignore dismiss
+        if (paymentDone.current || dismissed.current) break;
+        dismissed.current = true;
+        setBankUrl(null);
+        console.log('[RazorpayWebView] payment DISMISSED by user');
+        onDismiss?.();
+        break;
+      }
       case "newwindow": {
+        console.log('[RazorpayWebView] newwindow URL:', msg.url);
         if (msg.url) setBankUrl(msg.url);
         break;
       }
@@ -243,11 +248,9 @@ const RazorpayWebView = ({ visible, options, onSuccess, onDismiss }) => {
       animationType="slide"
       presentationStyle="pageSheet"
       onRequestClose={() => {
-        // Android back: only dismiss if no payment in progress
-        if (!paymentDone.current) {
+        if (!paymentDone.current && !dismissed.current) {
           dismissed.current = true;
           onDismiss?.();
-          onSuccess({ failed: true, error: "Payment cancelled by user" });
         }
       }}
     >

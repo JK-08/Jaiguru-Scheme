@@ -64,22 +64,27 @@ export const useRazorpayPayment = () => {
     setPaymentStep(PAYMENT_STEPS.VERIFYING);
 
     try {
-      const verifyResponse: any = await razorpayService.verifyPayment({
+      const verifyPayload = {
         razorpay_order_id: paymentData.razorpay_order_id,
         razorpay_payment_id: paymentData.razorpay_payment_id,
         razorpay_signature: paymentData.razorpay_signature,
-      });
+      };
+      console.log('[Razorpay] verifyPayment PARAMS:', verifyPayload);
+      const verifyResponse: any = await razorpayService.verifyPayment(verifyPayload);
+      console.log('[Razorpay] verifyPayment RESPONSE:', verifyResponse);
 
       if (!verifyResponse?.success) throw new Error(verifyResponse?.message || 'Payment verification failed');
 
       setPaymentStep(PAYMENT_STEPS.SUCCESS);
       setLoading(false);
-      resolveRef.current?.({
+      const successResult = {
         success: true,
         paymentId: paymentData.razorpay_payment_id,
         orderId: paymentData.razorpay_order_id,
         data: verifyResponse,
-      });
+      };
+      console.log('[Razorpay] Payment SUCCESS result:', successResult);
+      resolveRef.current?.(successResult);
     } catch (err: any) {
       setPaymentStep(PAYMENT_STEPS.FAILED);
       setError(err?.message);
@@ -108,7 +113,9 @@ export const useRazorpayPayment = () => {
 
         (async () => {
           try {
+            console.log('[Razorpay] createOrder PARAMS:', { amount, regNo, groupCode });
             const orderResponse: any = await razorpayService.createOrder(amount, regNo, groupCode);
+            console.log('[Razorpay] createOrder RESPONSE:', orderResponse);
             if (!orderResponse?.success) throw new Error(orderResponse?.message || 'Order creation failed');
 
             const backendOrder = orderResponse.data;
