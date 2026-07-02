@@ -1,74 +1,49 @@
-import React from "react";
-import {
-  View,
-  FlatList,
-  StyleSheet,
-  ImageBackground,
-  TouchableOpacity,
-  Text,
-  Dimensions,
-} from "react-native";
-import { useSchemes } from "../../Hooks/useScheme";
-import { useNavigation } from "@react-navigation/native";
-import placeholderImage from "../../Assets/Company/logo.png";
-import {
-  COLORS,
-  SIZES,
-  FONTS,
-  moderateScale,
-  SHADOWS,
-} from "../../Utills/AppTheme";
-import { IMAGE_BASE_URL } from "../../Config/BaseUrl";
+// Src/Components/SchemeCard/SchemeCard.tsx
+import React from 'react';
+import { View, FlatList, StyleSheet, ImageBackground, TouchableOpacity, Text, Dimensions } from 'react-native';
+import { useSchemeCatalog } from '../../api/hooks/Schemes/useSchemeCatalog';
+import { Scheme } from '../../types/Scheme/Scheme';
+import { useNavigation } from '@react-navigation/native';
+import placeholderImage from '../../Assets/Company/logo.png';
+import { COLORS, SIZES, FONTS, moderateScale, SHADOWS } from '../../Utills/AppTheme';
+import { IMAGE_BASE_URL } from '../../Config/BaseUrl';
 
 export default function SchemeCardSlider() {
-  const { schemes, loading, error } = useSchemes();
-  const navigation = useNavigation();
+  const { schemes, loading } = useSchemeCatalog();
+  const navigation = useNavigation<any>();
 
   if (loading || !schemes || schemes.length === 0) return null;
 
-  const screenWidth = Dimensions.get("window").width;
+  const screenWidth = Dimensions.get('window').width;
   const CARD_WIDTH = screenWidth * 0.85;
   const CARD_MARGIN = SIZES.md;
   const SNAP_INTERVAL = CARD_WIDTH + CARD_MARGIN;
 
-  const handleJoinScheme = (scheme) => {
-    navigation.navigate("MemberCreation", { scheme });
+  const handleJoinScheme = (scheme: Scheme) => {
+    navigation.navigate('MemberCreation', { scheme });
   };
 
-  const handleKnowMore = (scheme) => {
-    navigation.navigate("KnowMore", { scheme });
+  const handleKnowMore = (scheme: Scheme) => {
+    navigation.navigate('KnowMore', { scheme });
   };
 
-  const renderItem = ({ item }) => {
-    const imageUri = item.image_path
-      ? `${IMAGE_BASE_URL}${item.image_path}`
-      : placeholderImage;
+  const renderItem = ({ item }: { item: Scheme & { image_path?: string } }) => {
+    const imageUri = item.image_path ? `${IMAGE_BASE_URL}${item.image_path}` : placeholderImage;
 
     return (
-      <View
-        style={[
-          styles.cardContainer,
-          { width: CARD_WIDTH, marginRight: CARD_MARGIN },
-        ]}
-      >
+      <View style={[styles.cardContainer, { width: CARD_WIDTH, marginRight: CARD_MARGIN }]}>
         <ImageBackground
-          source={typeof imageUri === "string" ? { uri: imageUri } : imageUri}
+          source={typeof imageUri === 'string' ? { uri: imageUri } : imageUri}
           style={styles.imageBackground}
           resizeMode="cover"
         />
 
         <View style={styles.buttonRow}>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.knowMoreButton]}
-            onPress={() => handleKnowMore(item)}
-          >
+          <TouchableOpacity style={[styles.actionButton, styles.knowMoreButton]} onPress={() => handleKnowMore(item)}>
             <Text style={styles.knowMoreButtonText}>Know More</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionButton, styles.joinButton]}
-            onPress={() => handleJoinScheme(item)}
-          >
+          <TouchableOpacity style={[styles.actionButton, styles.joinButton]} onPress={() => handleJoinScheme(item)}>
             <Text style={styles.joinButtonText}>Join Scheme</Text>
           </TouchableOpacity>
         </View>
@@ -95,21 +70,20 @@ export default function SchemeCardSlider() {
   );
 }
 
-
 const styles = StyleSheet.create({
   cardContainer: {
     borderRadius: SIZES.radius.lg,
-    overflow: "hidden",
+    overflow: 'hidden',
     backgroundColor: COLORS.surface,
     ...SHADOWS.medium,
   },
   imageBackground: {
-    width: "100%",
+    width: '100%',
     height: moderateScale(180),
   },
   buttonRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     padding: SIZES.md,
     backgroundColor: COLORS.background,
   },
@@ -117,8 +91,8 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: SIZES.sm,
     borderRadius: SIZES.radius.md,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   knowMoreButton: {
     backgroundColor: COLORS.secondary,
@@ -134,11 +108,11 @@ const styles = StyleSheet.create({
   knowMoreButtonText: {
     ...FONTS.bodySmall,
     color: COLORS.textPrimary,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   joinButtonText: {
     ...FONTS.bodySmall,
     color: COLORS.textInverse,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
 });

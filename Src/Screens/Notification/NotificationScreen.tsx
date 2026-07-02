@@ -7,7 +7,7 @@ import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import useNotifications, { FormattedNotification } from '../../api/hooks/Notifications/useNotifications';
-import NotificationService from '../../Services/NotificationService';
+import { notificationService } from '../../api/services/notificationService';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
 
 const NotificationScreen = () => {
@@ -144,7 +144,7 @@ const NotificationScreen = () => {
                   </Text>
                   <View style={styles.metaContainer}>
                     <Ionicons name="time-outline" size={12} color="#999" />
-                    <Text style={styles.date}>{NotificationService.formatNotificationDate(item.createdAt)}</Text>
+                    <Text style={styles.date}>{notificationService.formatNotificationDate(item.createdAt)}</Text>
                   </View>
                 </View>
               </View>

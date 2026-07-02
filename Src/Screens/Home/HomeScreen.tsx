@@ -10,7 +10,7 @@ import HomeHeaderRedesigned from '../../Components/MainHeader/MainHeader';
 import SliderComponent from '../../Components/Slider/Slider';
 import SchemeDetailsCard from '../../Components/SchemeDetailsCard/SchemeDetailsCard';
 import SchemesList from '../../Components/SchemeCard/SchemeCard';
-import PushNotificationService from '../../Services/PushNotificationService';
+import { deviceService } from '../../api/services/deviceService';
 import { registerForPushNotificationsAsync, wasTokenSent, markTokenAsSent, getStoredPushToken } from '../../Helpers/NotificationHelper';
 import BottomTab from '../../Components/BottomTab/BottomTab';
 import MainPageWithYouTube from '../../Components/Youtube/Youtube';
@@ -147,7 +147,7 @@ const HomeScreen = () => {
 
   const sendTokenToServer = async (token: string) => {
     try {
-      const success = await PushNotificationService.sendPushTokenToServer(token, userId);
+      const success = await deviceService.registerDevice(token, userId ?? '');
       if (success) {
         await markTokenAsSent();
         setNotificationStatus('registered');

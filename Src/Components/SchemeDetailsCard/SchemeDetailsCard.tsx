@@ -1,73 +1,67 @@
-import React, { useCallback, useMemo } from "react";
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  StyleSheet,
-  TouchableOpacity,
-  FlatList,
-  RefreshControl,
-  Dimensions,
-} from "react-native";
-import { useAccountDetails } from "../../Hooks/useGetAllDetails";
-import { COLORS, SIZES, FONTS, SHADOWS } from "../../Utills/AppTheme";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+// Src/Components/SchemeDetailsCard/SchemeDetailsCard.tsx
+import React, { useCallback, useMemo, useState } from 'react';
+import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity, FlatList, RefreshControl, Dimensions } from 'react-native';
+import { useMySchemes } from '../../api/hooks/Account/useMySchemes';
+import { Account } from '../../types/Account/Account';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../../Utills/AppTheme';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
-const CARD_WIDTH = SCREEN_WIDTH * 0.90;
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_WIDTH = SCREEN_WIDTH * 0.9;
 const CARD_SPACING = SIZES.padding.lg;
 
-export default function SchemeDetailsCard({ layout = "horizontal", filter = "all" }) {
-  const { accounts, loading, error, refetch } = useAccountDetails();
-  const [refreshing, setRefreshing] = React.useState(false);
-const navigation = useNavigation();
+export type SchemeDetailsCardFilter = 'all' | 'active' | 'due' | 'completed';
+
+export interface SchemeDetailsCardProps {
+  layout?: 'horizontal' | 'vertical';
+  filter?: SchemeDetailsCardFilter;
+}
+
+export default function SchemeDetailsCard({ layout = 'horizontal', filter = 'all' }: SchemeDetailsCardProps) {
+  const { accounts, loading, error, refetch } = useMySchemes();
+  const [refreshing, setRefreshing] = useState(false);
+  const navigation = useNavigation<any>();
 
   // Same status derivation used per-card below, applied at the list level
   // so the "all / active / due / completed" filter actually narrows results.
   const filteredAccounts = useMemo(() => {
     if (!accounts) return accounts;
-    if (filter === "all") return accounts;
+    if (filter === 'all') return accounts;
 
     return accounts.filter((account) => {
       const balance = account.schemeSummary?.schemaSummaryTransBalance;
-      const insPaid = parseInt(balance?.insPaid || "0");
-      const instalment = parseInt(account.schemeSummary?.instalment || "0");
+      const insPaid = parseInt(balance?.insPaid || '0', 10);
+      const instalment = parseInt(account.schemeSummary?.instalment || '0', 10);
       const isFullyPaid = instalment > 0 && insPaid >= instalment;
-      const isPaymentDue =
-        !isFullyPaid && account.nextDueDate && new Date(account.nextDueDate) <= new Date();
+      const isPaymentDue = !isFullyPaid && account.nextDueDate && new Date(account.nextDueDate) <= new Date();
 
-      if (filter === "completed") return isFullyPaid;
-      if (filter === "due") return isPaymentDue;
-      if (filter === "active") return !isFullyPaid && !isPaymentDue;
+      if (filter === 'completed') return isFullyPaid;
+      if (filter === 'due') return isPaymentDue;
+      if (filter === 'active') return !isFullyPaid && !isPaymentDue;
       return true;
     });
   }, [accounts, filter]);
 
-useFocusEffect(
-  useCallback(() => {
-    refetch?.();
-  }, [refetch])
-);
-
-  
+  useFocusEffect(
+    useCallback(() => {
+      refetch?.();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [refetch])
+  );
 
   // Memoized values - must be called unconditionally
-  const totalAmount = useMemo(() => {
-    return accounts?.reduce((total, account) => total + (account.totalAmount || 0), 0) || 0;
-  }, [accounts]);
-
   const accountCount = useMemo(() => accounts?.length || 0, [accounts]);
 
   // Memoize list props unconditionally
   const listProps = useMemo(() => {
-    if (layout === "vertical") {
+    if (layout === 'vertical') {
       return {
         numColumns: 1,
         horizontal: false,
         contentContainerStyle: styles.listContainerVertical,
         showsVerticalScrollIndicator: true,
         showsHorizontalScrollIndicator: false,
-        keyExtractor: (item, index) => `${item.regNo}-${item.groupCode}-${index}`,
+        keyExtractor: (item: Account, index: number) => `${item.regNo}-${item.groupCode}-${index}`,
       };
     } else {
       return {
@@ -77,9 +71,9 @@ useFocusEffect(
         showsHorizontalScrollIndicator: false,
         showsVerticalScrollIndicator: false,
         snapToInterval: CARD_WIDTH + CARD_SPACING,
-        decelerationRate: "fast",
-        snapToAlignment: "center",
-        keyExtractor: (item) => `${item.regNo}-${item.groupCode}-${item.schemeSummary?.schemeId || "0"}`,
+        decelerationRate: 'fast' as const,
+        snapToAlignment: 'center' as const,
+        keyExtractor: (item: Account) => `${item.regNo}-${item.groupCode}-${item.schemeSummary?.schemeId || '0'}`,
       };
     }
   }, [layout]);
@@ -90,192 +84,184 @@ useFocusEffect(
     try {
       await refetch?.();
     } catch (error) {
-      console.error("Refresh failed:", error);
+      console.error('Refresh failed:', error);
     } finally {
       setRefreshing(false);
     }
   }, [refetch]);
 
   const handleViewAll = useCallback(() => {
-    navigation.navigate("AllSchemes");
+    navigation.navigate('AllSchemes');
   }, [navigation]);
 
-  const handleViewDetails = useCallback((account) => {
-    // Navigate to SchemeDetails page with the account data
-    navigation.navigate("SchemePassbook", { 
-      schemeData: account,
-      fromScreen: "SchemeDetailsCard"
-    });
-  }, [navigation]);
+  const handleViewDetails = useCallback(
+    (account: Account) => {
+      // Navigate to SchemeDetails page with the account data
+      navigation.navigate('SchemePassbook', {
+        schemeData: account,
+        fromScreen: 'SchemeDetailsCard',
+      });
+    },
+    [navigation]
+  );
 
-  const handlePayNow = useCallback((account) => {
-    // Navigate to PayNow page with all account details
-    navigation.navigate("Paynow", {
-      accountData: account,
-      fromScreen: "SchemeDetailsCard",
-      // Pass all relevant details explicitly for easy access
-      regNo: account.regNo,
-      groupCode: account.groupCode,
-      memberName: account.pName,
-      schemeName: account.schemeSummary?.schemeName,
-      schemeShortName: account.schemeSummary?.schemeSName,
-      schemeId: account.schemeSummary?.schemeId,
-      totalAmount: account.totalAmount || 0,
-      amount: account.amount || 0,
-      nextDueDate: account.nextDueDate,
-      installmentsPaid: account.schemeSummary?.schemaSummaryTransBalance?.insPaid || "0",
-      totalInstallments: account.schemeSummary?.instalment || "0",
-      joinDate: account.joinDate,
-      maturityDate: account.maturityDate,
-      bonusAmount: account.bonusAmount || 0,
-    });
-  }, [navigation]);
+  const handlePayNow = useCallback(
+    (account: Account) => {
+      // Navigate to PayNow page with all account details
+      navigation.navigate('Paynow', {
+        accountData: account,
+        fromScreen: 'SchemeDetailsCard',
+        // Pass all relevant details explicitly for easy access
+        regNo: account.regNo,
+        groupCode: account.groupCode,
+        memberName: account.pName,
+        schemeName: account.schemeSummary?.schemeName,
+        schemeShortName: account.schemeSummary?.schemeSName,
+        schemeId: account.schemeSummary?.schemeId,
+        totalAmount: account.totalAmount || 0,
+        amount: account.amount || 0,
+        nextDueDate: account.nextDueDate,
+        installmentsPaid: account.schemeSummary?.schemaSummaryTransBalance?.insPaid || '0',
+        totalInstallments: account.schemeSummary?.instalment || '0',
+        joinDate: account.joinDate,
+        maturityDate: account.maturityDate,
+        bonusAmount: (account as any).bonusAmount || 0,
+      });
+    },
+    [navigation]
+  );
 
-  const formatDate = useCallback((dateString) => {
-    if (!dateString) return "N/A";
-    return dateString.split("T")[0].split(" ")[0];
+  const formatDate = useCallback((dateString?: string) => {
+    if (!dateString) return 'N/A';
+    return dateString.split('T')[0].split(' ')[0];
   }, []);
 
   // Render individual account card
-  const renderAccountCard = useCallback(({ item: account }) => {
-    const {
-      regNo,
-      groupCode,
-      pName,
-      joinDate,
-      maturityDate,
-      amount,
-      schemeSummary,
-      nextDueDate,
-      lastPaidDate,
-    } = account;
+  const renderAccountCard = useCallback(
+    ({ item: account }: { item: Account }) => {
+      const { regNo, groupCode, pName, joinDate, maturityDate, amount, schemeSummary, nextDueDate, lastPaidDate } = account;
 
-    const balance     = schemeSummary?.schemaSummaryTransBalance;
-    const insPaid     = parseInt(balance?.insPaid || "0");
-    const instalment  = parseInt(schemeSummary?.instalment || "0");
-    const amtRecd     = parseFloat(balance?.amtrecd || "0");
-    const totalWeight = parseFloat(schemeSummary?.totalWeight || "0");
-    const schemeName  = schemeSummary?.schemeName || "N/A";
-    const schemeSName = schemeSummary?.schemeSName || "N/A";
-    const schemeAmt   = parseFloat(amount) || 0;
-    const progress    = instalment > 0 ? insPaid / instalment : 0;
-    const isFullyPaid  = instalment > 0 && insPaid >= instalment;
-    const isPaymentDue = !isFullyPaid && nextDueDate && new Date(nextDueDate) <= new Date();
+      const balance = schemeSummary?.schemaSummaryTransBalance;
+      const insPaid = parseInt(balance?.insPaid || '0', 10);
+      const instalment = parseInt(schemeSummary?.instalment || '0', 10);
+      const amtRecd = parseFloat(balance?.amtrecd || '0');
+      const totalWeight = parseFloat(schemeSummary?.totalWeight || '0');
+      const schemeName = schemeSummary?.schemeName || 'N/A';
+      const schemeSName = schemeSummary?.schemeSName || 'N/A';
+      const schemeAmt = parseFloat(String(amount)) || 0;
+      const progress = instalment > 0 ? insPaid / instalment : 0;
+      const isFullyPaid = instalment > 0 && insPaid >= instalment;
+      const isPaymentDue = !isFullyPaid && nextDueDate && new Date(nextDueDate) <= new Date();
 
-    return (
-      <View style={[
-        styles.cardWrapper,
-        layout === "vertical" && styles.cardWrapperVertical
-      ]}>
-        <View style={[
-          styles.card,
-          layout === "vertical" && styles.cardVertical
-        ]}>
-          {/* Header */}
-          <View style={styles.cardHeader}>
-            <View style={styles.headerLeft}>
-              <View style={styles.regBadge}>
-                <Text style={styles.regBadgeText}>{groupCode}-{regNo}</Text>
-              </View>
-              <View style={styles.schemeBadge}>
-                <Text style={styles.schemeBadgeText}>{schemeSName}</Text>
-              </View>
-              {isPaymentDue && (
-                <View style={styles.dueBadge}>
-                  <Text style={styles.dueBadgeText}>Due</Text>
-                </View>
-              )}
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          {/* Body */}
-          <View style={styles.cardContent}>
-
-            {/* Name + Scheme */}
-            <View style={styles.nameSection}>
-              <Text style={styles.nameText}>{pName}</Text>
-              <Text style={styles.schemeText} numberOfLines={2}>{schemeName}</Text>
-            </View>
-
-            {/* 3 stat boxes */}
-            <View style={styles.amountSection}>
-              <View style={[styles.amountCard, styles.amtCard]}>
-                <Text style={styles.amountLabel}>Monthly Amt</Text>
-                <Text style={styles.amountValue}>₹{schemeAmt.toLocaleString("en-IN")}</Text>
-              </View>
-              <View style={styles.amountCard}>
-                <Text style={styles.amountLabel}>Paid Amount</Text>
-                <Text style={styles.amountValue}>₹{amtRecd.toLocaleString("en-IN")}</Text>
-              </View>
-              <View style={styles.amountCard}>
-                <Text style={styles.amountLabel}>Gold Weight</Text>
-                <Text style={styles.amountValue}>{totalWeight.toFixed(3)}g</Text>
-              </View>
-            </View>
-
-            {/* Progress bar */}
-            <View style={styles.progressSection}>
-              <View style={styles.progressLabelRow}>
-                <Text style={styles.progressLabel}>Installments</Text>
-                <Text style={styles.progressCount}>{insPaid} / {instalment}</Text>
-              </View>
-              <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: `${Math.min(progress * 100, 100)}%` }]} />
-              </View>
-            </View>
-
-            {/* Dates */}
-            <View style={styles.dateSection}>
-              <View style={styles.dateCard}>
-                <Text style={styles.dateLabel}>Join Date</Text>
-                <Text style={styles.dateValue}>{formatDate(joinDate)}</Text>
-              </View>
-              <View style={styles.dateDivider} />
-              <View style={styles.dateCard}>
-                <Text style={styles.dateLabel}>Last Paid</Text>
-                <Text style={styles.dateValue}>{formatDate(lastPaidDate)}</Text>
-              </View>
-              <View style={styles.dateDivider} />
-              <View style={styles.dateCard}>
-                <Text style={styles.dateLabel}>Maturity</Text>
-                <Text style={styles.dateValue}>{formatDate(maturityDate)}</Text>
-              </View>
-            </View>
-
-            {/* Buttons */}
-            <View style={styles.buttonsSection}>
-              <TouchableOpacity
-                style={styles.viewButton}
-                onPress={() => handleViewDetails(account)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.viewButtonText}>View Details</Text>
-              </TouchableOpacity>
-              {isFullyPaid ? (
-                <View style={styles.fullyPaidBadge}>
-                  <Text style={styles.fullyPaidText}>✓ Fully Paid</Text>
-                </View>
-              ) : (
-                <TouchableOpacity
-                  style={[styles.payButton, isPaymentDue && styles.payButtonDue]}
-                  onPress={() => handlePayNow(account)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.payButtonText}>
-                    {isPaymentDue ? "Pay Now" : "Make Payment"}
+      return (
+        <View style={[styles.cardWrapper, layout === 'vertical' && styles.cardWrapperVertical]}>
+          <View style={[styles.card, layout === 'vertical' && styles.cardVertical]}>
+            {/* Header */}
+            <View style={styles.cardHeader}>
+              <View style={styles.headerLeft}>
+                <View style={styles.regBadge}>
+                  <Text style={styles.regBadgeText}>
+                    {groupCode}-{regNo}
                   </Text>
-                </TouchableOpacity>
-              )}
+                </View>
+                <View style={styles.schemeBadge}>
+                  <Text style={styles.schemeBadgeText}>{schemeSName}</Text>
+                </View>
+                {isPaymentDue && (
+                  <View style={styles.dueBadge}>
+                    <Text style={styles.dueBadgeText}>Due</Text>
+                  </View>
+                )}
+              </View>
             </View>
-          </View>
 
-          <View style={styles.bottomBorder} />
+            <View style={styles.divider} />
+
+            {/* Body */}
+            <View style={styles.cardContent}>
+              {/* Name + Scheme */}
+              <View style={styles.nameSection}>
+                <Text style={styles.nameText}>{pName}</Text>
+                <Text style={styles.schemeText} numberOfLines={2}>
+                  {schemeName}
+                </Text>
+              </View>
+
+              {/* 3 stat boxes */}
+              <View style={styles.amountSection}>
+                <View style={[styles.amountCard, styles.amtCard]}>
+                  <Text style={styles.amountLabel}>Monthly Amt</Text>
+                  <Text style={styles.amountValue}>₹{schemeAmt.toLocaleString('en-IN')}</Text>
+                </View>
+                <View style={styles.amountCard}>
+                  <Text style={styles.amountLabel}>Paid Amount</Text>
+                  <Text style={styles.amountValue}>₹{amtRecd.toLocaleString('en-IN')}</Text>
+                </View>
+                <View style={styles.amountCard}>
+                  <Text style={styles.amountLabel}>Gold Weight</Text>
+                  <Text style={styles.amountValue}>{totalWeight.toFixed(3)}g</Text>
+                </View>
+              </View>
+
+              {/* Progress bar */}
+              <View style={styles.progressSection}>
+                <View style={styles.progressLabelRow}>
+                  <Text style={styles.progressLabel}>Installments</Text>
+                  <Text style={styles.progressCount}>
+                    {insPaid} / {instalment}
+                  </Text>
+                </View>
+                <View style={styles.progressBar}>
+                  <View style={[styles.progressFill, { width: `${Math.min(progress * 100, 100)}%` }]} />
+                </View>
+              </View>
+
+              {/* Dates */}
+              <View style={styles.dateSection}>
+                <View style={styles.dateCard}>
+                  <Text style={styles.dateLabel}>Join Date</Text>
+                  <Text style={styles.dateValue}>{formatDate(joinDate)}</Text>
+                </View>
+                <View style={styles.dateDivider} />
+                <View style={styles.dateCard}>
+                  <Text style={styles.dateLabel}>Last Paid</Text>
+                  <Text style={styles.dateValue}>{formatDate(lastPaidDate)}</Text>
+                </View>
+                <View style={styles.dateDivider} />
+                <View style={styles.dateCard}>
+                  <Text style={styles.dateLabel}>Maturity</Text>
+                  <Text style={styles.dateValue}>{formatDate(maturityDate)}</Text>
+                </View>
+              </View>
+
+              {/* Buttons */}
+              <View style={styles.buttonsSection}>
+                <TouchableOpacity style={styles.viewButton} onPress={() => handleViewDetails(account)} activeOpacity={0.7}>
+                  <Text style={styles.viewButtonText}>View Details</Text>
+                </TouchableOpacity>
+                {isFullyPaid ? (
+                  <View style={styles.fullyPaidBadge}>
+                    <Text style={styles.fullyPaidText}>✓ Fully Paid</Text>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={[styles.payButton, isPaymentDue && styles.payButtonDue]}
+                    onPress={() => handlePayNow(account)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.payButtonText}>{isPaymentDue ? 'Pay Now' : 'Make Payment'}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
+            <View style={styles.bottomBorder} />
+          </View>
         </View>
-      </View>
-    );
-  }, [formatDate, handleViewDetails, handlePayNow, layout]);
+      );
+    },
+    [formatDate, handleViewDetails, handlePayNow, layout]
+  );
 
   // Header Component
   const renderHeader = () => (
@@ -329,9 +315,7 @@ useFocusEffect(
         {renderHeader()}
         <View style={styles.center}>
           <Text style={styles.noAccountText}>No schemes found</Text>
-          <Text style={styles.emptySubtext}>
-            You don't have any active schemes yet.
-          </Text>
+          <Text style={styles.emptySubtext}>You don't have any active schemes yet.</Text>
         </View>
       </View>
     );
@@ -344,37 +328,25 @@ useFocusEffect(
         {renderHeader()}
         <View style={styles.center}>
           <Text style={styles.noAccountText}>No schemes match this filter</Text>
-          <Text style={styles.emptySubtext}>
-            Try a different filter to see your other schemes.
-          </Text>
+          <Text style={styles.emptySubtext}>Try a different filter to see your other schemes.</Text>
         </View>
       </View>
     );
   }
 
   return (
-    <View style={[
-      styles.container,
-      layout === "vertical" && styles.containerVertical
-    ]}>
-      {layout === "horizontal" && (renderHeader())}
+    <View style={[styles.container, layout === 'vertical' && styles.containerVertical]}>
+      {layout === 'horizontal' && renderHeader()}
 
       {/* Scrollable list */}
       <FlatList
         data={filteredAccounts}
         renderItem={renderAccountCard}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[COLORS.primary]}
-            tintColor={COLORS.primary}
-          />
-        }
-        ListFooterComponent={layout === "horizontal" ? <View style={styles.footer} /> : null}
-        initialNumToRender={layout === "vertical" ? 5 : 2}
-        maxToRenderPerBatch={layout === "vertical" ? 10 : 3}
-        windowSize={layout === "vertical" ? 10 : 5}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.primary]} tintColor={COLORS.primary} />}
+        ListFooterComponent={layout === 'horizontal' ? <View style={styles.footer} /> : null}
+        initialNumToRender={layout === 'vertical' ? 5 : 2}
+        maxToRenderPerBatch={layout === 'vertical' ? 10 : 3}
+        windowSize={layout === 'vertical' ? 10 : 5}
         removeClippedSubviews={true}
         {...listProps}
       />
@@ -392,16 +364,16 @@ const styles = StyleSheet.create({
     paddingBottom: SIZES.padding.lg,
   },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: SIZES.padding.lg,
     paddingTop: SIZES.padding.xl,
     paddingBottom: SIZES.padding.md,
   },
   headerLeftSection: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: SIZES.margin.sm,
   },
   headerTitle: {
@@ -409,12 +381,12 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
   countBadge: {
-    backgroundColor: COLORS.primary + "20",
+    backgroundColor: COLORS.primary + '20',
     paddingHorizontal: SIZES.padding.sm,
     paddingVertical: 2,
     borderRadius: SIZES.radius.sm,
     borderWidth: 1,
-    borderColor: COLORS.primary + "40",
+    borderColor: COLORS.primary + '40',
   },
   countText: {
     ...FONTS.captionBold,
@@ -430,8 +402,8 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
   statsContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: COLORS.white,
     marginHorizontal: SIZES.padding.lg,
     marginBottom: SIZES.margin.lg,
@@ -443,7 +415,7 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    alignItems: "center",
+    alignItems: 'center',
     paddingVertical: SIZES.padding.xs,
   },
   statValue: {
@@ -475,7 +447,7 @@ const styles = StyleSheet.create({
     marginRight: CARD_SPACING,
   },
   cardWrapperVertical: {
-    width: "100%",
+    width: '100%',
     marginRight: 0,
     marginBottom: SIZES.margin.lg,
   },
@@ -483,7 +455,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: SIZES.radius.card,
     ...SHADOWS.md,
-    overflow: "hidden",
+    overflow: 'hidden',
     borderWidth: 1,
     borderColor: COLORS.blueOpacity10,
   },
@@ -501,9 +473,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.backgroundBlue,
   },
   headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
     gap: SIZES.margin.xs,
   },
   regBadge: {
@@ -527,7 +499,7 @@ const styles = StyleSheet.create({
     ...FONTS.caption,
     color: COLORS.black,
     fontSize: SIZES.font.xs,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   dueBadge: {
     backgroundColor: COLORS.error,
@@ -558,13 +530,13 @@ const styles = StyleSheet.create({
     fontSize: SIZES.font.sm,
   },
   amountSection: {
-    flexDirection: "row",
+    flexDirection: 'row',
     marginBottom: SIZES.margin.md,
     gap: SIZES.margin.sm,
   },
   amountCard: {
     flex: 1,
-    alignItems: "center",
+    alignItems: 'center',
     backgroundColor: COLORS.backgroundSecondary,
     padding: SIZES.padding.sm,
     borderRadius: SIZES.radius.md,
@@ -580,20 +552,20 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginBottom: SIZES.margin.xs,
     fontSize: SIZES.font.xs,
-    textAlign: "center",
+    textAlign: 'center',
   },
   amountValue: {
     ...FONTS.h4,
     color: COLORS.primary,
     fontSize: SIZES.font.md,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   progressSection: {
     marginBottom: SIZES.margin.lg,
   },
   progressLabelRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: SIZES.margin.xs,
   },
   progressLabel: {
@@ -610,21 +582,21 @@ const styles = StyleSheet.create({
     height: 8,
     backgroundColor: COLORS.blueOpacity10,
     borderRadius: SIZES.radius.sm,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   progressFill: {
-    height: "100%",
+    height: '100%',
     backgroundColor: COLORS.primary,
     borderRadius: SIZES.radius.sm,
   },
   dateSection: {
-    flexDirection: "row",
+    flexDirection: 'row',
     marginBottom: SIZES.margin.lg,
     gap: SIZES.margin.xs,
   },
   dateCard: {
     flex: 1,
-    alignItems: "center",
+    alignItems: 'center',
   },
   dateDivider: {
     width: 1,
@@ -640,11 +612,11 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
   },
   dueDateSection: {
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: SIZES.margin.lg,
   },
   buttonsSection: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: SIZES.margin.md,
   },
   buttonsSectionVertical: {
@@ -655,7 +627,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     paddingVertical: SIZES.padding.md,
     borderRadius: SIZES.radius.md,
-    alignItems: "center",
+    alignItems: 'center',
     borderWidth: 1.5,
     borderColor: COLORS.primary,
     ...SHADOWS.xs,
@@ -670,23 +642,24 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     paddingVertical: SIZES.padding.md,
     borderRadius: SIZES.radius.md,
-    alignItems: "center",
+    alignItems: 'center',
     borderWidth: 1.5,
     borderColor: COLORS.primary,
     ...SHADOWS.xs,
   },
+  payButtonDue: {},
   fullyPaidBadge: {
     flex: 1,
-    backgroundColor: "#E8F5E9",
+    backgroundColor: '#E8F5E9',
     paddingVertical: SIZES.padding.md,
     borderRadius: SIZES.radius.md,
-    alignItems: "center",
+    alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: "#43A047",
+    borderColor: '#43A047',
   },
   fullyPaidText: {
     ...FONTS.bodyBold,
-    color: "#2E7D32",
+    color: '#2E7D32',
     fontSize: SIZES.font.md,
   },
   payButtonText: {
@@ -700,8 +673,8 @@ const styles = StyleSheet.create({
   },
   center: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: SIZES.padding.container,
   },
   loadingText: {
@@ -733,7 +706,7 @@ const styles = StyleSheet.create({
     ...FONTS.body,
     color: COLORS.textSecondary,
     marginBottom: SIZES.margin.lg,
-    textAlign: "center",
+    textAlign: 'center',
   },
   createButton: {
     backgroundColor: COLORS.primary,

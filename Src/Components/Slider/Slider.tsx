@@ -1,37 +1,29 @@
-// components/SliderComponentSimple.js
-import React, { useState, useRef, useEffect } from "react";
-import {
-  View,
-  Image,
-  ActivityIndicator,
-  Text,
-  StyleSheet,
-  FlatList,
-  Dimensions,
-  TouchableOpacity,
-} from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { useSchemeSliders } from "../../Hooks/useSlider";
-import { useSchemes } from "../../Hooks/useScheme";
-import { IMAGE_BASE_URL } from "../../Config/BaseUrl";
-import { COLORS, SIZES, FONTS, SHADOWS, moderateScale } from "../../Utills/AppTheme";
+// Src/Components/Slider/Slider.tsx
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Image, ActivityIndicator, Text, StyleSheet, FlatList, Dimensions, TouchableOpacity, ViewToken } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useSchemeSliders } from '../../api/hooks/HomeBanner/useSchemeSliders';
+import { useSchemeCatalog } from '../../api/hooks/Schemes/useSchemeCatalog';
+import { SchemeSlider } from '../../types/HomeBanner/HomeBanner';
+import { IMAGE_BASE_URL } from '../../Config/BaseUrl';
+import { COLORS, SIZES, FONTS, SHADOWS, moderateScale } from '../../Utills/AppTheme';
 
 // index 0 → MemberCreation, rest → WebView URLs in order
-const SLIDE_LINKS = [
+const SLIDE_LINKS: Array<{ type: 'screen'; screen: string } | { type: 'web'; url: string; title: string }> = [
   { type: 'screen', screen: 'MemberCreation' },
   { type: 'web', url: 'https://jaigurujewellers.com/', title: 'Jaiguru Jewellers' },
   { type: 'web', url: 'https://jaigurujewellers.com/why-us', title: 'Why Us' },
   { type: 'web', url: 'https://jaigurujewellers.com/privacy-policy', title: 'Privacy Policy' },
 ];
 
-const { width } = Dimensions.get("window");
+const { width } = Dimensions.get('window');
 
 const SliderComponentSimple = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const { sliders, loading, error } = useSchemeSliders();
-  const { schemes } = useSchemes();
+  const { schemes } = useSchemeCatalog();
 
-  const handleSlidePress = (index) => {
+  const handleSlidePress = (index: number) => {
     const link = SLIDE_LINKS[index];
     if (!link) return;
     if (link.type === 'screen') {
@@ -43,7 +35,7 @@ const SliderComponentSimple = () => {
     }
   };
   const [currentIndex, setCurrentIndex] = useState(0);
-  const flatListRef = useRef(null);
+  const flatListRef = useRef<FlatList<SchemeSlider>>(null);
 
   // Auto-scroll every 4 seconds
   useEffect(() => {
@@ -61,7 +53,7 @@ const SliderComponentSimple = () => {
     return () => clearInterval(interval);
   }, [currentIndex, sliders]);
 
-  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
     if (viewableItems.length > 0) {
       setCurrentIndex(viewableItems[0].index || 0);
     }
@@ -71,7 +63,7 @@ const SliderComponentSimple = () => {
     itemVisiblePercentThreshold: 50,
   }).current;
 
-  const handleDotPress = (index) => {
+  const handleDotPress = (index: number) => {
     flatListRef.current?.scrollToIndex({ index, animated: true });
     setCurrentIndex(index);
   };
@@ -101,23 +93,15 @@ const SliderComponentSimple = () => {
       <FlatList
         ref={flatListRef}
         data={sliders}
-        keyExtractor={(item) => item.SliderId.toString()}
+        keyExtractor={(item, index) => (item as any).SliderId?.toString() ?? `slider-${index}`}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
         renderItem={({ item, index }) => (
-          <TouchableOpacity
-            style={styles.slide}
-            activeOpacity={0.9}
-            onPress={() => handleSlidePress(index)}
-          >
-            <Image
-              source={{ uri: `${IMAGE_BASE_URL}${item.image_path}` }}
-              style={styles.image}
-              resizeMode="cover"
-            />
+          <TouchableOpacity style={styles.slide} activeOpacity={0.9} onPress={() => handleSlidePress(index)}>
+            <Image source={{ uri: `${IMAGE_BASE_URL}${item.image_path}` }} style={styles.image} resizeMode="cover" />
           </TouchableOpacity>
         )}
       />
@@ -126,18 +110,8 @@ const SliderComponentSimple = () => {
       {sliders.length > 1 && (
         <View style={styles.pagination}>
           {sliders.map((_, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={() => handleDotPress(index)}
-              activeOpacity={0.7}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <View
-                style={[
-                  styles.dot,
-                  index === currentIndex && styles.activeDot,
-                ]}
-              />
+            <TouchableOpacity key={index} onPress={() => handleDotPress(index)} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <View style={[styles.dot, index === currentIndex && styles.activeDot]} />
             </TouchableOpacity>
           ))}
         </View>
@@ -148,25 +122,25 @@ const SliderComponentSimple = () => {
 
 const styles = StyleSheet.create({
   container: {
-    width: "100%",
+    width: '100%',
     marginBottom: SIZES.margin.md,
-     marginTop: SIZES.margin.md,
+    marginTop: SIZES.margin.md,
   },
   slide: {
     width: width,
     paddingHorizontal: SIZES.padding.container,
   },
   image: {
-    width: "100%",
+    width: '100%',
     height: moderateScale(200),
     borderRadius: SIZES.radius.lg,
     backgroundColor: COLORS.backgroundSecondary,
     ...SHADOWS.md,
   },
   pagination: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: SIZES.margin.md,
   },
   dot: {
@@ -181,20 +155,20 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
   },
   loadingContainer: {
-    width: "100%",
+    width: '100%',
     height: moderateScale(180),
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: COLORS.backgroundSecondary,
     marginHorizontal: SIZES.padding.container,
     borderRadius: SIZES.radius.lg,
     marginBottom: SIZES.margin.md,
   },
   errorContainer: {
-    width: "100%",
+    width: '100%',
     height: moderateScale(100),
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: COLORS.errorLight,
     marginHorizontal: SIZES.padding.container,
     borderRadius: SIZES.radius.lg,

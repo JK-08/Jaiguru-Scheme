@@ -1,42 +1,91 @@
-// PaymentReceiptPDF.js - Updated for Expo SDK 54 with new FileSystem API
-import * as Print from "expo-print";
-import * as Sharing from "expo-sharing";
-import { Asset } from "expo-asset";
-import { Alert, Platform } from "react-native";
-import * as FileSystem from "expo-file-system/legacy";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getCompanyDetails } from "../Services/CompanyDetailsService";
-// import * as FileSystem from 'expo-file-system';
+// PaymentReceiptPDF.ts - Updated for Expo SDK 54 with new FileSystem API
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
+import { Asset } from 'expo-asset';
+import { Alert, Platform } from 'react-native';
+import * as FileSystem from 'expo-file-system/legacy';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { companyService } from '../api/services/companyService';
+
+export interface ReceiptPaymentInfo {
+  amount: string | number;
+  weight: string;
+  receiptNo: string | number;
+  updateTime: string;
+  chqBank: string;
+  chqBranch: string;
+  chq_CardNo: string;
+  installment: string | number;
+}
+
+export interface ReceiptCustomerInfo {
+  customerName: string;
+  mobile: string;
+  address1: string;
+  address2: string;
+}
+
+export interface ReceiptSchemeInfo {
+  schemeName: string;
+  hsnCode: string;
+  regNo: string | number;
+  groupCode: string;
+  pName: string;
+}
+
+export interface ReceiptCompanyData {
+  cname: string;
+  companyId: string;
+  costId: string;
+  cAddress1: string;
+  cAddress2: string;
+  cAddress3: string;
+  cAddress4: string;
+  cPincode: string;
+  cPhone: string;
+  cEmail: string;
+  gstNo: string;
+  stateId: number;
+  baseUrl: string;
+  logo: string;
+}
+
+export interface GeneratePDFResult {
+  success: boolean;
+  fileName?: string;
+  uri?: string;
+  error?: string;
+}
 
 class PaymentReceiptPDF {
   // Constants
   static STORAGE_KEYS = {
-    DOWNLOAD_DIR: "JAIGURU_DOWNLOAD_DIR",
+    DOWNLOAD_DIR: 'JAIGURU_DOWNLOAD_DIR',
   };
 
   static ASSETS = {
-    BACKGROUND: require("../../assets/icon.png"),
-    LOGO: require("../../assets/icon.png"),
+    BACKGROUND: require('../../assets/icon.png'),
+    LOGO: require('../../assets/icon.png'),
   };
 
   // ---------------------------------------------------------------------------
   // COMPANY DATA MANAGEMENT - FETCH FROM SERVICE
   // ---------------------------------------------------------------------------
-  static async getCompanyData() {
+  static async getCompanyData(): Promise<ReceiptCompanyData> {
     try {
-      console.log("🔄 Fetching company data from service...");
-      
-      const data = await getCompanyDetails();
-      
+      console.log('🔄 Fetching company data from service...');
+
+      const data = await companyService.getAll();
+
       if (Array.isArray(data) && data.length > 0) {
-        const companyData = data[0];
-        
+        const companyData: any = data[0];
+
         // Clean the data (trim strings)
-        const cleanedCompany = Object.keys(companyData).reduce((acc, key) => {
+        const cleanedCompany: any = Object.keys(companyData).reduce((acc: any, key) => {
           const value = companyData[key];
           if (value === null || value === undefined) {
             acc[key] = value;
-          } else if (typeof value === "string") {
+          } else if (typeof value === 'string') {
             acc[key] = value.trim();
           } else {
             acc[key] = value;
@@ -44,195 +93,170 @@ class PaymentReceiptPDF {
           return acc;
         }, {});
 
-        console.log("✅ Company data fetched successfully:", {
+        console.log('✅ Company data fetched successfully:', {
           name: cleanedCompany.COMPANYNAME,
           gst: cleanedCompany.GSTNO,
-          id: cleanedCompany.COMPANYID
+          id: cleanedCompany.COMPANYID,
         });
 
         return {
-          cname: cleanedCompany.COMPANYNAME || "JAIGURU JEWELLERS",
-          companyId: cleanedCompany.COMPANYID || "JGJ",
-          costId: cleanedCompany.COSTID || "",
-          cAddress1: cleanedCompany.ADDRESS1 || "",
-          cAddress2: cleanedCompany.ADDRESS2 || "",
-          cAddress3: cleanedCompany.ADDRESS3 || "",
-          cAddress4: cleanedCompany.ADDRESS4 || "",
-          cPincode: cleanedCompany.AREACODE || "",
-          cPhone: cleanedCompany.PHONE || "",
-          cEmail: cleanedCompany.EMAIL || "",
-          gstNo: cleanedCompany.GSTNO || "",
+          cname: cleanedCompany.COMPANYNAME || 'JAIGURU JEWELLERS',
+          companyId: cleanedCompany.COMPANYID || 'JGJ',
+          costId: cleanedCompany.COSTID || '',
+          cAddress1: cleanedCompany.ADDRESS1 || '',
+          cAddress2: cleanedCompany.ADDRESS2 || '',
+          cAddress3: cleanedCompany.ADDRESS3 || '',
+          cAddress4: cleanedCompany.ADDRESS4 || '',
+          cPincode: cleanedCompany.AREACODE || '',
+          cPhone: cleanedCompany.PHONE || '',
+          cEmail: cleanedCompany.EMAIL || '',
+          gstNo: cleanedCompany.GSTNO || '',
           stateId: cleanedCompany.STATEID || 0,
-          baseUrl: cleanedCompany.BASEURL?.replace(/\s+/g, '') || "",
-          logo: cleanedCompany.LOGO || "",
+          baseUrl: cleanedCompany.BASEURL?.replace(/\s+/g, '') || '',
+          logo: cleanedCompany.LOGO || '',
         };
       } else {
-        console.warn("⚠️ No company data found, using defaults");
+        console.warn('⚠️ No company data found, using defaults');
         return this.getDefaultCompanyData();
       }
     } catch (error) {
-      console.error("❌ Error fetching company data:", error);
+      console.error('❌ Error fetching company data:', error);
       return this.getDefaultCompanyData();
     }
   }
 
-  static getDefaultCompanyData() {
-    console.log("📄 Using default Jaiguru Jewellers company data");
+  static getDefaultCompanyData(): ReceiptCompanyData {
+    console.log('📄 Using default Jaiguru Jewellers company data');
     return {
-      cname: "JAIGURU JEWELLERS",
-      companyId: "JGJ",
-      costId: "JGL",
-      cAddress1: "No. 123, Main Road",
-      cAddress2: "Jewellery Complex",
-      cAddress3: "Chennai",
-      cAddress4: "Tamil Nadu",
-      cPincode: "600001",
-      cPhone: "9876543210",
-      cEmail: "contact@jaigurujewellers.com",
-      gstNo: "33ABCDE1234F1Z5",
+      cname: 'JAIGURU JEWELLERS',
+      companyId: 'JGJ',
+      costId: 'JGL',
+      cAddress1: 'No. 123, Main Road',
+      cAddress2: 'Jewellery Complex',
+      cAddress3: 'Chennai',
+      cAddress4: 'Tamil Nadu',
+      cPincode: '600001',
+      cPhone: '9876543210',
+      cEmail: 'contact@jaigurujewellers.com',
+      gstNo: '33ABCDE1234F1Z5',
       stateId: 33,
-      baseUrl: "https://jaigurujewellers.com",
-      logo: "",
+      baseUrl: 'https://jaigurujewellers.com',
+      logo: '',
     };
   }
 
   // ---------------------------------------------------------------------------
   // ASSET TO BASE64 CONVERSION - UPDATED FOR NEW API
   // ---------------------------------------------------------------------------
-static async assetToBase64(moduleAsset) {
-  try {
-    const asset = Asset.fromModule(moduleAsset);
-    await asset.downloadAsync();
+  static async assetToBase64(moduleAsset: number): Promise<string> {
+    try {
+      const asset = Asset.fromModule(moduleAsset);
+      await asset.downloadAsync();
 
-    const uri = asset.localUri || asset.uri;
-    if (!uri) throw new Error("Asset URI not available");
+      const uri = asset.localUri || asset.uri;
+      if (!uri) throw new Error('Asset URI not available');
 
-    const base64 = await FileSystem.readAsStringAsync(uri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
 
-    return base64;
-  } catch (error) {
-    console.error("assetToBase64 Error:", error);
-    return "";
+      return base64;
+    } catch (error) {
+      console.error('assetToBase64 Error:', error);
+      return '';
+    }
   }
-}
 
   // ---------------------------------------------------------------------------
   // FORMATTING FUNCTIONS - EXACTLY MATCHING FIRST CODE
   // ---------------------------------------------------------------------------
-  static formatDate(dateString) {
-    if (!dateString || dateString === "1900-01-01 00:00:00.0") return "N/A";
+  static formatDate(dateString?: string): string {
+    if (!dateString || dateString === '1900-01-01 00:00:00.0') return 'N/A';
     try {
-      const dateStringFormatted = dateString.includes(" ")
-        ? dateString.replace(" ", "T").replace(/\.\d+$/, "")
-        : dateString;
+      const dateStringFormatted = dateString.includes(' ') ? dateString.replace(' ', 'T').replace(/\.\d+$/, '') : dateString;
       const date = new Date(dateStringFormatted);
-      if (isNaN(date.getTime())) return "Invalid Date";
-      return date.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
+      if (isNaN(date.getTime())) return 'Invalid Date';
+      return date.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
       });
     } catch {
-      return "Invalid Date";
+      return 'Invalid Date';
     }
   }
 
-  static formatCurrency(amount) {
-    const numAmount = parseFloat(amount) || 0;
+  static formatCurrency(amount: string | number): string {
+    const numAmount = parseFloat(String(amount)) || 0;
     return `₹${numAmount.toLocaleString('en-IN', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
   }
 
-  static numberToWords(num) {
-    if (num === 0) return "Zero Rupees Only";
-    
+  static numberToWords(num: number): string {
+    if (num === 0) return 'Zero Rupees Only';
+
     const ones = [
-      "",
-      "One",
-      "Two",
-      "Three",
-      "Four",
-      "Five",
-      "Six",
-      "Seven",
-      "Eight",
-      "Nine",
-      "Ten",
-      "Eleven",
-      "Twelve",
-      "Thirteen",
-      "Fourteen",
-      "Fifteen",
-      "Sixteen",
-      "Seventeen",
-      "Eighteen",
-      "Nineteen",
-    ];
-    
-    const tens = [
-      "",
-      "",
-      "Twenty",
-      "Thirty",
-      "Forty",
-      "Fifty",
-      "Sixty",
-      "Seventy",
-      "Eighty",
-      "Ninety",
+      '',
+      'One',
+      'Two',
+      'Three',
+      'Four',
+      'Five',
+      'Six',
+      'Seven',
+      'Eight',
+      'Nine',
+      'Ten',
+      'Eleven',
+      'Twelve',
+      'Thirteen',
+      'Fourteen',
+      'Fifteen',
+      'Sixteen',
+      'Seventeen',
+      'Eighteen',
+      'Nineteen',
     ];
 
-    const toWords = (n) => {
+    const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+    const toWords = (n: number): string => {
       if (n < 20) return ones[n];
       if (n < 100) {
-        return tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : "");
+        return tens[Math.floor(n / 10)] + (n % 10 ? ' ' + ones[n % 10] : '');
       }
       if (n < 1000) {
-        return (
-          ones[Math.floor(n / 100)] +
-          " Hundred" +
-          (n % 100 ? " " + toWords(n % 100) : "")
-        );
+        return ones[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' ' + toWords(n % 100) : '');
       }
       if (n < 100000) {
-        return (
-          toWords(Math.floor(n / 1000)) +
-          " Thousand" +
-          (n % 1000 ? " " + toWords(n % 1000) : "")
-        );
+        return toWords(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 ? ' ' + toWords(n % 1000) : '');
       }
       if (n < 10000000) {
-        return (
-          toWords(Math.floor(n / 100000)) +
-          " Lakh" +
-          (n % 100000 ? " " + toWords(n % 100000) : "")
-        );
+        return toWords(Math.floor(n / 100000)) + ' Lakh' + (n % 100000 ? ' ' + toWords(n % 100000) : '');
       }
-      return (
-        toWords(Math.floor(n / 10000000)) +
-        " Crore" +
-        (n % 10000000 ? " " + toWords(n % 10000000) : "")
-      );
+      return toWords(Math.floor(n / 10000000)) + ' Crore' + (n % 10000000 ? ' ' + toWords(n % 10000000) : '');
     };
 
     const amount = Math.floor(num);
     const paise = Math.round((num - amount) * 100);
-    
-    let words = toWords(amount) + " Rupees";
+
+    let words = toWords(amount) + ' Rupees';
     if (paise > 0) {
-      words += " and " + toWords(paise) + " Paise";
+      words += ' and ' + toWords(paise) + ' Paise';
     }
-    return words + " Only";
+    return words + ' Only';
   }
 
   // ---------------------------------------------------------------------------
   // DATA EXTRACTION - MATCHING FIRST CODE STRUCTURE
   // ---------------------------------------------------------------------------
-  static extractDataFromResponse(responseData) {
+  static extractDataFromResponse(responseData: any): {
+    payment: ReceiptPaymentInfo;
+    customerInfo: ReceiptCustomerInfo;
+    schemeInfo: ReceiptSchemeInfo;
+  } {
     try {
       const schemeData = responseData?.schemeData || {};
       const payment = responseData?.payment || {};
@@ -241,36 +265,41 @@ static async assetToBase64(moduleAsset) {
 
       return {
         payment: {
-          amount: payment.amount || "0",
-          weight: payment.weight || "0.0",
+          amount: payment.amount || '0',
+          weight: payment.weight || '0.0',
           receiptNo: payment.receiptNo || `RCP${Date.now()}`,
           updateTime: payment.updateTime || new Date().toISOString(),
-          chqBank: payment.chqBank || "N/A",
-          chqBranch: payment.chqBranch || "N/A",
-          chq_CardNo: payment.chq_CardNo || "N/A",
-          installment: payment.installment || "1",
+          chqBank: payment.chqBank || 'N/A',
+          chqBranch: payment.chqBranch || 'N/A',
+          chq_CardNo: payment.chq_CardNo || 'N/A',
+          installment: payment.installment || '1',
         },
         customerInfo: {
-          customerName: customerInfo.customerName || schemeData?.pName || "N/A",
-          mobile: customerInfo.mobile || schemeData?.personalInfo?.mobile || "N/A",
-          address1: customerInfo.address1 || 
-                    `${schemeData?.personalInfo?.doorNo || ""}, ${schemeData?.personalInfo?.address1 || ""}`.replace(/^,\s*|,\s*$/g, '') || 
-                    "N/A",
-          address2: customerInfo.address2 || 
-                    `${schemeData?.personalInfo?.city || ""}, ${schemeData?.personalInfo?.state || ""} ${schemeData?.personalInfo?.pinCode || ""}`.replace(/^,\s*|,\s*$/g, '') || 
-                    "N/A",
+          customerName: customerInfo.customerName || schemeData?.pName || 'N/A',
+          mobile: customerInfo.mobile || schemeData?.personalInfo?.mobile || 'N/A',
+          address1:
+            customerInfo.address1 ||
+            `${schemeData?.personalInfo?.doorNo || ''}, ${schemeData?.personalInfo?.address1 || ''}`.replace(/^,\s*|,\s*$/g, '') ||
+            'N/A',
+          address2:
+            customerInfo.address2 ||
+            `${schemeData?.personalInfo?.city || ''}, ${schemeData?.personalInfo?.state || ''} ${schemeData?.personalInfo?.pinCode || ''}`.replace(
+              /^,\s*|,\s*$/g,
+              ''
+            ) ||
+            'N/A',
         },
         schemeInfo: {
-          schemeName: schemeInfo.schemeName || schemeData?.schemeSummary?.schemeName || "Jaiguru Scheme",
-          hsnCode: schemeInfo.hsnCode || schemeData?.schemeSummary?.hsnCode || "",
-          regNo: schemeData?.regNo || schemeData?.regno || "N/A",
-          groupCode: schemeData?.groupCode || schemeData?.groupcode || "N/A",
-          pName: schemeData?.pName || "",
+          schemeName: schemeInfo.schemeName || schemeData?.schemeSummary?.schemeName || 'Jaiguru Scheme',
+          hsnCode: schemeInfo.hsnCode || schemeData?.schemeSummary?.hsnCode || '',
+          regNo: schemeData?.regNo || schemeData?.regno || 'N/A',
+          groupCode: schemeData?.groupCode || schemeData?.groupcode || 'N/A',
+          pName: schemeData?.pName || '',
         },
       };
     } catch (error) {
-      console.error("Error extracting data:", error);
-      throw new Error("Invalid response structure");
+      console.error('Error extracting data:', error);
+      throw new Error('Invalid response structure');
     }
   }
 
@@ -283,18 +312,18 @@ static async assetToBase64(moduleAsset) {
     schemeInfo,
     companyData,
     logoBase64,
-  }) {
+  }: {
+    payment: ReceiptPaymentInfo;
+    customerInfo: ReceiptCustomerInfo;
+    schemeInfo: ReceiptSchemeInfo;
+    companyData: ReceiptCompanyData;
+    logoBase64: string;
+  }): string {
     // Build company address
     const getCompanyAddress = () => {
-      return [
-        companyData.cAddress1,
-        companyData.cAddress2,
-        companyData.cAddress3,
-        companyData.cAddress4,
-        companyData.cPincode ? `PIN: ${companyData.cPincode}` : "",
-      ]
+      return [companyData.cAddress1, companyData.cAddress2, companyData.cAddress3, companyData.cAddress4, companyData.cPincode ? `PIN: ${companyData.cPincode}` : '']
         .filter(Boolean)
-        .join(", ");
+        .join(', ');
     };
 
     const companyAddress = getCompanyAddress();
@@ -307,18 +336,18 @@ static async assetToBase64(moduleAsset) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Payment Receipt - ${payment.receiptNo}</title>
 <style>
-  * { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   }
-  body { 
+  body {
     background-color: #f5f5f5;
     padding: 20px;
   }
-  @page { 
-    size: A4; 
+  @page {
+    size: A4;
     margin: 20mm;
   }
   .receipt-container {
@@ -563,21 +592,22 @@ static async assetToBase64(moduleAsset) {
   <!-- Company Header -->
   <div class="header">
     <div class="header-content">
-      ${logoBase64 ? 
-        `<img class="logo" src="data:image/jpeg;base64,${logoBase64}" alt="Company Logo" />` : 
-        `<div class="logo-placeholder"><span class="logo-placeholder-text">Jaiguru</span></div>`
+      ${
+        logoBase64
+          ? `<img class="logo" src="data:image/jpeg;base64,${logoBase64}" alt="Company Logo" />`
+          : `<div class="logo-placeholder"><span class="logo-placeholder-text">Jaiguru</span></div>`
       }
       <div class="company-info">
-        <div class="company-name">${companyData.cname || "Jaiguru jewellers"}</div>
+        <div class="company-name">${companyData.cname || 'Jaiguru jewellers'}</div>
       </div>
     </div>
   </div>
 
   <!-- Contact Information -->
   <div class="contact-section">
-    <div class="contact-text">📞 ${companyData.cPhone || "+91-95143 33601, +91-95143 33609"}</div>
+    <div class="contact-text">📞 ${companyData.cPhone || '+91-95143 33601, +91-95143 33609'}</div>
     <div class="contact-text">✉ ${companyData.cEmail}</div>
-    <div class="contact-text">📍 ${companyAddress || "160, Melamasi St, Madurai-625001"}</div>
+    <div class="contact-text">📍 ${companyAddress || '160, Melamasi St, Madurai-625001'}</div>
   </div>
 
   <!-- Divider -->
@@ -633,7 +663,7 @@ static async assetToBase64(moduleAsset) {
       <span class="th" style="flex: 0.5;">S.No</span>
       <span class="th" style="flex: 1.8;">Group Code - Reg No</span>
       <span class="th" style="flex: 1;">Installment</span>
-      ${parseFloat(payment.weight) > 0 ? `<span class="th" style="flex: 1;">Weight (g)</span>` : ''}
+      ${parseFloat(String(payment.weight)) > 0 ? `<span class="th" style="flex: 1;">Weight (g)</span>` : ''}
       <span class="th" style="flex: 1.2;">Amount (₹)</span>
     </div>
 
@@ -641,8 +671,7 @@ static async assetToBase64(moduleAsset) {
       <span class="td" style="flex: 0.5;">1</span>
       <span class="td" style="flex: 1.8;">${schemeInfo.groupCode}-${schemeInfo.regNo}</span>
       <span class="td" style="flex: 1;">${payment.installment}</span>
-      ${parseFloat(payment.weight) > 0 ? 
-        `<span class="td" style="flex: 1;">${parseFloat(payment.weight).toFixed(3)}</span>` : ''}
+      ${parseFloat(String(payment.weight)) > 0 ? `<span class="td" style="flex: 1;">${parseFloat(String(payment.weight)).toFixed(3)}</span>` : ''}
       <span class="td" style="flex: 1.2;">${this.formatCurrency(payment.amount)}</span>
     </div>
   </div>
@@ -654,25 +683,41 @@ static async assetToBase64(moduleAsset) {
   </div>
 
   <!-- Payment Mode Details -->
-  ${(payment.chqBank && payment.chqBank !== "N/A") || payment.chq_CardNo ? `
+  ${
+    (payment.chqBank && payment.chqBank !== 'N/A') || payment.chq_CardNo
+      ? `
   <div class="payment-mode-section">
     <div class="payment-mode-title">Payment Details:</div>
-    ${payment.chqBank && payment.chqBank !== "N/A" ? `
+    ${
+      payment.chqBank && payment.chqBank !== 'N/A'
+        ? `
     <div class="payment-mode-row">
       <span class="payment-mode-label">Mode:</span>
       <span class="payment-mode-value">${payment.chqBank}</span>
-    </div>` : ''}
-    ${payment.chqBranch && payment.chqBranch !== "N/A" ? `
+    </div>`
+        : ''
+    }
+    ${
+      payment.chqBranch && payment.chqBranch !== 'N/A'
+        ? `
     <div class="payment-mode-row">
       <span class="payment-mode-label">Branch:</span>
       <span class="payment-mode-value">${payment.chqBranch}</span>
-    </div>` : ''}
-    ${payment.chq_CardNo && payment.chq_CardNo !== "N/A" ? `
+    </div>`
+        : ''
+    }
+    ${
+      payment.chq_CardNo && payment.chq_CardNo !== 'N/A'
+        ? `
     <div class="payment-mode-row">
       <span class="payment-mode-label">Ref No:</span>
       <span class="payment-mode-value">${payment.chq_CardNo}</span>
-    </div>` : ''}
-  </div>` : ''}
+    </div>`
+        : ''
+    }
+  </div>`
+      : ''
+  }
 
   <!-- Footer -->
   <div class="footer">
@@ -685,149 +730,133 @@ static async assetToBase64(moduleAsset) {
   }
 
   // ---------------------------------------------------------------------------
-  // PDF GENERATION - UPDATED FOR NEW API
+  // PDF GENERATION - ANDROID DOWNLOAD FOLDER (LIKE OLD WORKING CODE)
   // ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
-// PDF GENERATION - STABLE VERSION (SDK 54 SAFE)
-// ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
-// PDF GENERATION - ANDROID DOWNLOAD FOLDER (LIKE OLD WORKING CODE)
-// ---------------------------------------------------------------------------
-static async generatePDF(responseData) {
-  try {
-    console.log("🔄 Starting PDF generation...");
+  static async generatePDF(responseData: any): Promise<GeneratePDFResult> {
+    try {
+      console.log('🔄 Starting PDF generation...');
 
-    // 1️⃣ Extract data
-    const { payment, customerInfo, schemeInfo } =
-      this.extractDataFromResponse(responseData);
+      // 1️⃣ Extract data
+      const { payment, customerInfo, schemeInfo } = this.extractDataFromResponse(responseData);
 
-    // 2️⃣ Load logo + company data
-    const [logoBase64, companyData] = await Promise.all([
-      this.assetToBase64(this.ASSETS.LOGO).catch(() => ""),
-      this.getCompanyData(),
-    ]);
+      // 2️⃣ Load logo + company data
+      const [logoBase64, companyData] = await Promise.all([this.assetToBase64(this.ASSETS.LOGO).catch(() => ''), this.getCompanyData()]);
 
-    // 3️⃣ Generate HTML
-    const html = this.generateReceiptHTML({
-      payment,
-      customerInfo,
-      schemeInfo,
-      companyData,
-      logoBase64,
-    });
+      // 3️⃣ Generate HTML
+      const html = this.generateReceiptHTML({
+        payment,
+        customerInfo,
+        schemeInfo,
+        companyData,
+        logoBase64,
+      });
 
-    // 4️⃣ Generate temporary PDF
-    const { uri } = await Print.printToFileAsync({
-      html,
-      width: 595,
-      height: 842,
-    });
+      // 4️⃣ Generate temporary PDF
+      const { uri } = await Print.printToFileAsync({
+        html,
+        width: 595,
+        height: 842,
+      });
 
-    if (!uri) throw new Error("PDF generation failed");
+      if (!uri) throw new Error('PDF generation failed');
 
-    const fileName = `Receipt_${payment.receiptNo}_${Date.now()}.pdf`;
+      const fileName = `Receipt_${payment.receiptNo}_${Date.now()}.pdf`;
 
-    // ============================
-    // ANDROID → SAVE TO DOWNLOADS
-    // ============================
-    if (Platform.OS === "android") {
-      let directoryUri = await AsyncStorage.getItem(this.STORAGE_KEYS.DOWNLOAD_DIR);
+      // ============================
+      // ANDROID → SAVE TO DOWNLOADS
+      // ============================
+      if (Platform.OS === 'android') {
+        let directoryUri = await AsyncStorage.getItem(this.STORAGE_KEYS.DOWNLOAD_DIR);
 
-      if (!directoryUri) {
-        const permissions =
-          await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+        if (!directoryUri) {
+          const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
 
-        if (!permissions.granted) {
-          Alert.alert("Permission Needed", "Please allow storage access.");
-          throw new Error("Storage permission not granted");
+          if (!permissions.granted) {
+            Alert.alert('Permission Needed', 'Please allow storage access.');
+            throw new Error('Storage permission not granted');
+          }
+
+          directoryUri = permissions.directoryUri;
+          await AsyncStorage.setItem(this.STORAGE_KEYS.DOWNLOAD_DIR, directoryUri);
         }
 
-        directoryUri = permissions.directoryUri;
-        await AsyncStorage.setItem(this.STORAGE_KEYS.DOWNLOAD_DIR, directoryUri);
+        const base64 = await FileSystem.readAsStringAsync(uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        const newUri = await FileSystem.StorageAccessFramework.createFileAsync(directoryUri, fileName, 'application/pdf');
+
+        await FileSystem.writeAsStringAsync(newUri, base64, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        console.log('✅ PDF saved to:', newUri);
+
+        Alert.alert('Success ✓', `Receipt saved successfully!\n\n${fileName}`);
+
+        return {
+          success: true,
+          fileName,
+          uri: newUri,
+        };
       }
 
-      const base64 = await FileSystem.readAsStringAsync(uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      // ============================
+      // IOS → SAVE TO APP FOLDER
+      // ============================
+      else {
+        const newPath = FileSystem.documentDirectory + fileName;
 
-      const newUri =
-        await FileSystem.StorageAccessFramework.createFileAsync(
-          directoryUri,
+        await FileSystem.moveAsync({
+          from: uri,
+          to: newPath,
+        });
+
+        Alert.alert('Success ✓', `Receipt saved successfully!`);
+
+        return {
+          success: true,
           fileName,
-          "application/pdf"
-        );
+          uri: newPath,
+        };
+      }
+    } catch (error: any) {
+      console.error('❌ PDF Generation Error:', error);
 
-      await FileSystem.writeAsStringAsync(newUri, base64, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-
-      console.log("✅ PDF saved to:", newUri);
-
-      Alert.alert("Success ✓", `Receipt saved successfully!\n\n${fileName}`);
+      Alert.alert('Error', error.message || 'Failed to generate receipt');
 
       return {
-        success: true,
-        fileName,
-        uri: newUri,
+        success: false,
+        error: error.message,
       };
     }
-
-    // ============================
-    // IOS → SAVE TO APP FOLDER
-    // ============================
-    else {
-      const newPath = FileSystem.documentDirectory + fileName;
-
-      await FileSystem.moveAsync({
-        from: uri,
-        to: newPath,
-      });
-
-      Alert.alert("Success ✓", `Receipt saved successfully!`);
-
-      return {
-        success: true,
-        fileName,
-        uri: newPath,
-      };
-    }
-  } catch (error) {
-    console.error("❌ PDF Generation Error:", error);
-
-    Alert.alert("Error", error.message || "Failed to generate receipt");
-
-    return {
-      success: false,
-      error: error.message,
-    };
   }
-}
 
   // ---------------------------------------------------------------------------
   // SHARE PDF
   // ---------------------------------------------------------------------------
-  static async sharePDF(responseData) {
+  static async sharePDF(responseData: any): Promise<GeneratePDFResult> {
     try {
       const result = await this.generatePDF(responseData);
-      
+
       if (result.success && result.uri) {
         // Check if sharing is available
         const isSharingAvailable = await Sharing.isAvailableAsync();
-        
+
         if (isSharingAvailable) {
           await Sharing.shareAsync(result.uri, {
             mimeType: 'application/pdf',
             dialogTitle: 'Share Payment Receipt',
-            UTI: 'com.adobe.pdf'
+            UTI: 'com.adobe.pdf',
           });
         } else {
-          Alert.alert("Sharing not available", "Sharing is not available on this device");
+          Alert.alert('Sharing not available', 'Sharing is not available on this device');
         }
       }
-      
+
       return result;
-    } catch (error) {
-      console.error("❌ Share PDF Error:", error);
+    } catch (error: any) {
+      console.error('❌ Share PDF Error:', error);
       return { success: false, error: error.message };
     }
   }
@@ -835,15 +864,11 @@ static async generatePDF(responseData) {
   // ---------------------------------------------------------------------------
   // PREVIEW PDF (returns HTML for preview)
   // ---------------------------------------------------------------------------
-  static async getReceiptHTML(responseData) {
+  static async getReceiptHTML(responseData: any): Promise<string> {
     try {
-      const { payment, customerInfo, schemeInfo } =
-        this.extractDataFromResponse(responseData);
+      const { payment, customerInfo, schemeInfo } = this.extractDataFromResponse(responseData);
 
-      const [logoBase64, companyData] = await Promise.all([
-        this.assetToBase64(this.ASSETS.LOGO).catch(() => ""),
-        this.getCompanyData(),
-      ]);
+      const [logoBase64, companyData] = await Promise.all([this.assetToBase64(this.ASSETS.LOGO).catch(() => ''), this.getCompanyData()]);
 
       return this.generateReceiptHTML({
         payment,
@@ -853,7 +878,7 @@ static async generatePDF(responseData) {
         logoBase64,
       });
     } catch (error) {
-      console.error("Error generating receipt HTML:", error);
+      console.error('Error generating receipt HTML:', error);
       throw error;
     }
   }

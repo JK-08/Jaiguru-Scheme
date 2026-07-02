@@ -42,11 +42,11 @@ export const callApi = async <T, R>({
       },
     });
 
-    if (__DEV__) {
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log(`✅ API SUCCESS [${method.toUpperCase()}] ${url}`);
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    }
+    // if (__DEV__) {
+    //   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    //   console.log(`✅ API SUCCESS [${method.toUpperCase()}] ${url}`);
+    //   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    // }
 
     return response.data;
   } catch (error: any) {

@@ -1,55 +1,39 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  TouchableOpacity,
-  StatusBar,
-  ActivityIndicator,
-} from "react-native";
-import Icon from "react-native-vector-icons/MaterialIcons";
-import { useCompany } from "../../Hooks/useCompany";
-import { useTodayRate } from "../../Hooks/useTodayRate";
-import useNotifications from "../../Hooks/useNotifications";
-import {
-  COLORS,
-  SIZES,
-  FONTS,
-  SHADOWS,
-  moderateScale,
-} from "../../Utills/AppTheme";
-import { useNavigation, DrawerActions } from "@react-navigation/native";
+// Src/Components/MainHeader/MainHeader.tsx
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity, StatusBar, ActivityIndicator } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useCompany } from '../../api/hooks/Company/useCompany';
+import { useTodayRate } from '../../api/hooks/Rates/useTodayRate';
+import useNotifications from '../../api/hooks/Notifications/useNotifications';
+import { COLORS, SIZES, FONTS, SHADOWS, moderateScale } from '../../Utills/AppTheme';
+import { useNavigation, DrawerActions } from '@react-navigation/native';
 
-const HomeHeaderRedesigned = ({
-  onMenuPress,
-  onNotificationPress,
-  onLogoPress,
-}) => {
-  const {
-    company,
-    loading: companyLoading,
-    error: companyError,
-  } = useCompany();
+export interface HomeHeaderRedesignedProps {
+  onMenuPress?: () => void;
+  onNotificationPress?: () => void;
+  onLogoPress?: () => void;
+}
+
+const HomeHeaderRedesigned = ({ onLogoPress }: HomeHeaderRedesignedProps) => {
+  const { company, loading: companyLoading, error: companyError } = useCompany();
   const { rates, loading: ratesLoading, error: ratesError } = useTodayRate();
   const [currentTime, setCurrentTime] = useState(new Date());
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
 
-const {
-  unreadCount,
-  refresh,
-} = useNotifications();
+  const { unreadCount, refresh } = useNotifications();
 
   const handleMenuPress = () => {
     navigation.dispatch(DrawerActions.openDrawer());
   };
-useEffect(() => {
-  const interval = setInterval(() => {
-    refresh(); // refresh notifications
-  }, 1000); // every 1 second
 
-  return () => clearInterval(interval);
-}, [refresh]);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refresh(); // refresh notifications
+    }, 1000); // every 1 second
+
+    return () => clearInterval(interval);
+  }, [refresh]);
+
   // Update time every minute
   useEffect(() => {
     const timer = setInterval(() => {
@@ -60,10 +44,10 @@ useEffect(() => {
   }, []);
 
   // Format time to 12-hour format
-  const formatTime = (date) => {
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
       hour12: true,
     });
   };
@@ -75,76 +59,43 @@ useEffect(() => {
       {/* Top Row: Menu Icon, Logo & Company Name, Notification */}
       <View style={styles.topRow}>
         {/* Right: Notification Icon */}
-     <TouchableOpacity
-  style={styles.iconButton}
-  onPress={() => navigation.navigate("NotificationScreen")}
-  activeOpacity={0.7}
->
-  <Icon
-    name="notifications-none"
-    size={SIZES.icon.lg}
-    color={COLORS.white}
-  />
+        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('NotificationScreen')} activeOpacity={0.7}>
+          <Icon name="notifications-none" size={SIZES.icon.lg} color={COLORS.white} />
 
-  {unreadCount > 0 && (
-    <View style={styles.notificationBadge}>
-      <Text style={styles.badgeText}>
-        {unreadCount > 99 ? "99+" : unreadCount}
-      </Text>
-    </View>
-  )}
-</TouchableOpacity>
+          {unreadCount > 0 && (
+            <View style={styles.notificationBadge}>
+              <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
         {/* Center: Logo and Company Name */}
-        <TouchableOpacity
-          style={styles.centerContainer}
-          onPress={onLogoPress}
-          activeOpacity={0.7}
-          disabled={companyLoading}
-        >
+        <TouchableOpacity style={styles.centerContainer} onPress={onLogoPress} activeOpacity={0.7} disabled={companyLoading}>
           {companyLoading ? (
             <ActivityIndicator size="small" color={COLORS.white} />
           ) : company ? (
             <View style={styles.logoWrapper}>
               {company.CompanyLogoUrl ? (
-                <Image
-                  source={{ uri: company.CompanyLogoUrl }}
-                  style={styles.logo}
-                  resizeMode="contain"
-                />
+                <Image source={{ uri: company.CompanyLogoUrl }} style={styles.logo} resizeMode="contain" />
               ) : (
                 <View style={[styles.logo, styles.defaultLogo]}>
-                  <Icon
-                    name="business"
-                    size={SIZES.icon.lg}
-                    color={COLORS.goldPrimary}
-                  />
+                  <Icon name="business" size={SIZES.icon.lg} color={COLORS.goldPrimary} />
                 </View>
               )}
               <View style={styles.companyTextContainer}>
                 <Text style={styles.companyName} numberOfLines={1}>
-                  {company.COMPANY1NAME ||
-                    company.COMPA1NYID ||
-                    "Jaiguru Jewellers"}
+                  {company.COMPANYNAME || company.COMPANYID || 'Jaiguru Jewellers'}
                 </Text>
               </View>
             </View>
           ) : companyError ? (
             <View style={styles.errorContainer}>
-              <Icon
-                name="error-outline"
-                size={SIZES.icon.md}
-                color={COLORS.errorLight}
-              />
+              <Icon name="error-outline" size={SIZES.icon.md} color={COLORS.errorLight} />
               <Text style={styles.errorText}>Failed to load</Text>
             </View>
           ) : null}
         </TouchableOpacity>
         {/* Left: Menu Icon */}
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={handleMenuPress} // Fixed: Using drawer open method
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity style={styles.iconButton} onPress={handleMenuPress} activeOpacity={0.7}>
           <Icon name="menu" size={SIZES.icon.lg} color={COLORS.white} />
         </TouchableOpacity>
       </View>
@@ -154,11 +105,7 @@ useEffect(() => {
         {/* Gold Rate Card */}
         <View style={styles.rateCard}>
           <View style={styles.rateHeader}>
-            <Icon
-              name="trending-up"
-              size={SIZES.icon.md}
-              color={COLORS.goldPrimary}
-            />
+            <Icon name="trending-up" size={SIZES.icon.md} color={COLORS.goldPrimary} />
             <Text style={styles.rateLabel}>GOLD</Text>
           </View>
           {ratesLoading ? (
@@ -166,9 +113,7 @@ useEffect(() => {
           ) : ratesError ? (
             <Text style={styles.rateError}>N/A</Text>
           ) : (
-            <Text style={styles.rateValue}>
-              ₹{rates?.GOLDRATE?.toLocaleString("en-IN") || "--"}
-            </Text>
+            <Text style={styles.rateValue}>₹{rates?.GOLDRATE?.toLocaleString('en-IN') || '--'}</Text>
           )}
           <Text style={styles.rateUnit}>per gram</Text>
         </View>
@@ -179,11 +124,7 @@ useEffect(() => {
         {/* Silver Rate Card */}
         <View style={styles.rateCard}>
           <View style={styles.rateHeader}>
-            <Icon
-              name="trending-up"
-              size={SIZES.icon.md}
-              color={COLORS.gray300}
-            />
+            <Icon name="trending-up" size={SIZES.icon.md} color={COLORS.gray300} />
             <Text style={styles.rateLabel}>SILVER</Text>
           </View>
           {ratesLoading ? (
@@ -191,9 +132,7 @@ useEffect(() => {
           ) : ratesError ? (
             <Text style={styles.rateError}>N/A</Text>
           ) : (
-            <Text style={[styles.rateValue, styles.silverValue]}>
-              ₹{rates?.SILVERRATE?.toLocaleString("en-IN") || "--"}
-            </Text>
+            <Text style={[styles.rateValue, styles.silverValue]}>₹{rates?.SILVERRATE?.toLocaleString('en-IN') || '--'}</Text>
           )}
           <Text style={styles.rateUnit}>per gram</Text>
         </View>
@@ -202,14 +141,8 @@ useEffect(() => {
       {/* Last Updated Time */}
       {rates && !ratesLoading && (
         <View style={styles.updateTimeContainer}>
-          <Icon
-            name="schedule"
-            size={moderateScale(12)}
-            color={COLORS.whiteOpacity70}
-          />
-          <Text style={styles.updateTimeText}>
-            Updated: Today {formatTime(currentTime)}
-          </Text>
+          <Icon name="schedule" size={moderateScale(12)} color={COLORS.whiteOpacity70} />
+          <Text style={styles.updateTimeText}>Updated: Today {formatTime(currentTime)}</Text>
         </View>
       )}
     </View>
@@ -226,9 +159,9 @@ const styles = StyleSheet.create({
     ...SHADOWS.blueStrong,
   },
   topRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: SIZES.padding.lg,
     marginBottom: SIZES.margin.xs,
   },
@@ -237,18 +170,18 @@ const styles = StyleSheet.create({
     height: moderateScale(44),
     borderRadius: 22,
     backgroundColor: COLORS.whiteOpacity20,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   centerContainer: {
     flex: 1,
     marginHorizontal: SIZES.margin.md,
-    alignItems: "center",
+    alignItems: 'center',
   },
   logoWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   logo: {
     width: moderateScale(50),
@@ -259,13 +192,13 @@ const styles = StyleSheet.create({
     borderColor: COLORS.goldOpacity30,
   },
   defaultLogo: {
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   companyTextContainer: {
     marginLeft: SIZES.margin.sm,
     flex: 1,
-    alignItems: "flex-start",
+    alignItems: 'flex-start',
   },
   companyName: {
     ...FONTS.h5,
@@ -277,9 +210,9 @@ const styles = StyleSheet.create({
     color: COLORS.whiteOpacity70,
   },
   errorContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   errorText: {
     ...FONTS.bodySmall,
@@ -287,15 +220,15 @@ const styles = StyleSheet.create({
     marginLeft: SIZES.margin.xs,
   },
   notificationBadge: {
-    position: "absolute",
+    position: 'absolute',
     top: moderateScale(-4),
     right: moderateScale(-4),
     backgroundColor: COLORS.error,
     borderRadius: SIZES.radius.full,
     width: moderateScale(18),
     height: moderateScale(18),
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 2,
     borderColor: COLORS.primary,
   },
@@ -306,9 +239,9 @@ const styles = StyleSheet.create({
     fontWeight: FONTS.weight.bold,
   },
   ratesContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginHorizontal: SIZES.margin.lg,
     backgroundColor: COLORS.blueOpacity30,
     borderRadius: SIZES.radius.lg,
@@ -317,11 +250,11 @@ const styles = StyleSheet.create({
   },
   rateCard: {
     flex: 1,
-    alignItems: "center",
+    alignItems: 'center',
   },
   rateHeader: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: SIZES.margin.xs,
   },
   rateLabel: {
@@ -349,7 +282,7 @@ const styles = StyleSheet.create({
   rateError: {
     ...FONTS.bodySmall,
     color: COLORS.errorLight,
-    fontStyle: "italic",
+    fontStyle: 'italic',
   },
   divider: {
     width: 1,
@@ -358,9 +291,9 @@ const styles = StyleSheet.create({
     marginHorizontal: SIZES.margin.md,
   },
   updateTimeContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginTop: SIZES.margin.xs,
     paddingHorizontal: SIZES.padding.lg,
   },
