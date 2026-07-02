@@ -39,7 +39,7 @@ const OnboardingScreen = ({ navigation }) => {
           const userData = JSON.parse(userDataStr);
           if (userData && userData.id) {
             // User is already logged in, skip onboarding and go to home
-            navigation.replace("Home");
+            navigation.replace("MainDrawer");
             return;
           }
         }

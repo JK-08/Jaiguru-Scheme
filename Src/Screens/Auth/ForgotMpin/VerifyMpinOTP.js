@@ -495,12 +495,14 @@ const VerifyForgotMpinScreen = () => {
     }
 
     try {
-      // Here you would verify the OTP
-      // const res = await verifyForgotOtp(otpValue);
-      
+      // Note: the backend only exposes a combined "verify OTP + reset MPIN"
+      // endpoint (verifyForgotOtp), so the OTP itself is actually checked
+      // when the user submits their new MPIN in handleResetMpin below.
+      // We don't claim the OTP is verified here to avoid misleading the
+      // user if it later turns out to be invalid.
       safeShowToast({
-        message: "✅ OTP verified successfully!",
-        type: ToastTypes.SUCCESS,
+        message: "Enter your new MPIN to continue",
+        type: ToastTypes.INFO,
         duration: 1500,
         position: ToastPositions.TOP
       });

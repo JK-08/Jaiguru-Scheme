@@ -376,9 +376,8 @@ const TermsAndConditions = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <CommonHeader
         title="Terms & Conditions"
-        onBack={() => navigation.goBack()}
+        onBackPress={() => navigation.goBack()}
         backgroundColor={COLORS.background}
-        titleColor={COLORS.primary}
       />
 
       <ScrollView

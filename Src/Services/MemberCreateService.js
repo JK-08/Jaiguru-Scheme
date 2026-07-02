@@ -1,4 +1,6 @@
-const BASE_URL = "https://scheme.jaigurujewellers.com/api/v1";
+import { API_BASE_URL } from "../Config/BaseUrl";
+
+const BASE_URL = API_BASE_URL;
 
 /**
  * Common POST API Handler (With Full Debug Logs)

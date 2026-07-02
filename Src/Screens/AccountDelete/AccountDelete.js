@@ -88,7 +88,7 @@ function DeleteAccount() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <CommonHeader title="Delete Account" onBack={() => navigation.goBack()} />
+      <CommonHeader title="Delete Account" onBackPress={() => navigation.goBack()} />
 
       <ScrollView
         contentContainerStyle={styles.content}

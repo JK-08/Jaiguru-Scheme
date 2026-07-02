@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useNavigation } from '@react-navigation/native';
 import { getCompanyDetails } from '../../Services/CompanyDetailsService';
 import { API_BASE_URL, IMAGE_BASE_URL } from '../../Config/BaseUrl';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
@@ -114,9 +115,11 @@ const HelpCentreScreen = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const navigation = useNavigation();
 
-    const handleBackPress = () => {
-    navigation.navigate("MainDrawer");
+  const handleBackPress = () => {
+    if (navigation.canGoBack()) navigation.goBack();
+    else navigation.navigate('MainDrawer');
   };
 
   const fetchCompanyDetails = useCallback(async () => {
@@ -174,7 +177,7 @@ const HelpCentreScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <CommonHeader title="Help Center" leftBtn onPress={handleBackPress} />
+      <CommonHeader title="Help Center" showBack onBackPress={handleBackPress} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}

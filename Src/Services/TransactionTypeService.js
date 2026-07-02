@@ -1,4 +1,6 @@
-const TRANSACTION_API_URL = "https://scheme.jaigurujewellers.com/api/v1/account/getTranType";
+import { API_BASE_URL } from "../Config/BaseUrl";
+
+const TRANSACTION_API_URL = `${API_BASE_URL}/account/getTranType`;
 
 /**
  * Fetch transaction types from API

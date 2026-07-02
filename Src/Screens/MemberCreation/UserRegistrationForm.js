@@ -53,6 +53,7 @@ const UserRegistrationForm = forwardRef(({ onSubmit, initialData = {} }, ref) =>
     // Nominee Details
     nomineeName: "",
     nomineeMobile: "",
+    nomineeRelationship: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -68,6 +69,7 @@ const UserRegistrationForm = forwardRef(({ onSubmit, initialData = {} }, ref) =>
   });
 
   const maritalStatusOptions = ["Single", "Married"];
+  const relationshipOptions = ["Spouse", "Son", "Daughter", "Father", "Mother", "Sibling", "Other"];
 
   // Generate days, months, years for date picker
   const currentYear = new Date().getFullYear();
@@ -256,6 +258,7 @@ const UserRegistrationForm = forwardRef(({ onSubmit, initialData = {} }, ref) =>
                 state: "",
                 nomineeName: "",
                 nomineeMobile: "",
+                nomineeRelationship: "",
               });
               
               setErrors({});
@@ -482,6 +485,7 @@ const UserRegistrationForm = forwardRef(({ onSubmit, initialData = {} }, ref) =>
     } else if (!/^\d{10}$/.test(formData.nomineeMobile)) {
       newErrors.nomineeMobile = "Nominee mobile must be 10 digits";
     }
+    if (!formData.nomineeRelationship) newErrors.nomineeRelationship = "Relationship with nominee is required";
 
     setErrors(newErrors);
     const errorFields = Object.keys(newErrors);
@@ -803,6 +807,52 @@ const UserRegistrationForm = forwardRef(({ onSubmit, initialData = {} }, ref) =>
     );
   };
 
+  const renderRelationshipPicker = () => {
+    return (
+      <View style={styles.inputContainer}>
+        <View style={styles.labelRow}>
+          <Text style={styles.label}>
+            Relationship with Nominee<Text style={styles.mandatory}> *</Text>
+          </Text>
+          {formData.nomineeRelationship && (
+            <TouchableOpacity
+              onPress={() => clearField("nomineeRelationship")}
+              style={styles.clearFieldButton}
+            >
+              <Text style={styles.clearFieldText}>Clear</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        <View style={styles.maritalStatusContainer}>
+          {relationshipOptions.map((relation) => (
+            <TouchableOpacity
+              key={relation}
+              style={[
+                styles.maritalStatusButton,
+                formData.nomineeRelationship === relation &&
+                  styles.maritalStatusButtonActive,
+              ]}
+              onPress={() => handleInputChange("nomineeRelationship", relation)}
+            >
+              <Text
+                style={[
+                  styles.maritalStatusText,
+                  formData.nomineeRelationship === relation &&
+                    styles.maritalStatusTextActive,
+                ]}
+              >
+                {relation}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        {errors.nomineeRelationship && (
+          <Text style={styles.errorText}>{errors.nomineeRelationship}</Text>
+        )}
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.customHeader}>
@@ -965,6 +1015,8 @@ const UserRegistrationForm = forwardRef(({ onSubmit, initialData = {} }, ref) =>
               maxLength: 10,
             }
           )}
+
+          {renderRelationshipPicker()}
         </View>
 
         {/* Action Buttons */}

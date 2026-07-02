@@ -295,17 +295,12 @@ const LoginScreen = () => {
 
     try {
       clearError();
-      console.log("=== LOGIN ATTEMPT ===");
-      console.log("Username/Email/Phone:", contactOrEmailOrUsername);
-      console.log("Password:", password);
       showToast("Logging in...", "info");
 
       const result = await login({
         contactOrEmailOrUsername,
         password,
       });
-
-      console.log("=== NORMAL LOGIN API RESPONSE ===", result);
 
       if (result.success !== false && result.token) {
         const normalizedData = {

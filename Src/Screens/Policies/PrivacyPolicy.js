@@ -72,9 +72,8 @@ const PrivacyPolicy = ({ navigation }) => {
     <SafeAreaView style={COMMON_STYLES.container}>
       <CommonHeader
         title="Privacy Policy"
-        onBack={() => navigation.goBack()}
+        onBackPress={() => navigation.goBack()}
         backgroundColor={COLORS.background}
-        titleColor={COLORS.primary}
       />
 
       <ScrollView

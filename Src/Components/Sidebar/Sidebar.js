@@ -26,14 +26,13 @@ import {
 import { COLORS, FONTS, SIZES, SHADOWS } from "../../Utills/AppTheme";
 
 // Menu items data - Add more items as needed
+// NOTE: The internal "LoginCheck" admin/user-list tool used to be exposed
+// here to every logged-in user, gated only by a hardcoded admin/admin
+// password baked into the app bundle. That is not real access control and
+// let any user view every member's personal data, so it has been removed
+// from end-user navigation. Re-add it only behind real, server-verified
+// admin authentication.
 const MENU_ITEMS = [
-  {
-    key: "logincheck",
-    label: "LoginCheck",
-    icon: "security",
-    route: "LoginCheck",
-    badge: 0,
-  }, 
   {
     key: "home",
     label: "Home",
@@ -430,16 +429,6 @@ const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }) => {
       console.error("Logout error:", error);
     }
   }, [navigation, onClose]);
-
-  // Handle edit profile
-  const handleEditProfile = useCallback(() => {
-    // Close drawer first
-    if (onClose) {
-      onClose();
-    }
-    // Navigate to EditProfile
-    navigation.navigate("EditProfile", { user });
-  }, [navigation, onClose, user]);
 
   // Handle back/close
   const handleBack = useCallback(() => {

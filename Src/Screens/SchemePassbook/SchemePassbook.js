@@ -233,6 +233,26 @@ export default function SchemeDetails() {
     });
   };
 
+  const handleMakePayment = () => {
+    navigation.navigate("Paynow", {
+      accountData: data,
+      fromScreen: "SchemePassbook",
+      regNo,
+      groupCode,
+      memberName: pName,
+      schemeName,
+      schemeShortName: schemeSName,
+      schemeId,
+      totalAmount: totalAmount || 0,
+      amount: amount || 0,
+      nextDueDate,
+      installmentsPaid: insPaid || "0",
+      totalInstallments: instalment || "0",
+      joinDate,
+      maturityDate,
+    });
+  };
+
   // ─── Payment Row ─────────────────────────────────────────────────────────
   const renderPaymentItem = ({ item, index }) => (
     <TouchableOpacity
@@ -441,16 +461,16 @@ export default function SchemeDetails() {
       )}
 
       {/* CTA */}
-      {/* {!isClosed && (
+      {!isClosed && (
         <TouchableOpacity
           style={[styles.ctaButton, isPaymentDue && styles.ctaButtonDue]}
-          onPress={() => console.log("Make Payment")}
+          onPress={handleMakePayment}
           activeOpacity={0.85}
         >
           <Text style={styles.ctaIcon}>{isPaymentDue ? "🚨" : "+"}</Text>
           <Text style={styles.ctaText}>{isPaymentDue ? "Pay Now — Overdue" : "Add Payment"}</Text>
         </TouchableOpacity>
-      )} */}
+      )}
 
       <View style={{ height: 24 }} />
     </>

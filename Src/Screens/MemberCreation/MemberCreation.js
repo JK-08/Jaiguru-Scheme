@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useMemo } from "react";
+import React, { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import { useRazorpayPayment } from "../../Hooks/useRazorPay";
 import PaymentModal from "./PaymentModal";
 import RazorpayWebView from "../../Components/RazorpayWebView";
 import CommonHeader from "../../Components/CommonHeader/CommonHeader";
+import { getUserId, getUserField } from "../../Utills/AsynchStorageHelper";
 
 
 // Constants
@@ -34,6 +35,8 @@ const MemberCreation = () => {
   const [currentStep, setCurrentStep] = useState(STEPS.REGISTRATION);
   const [userRegistrationData, setUserRegistrationData] = useState({});
   const [schemeJoiningData, setSchemeJoiningData] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [currentReferralCode, setCurrentReferralCode] = useState("");
 
   // Refs
   const registrationFormRef = useRef();
@@ -62,6 +65,22 @@ const { handleCreateMember: create, loading: createLoading } = useMemberActions(
       resetForm();
     }, [])
   );
+
+  // Load the logged-in user's id / referral code once for the payload
+  useEffect(() => {
+    (async () => {
+      try {
+        const [uid, refCode] = await Promise.all([
+          getUserId(),
+          getUserField("referralCode"),
+        ]);
+        if (uid) setCurrentUserId(uid);
+        if (refCode) setCurrentReferralCode(refCode);
+      } catch (e) {
+        console.log("Failed to load user id/referral code", e);
+      }
+    })();
+  }, []);
 
   const resetForm = () => {
     setCurrentStep(STEPS.REGISTRATION);
@@ -136,7 +155,7 @@ const formatDate = useCallback((dateStr) => {
         mobile2: user.nomineeMobile || "",
         nomeni: user.nomineeName || "",
         nomineeMobile: user.nomineeMobile || "",
-        nomineeRelationship: "Spouse",
+        nomineeRelationship: user.nomineeRelationship || "",
         nomAddr1: user.street || "",
         nomAddr2: "",
         nomCity: user.city || "",
@@ -154,7 +173,7 @@ const formatDate = useCallback((dateStr) => {
         nomineeMobileVerified: true,
         nomineeAadhaarVerified: false,
         upDateTime: nowDateTime,
-        userId: "999",
+        userId: currentUserId || "0",
         appVer: "WEB",
         anniversaryDate: formatDate(user.anniversaryDate),
       },
@@ -165,7 +184,7 @@ const formatDate = useCallback((dateStr) => {
         joinDate: nowDateTime,
         upDateTime2: nowDateTime,
         openingDate: nowDateTime,
-        userId2: "999",
+        userId2: currentUserId || "0",
       },
       schemeCollectInsert: {
         amount: formData.amount || 0,
@@ -177,9 +196,9 @@ const formatDate = useCallback((dateStr) => {
         chkBank: "Razorpay",
         chqRtnReason: orderId || "",
       },
-      referralCode: "KIRUB001",
+      ...(currentReferralCode ? { referralCode: currentReferralCode } : {}),
     };
-  }, [userRegistrationData, formatDate]);
+  }, [userRegistrationData, formatDate, currentUserId, currentReferralCode]);
 
   const handleMemberCreation = useCallback(async (formData, paymentId, orderId) => {
     try {

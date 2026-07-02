@@ -13,12 +13,8 @@ export const useSchemes = () => {
         setLoading(true);
         const data = await fetchSchemes();
 
-        // ✅ Keep only SchemeId 17
-        const filteredScheme = data.filter(
-          (item) => item.SchemeId === 17
-        );
-
-        setSchemes(filteredScheme);
+        // Show all active schemes returned by the backend
+        setSchemes(data || []);
 
       } catch (err) {
         setError(err.message || "Something went wrong");

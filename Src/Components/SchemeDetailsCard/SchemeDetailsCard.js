@@ -17,10 +17,31 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const CARD_WIDTH = SCREEN_WIDTH * 0.90;
 const CARD_SPACING = SIZES.padding.lg;
 
-export default function SchemeDetailsCard({ layout = "horizontal" }) {
+export default function SchemeDetailsCard({ layout = "horizontal", filter = "all" }) {
   const { accounts, loading, error, refetch } = useAccountDetails();
   const [refreshing, setRefreshing] = React.useState(false);
 const navigation = useNavigation();
+
+  // Same status derivation used per-card below, applied at the list level
+  // so the "all / active / due / completed" filter actually narrows results.
+  const filteredAccounts = useMemo(() => {
+    if (!accounts) return accounts;
+    if (filter === "all") return accounts;
+
+    return accounts.filter((account) => {
+      const balance = account.schemeSummary?.schemaSummaryTransBalance;
+      const insPaid = parseInt(balance?.insPaid || "0");
+      const instalment = parseInt(account.schemeSummary?.instalment || "0");
+      const isFullyPaid = instalment > 0 && insPaid >= instalment;
+      const isPaymentDue =
+        !isFullyPaid && account.nextDueDate && new Date(account.nextDueDate) <= new Date();
+
+      if (filter === "completed") return isFullyPaid;
+      if (filter === "due") return isPaymentDue;
+      if (filter === "active") return !isFullyPaid && !isPaymentDue;
+      return true;
+    });
+  }, [accounts, filter]);
 
 useFocusEffect(
   useCallback(() => {
@@ -316,6 +337,21 @@ useFocusEffect(
     );
   }
 
+  // Empty state for the current filter (data exists, but nothing matches)
+  if (!filteredAccounts || filteredAccounts.length === 0) {
+    return (
+      <View style={styles.container}>
+        {renderHeader()}
+        <View style={styles.center}>
+          <Text style={styles.noAccountText}>No schemes match this filter</Text>
+          <Text style={styles.emptySubtext}>
+            Try a different filter to see your other schemes.
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={[
       styles.container,
@@ -325,7 +361,7 @@ useFocusEffect(
 
       {/* Scrollable list */}
       <FlatList
-        data={accounts}
+        data={filteredAccounts}
         renderItem={renderAccountCard}
         refreshControl={
           <RefreshControl

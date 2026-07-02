@@ -36,8 +36,14 @@ export const registerUser = async (username, mobileNumber) => {
 // 🔹 Get Users List
 export const getUsersList = async (mobileNumber, fromDate, toDate) => {
   try {
+    const params = new URLSearchParams({
+      date: fromDate,
+      ...(mobileNumber && { mobileNumber }),
+      ...(toDate && { toDate }),
+    }).toString();
+
     const response = await fetch(
-      `https://scheme.jaigurujewellers.com/api/v1/logincheck/get?date=${fromDate}`,
+      `${API_BASE_URL}/logincheck/get?${params}`,
       {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },

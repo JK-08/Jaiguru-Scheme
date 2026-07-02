@@ -9,14 +9,20 @@ import {
   ScrollView,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { useSchemes } from "../../Hooks/useSchemeAmount"; 
-import { useTransactionTypes } from "../../Hooks/useTransactionTypes";
+import { useSchemes } from "../../Hooks/useSchemeAmount";
 
+// NOTE: All payments in this flow are collected online via Razorpay
+// (see MemberCreation.js's startPayment/schemeCollectInsert payload, which
+// always sends modePay: 4 / accCode: "00001" / "Online"). A payment-method
+// picker (cash/cheque/NEFT/etc.) was previously built here but would have
+// been misleading since selecting anything other than "Online" would not
+// have changed how the charge is actually processed. It's been removed in
+// favor of the accurate read-only "Online" indicator below. If offline
+// payment modes are ever wired up end-to-end, reintroduce a real picker
+// backed by useTransactionTypes here.
 const SchemeJoiningForm = forwardRef(({ scheme, onSubmit, initialData = null }, ref) => {
   const { schemes, loading: loadingSchemes, error: errorSchemes, getAmount } =
     useSchemes(scheme?.SchemeId);
-  const { transactionTypes, loading: loadingTrans, error: errorTrans } =
-    useTransactionTypes();
 
   const [selectedScheme, setSelectedScheme] = useState("");
   const [selectedPayment, setSelectedPayment] = useState("00001");
@@ -26,14 +32,10 @@ const SchemeJoiningForm = forwardRef(({ scheme, onSubmit, initialData = null }, 
   useEffect(() => {
     if (initialData) {
       setSelectedScheme(initialData.selectedScheme || "");
-      // setSelectedPayment(initialData.paymentType || "");
     } else if (schemes.length > 0 && !selectedScheme) {
       setSelectedScheme(schemes[0].GROUPCODE);
     }
-    // if (transactionTypes.length > 0 && !selectedPayment) {
-    //   setSelectedPayment(transactionTypes[0].ACCOUNT);
-    // }
-  }, [schemes, transactionTypes, initialData]);
+  }, [schemes, initialData]);
 
   // Expose validateAndSubmit method to parent
 useImperativeHandle(ref, () => ({
@@ -60,9 +62,7 @@ useImperativeHandle(ref, () => ({
 
   const prepareSubmissionData = () => {
     const amount = getAmount(selectedScheme);
-    const paymentType = transactionTypes.find(
-      (t) => t.ACCOUNT === selectedPayment
-    )?.NAME;
+    const paymentType = "Online";
 
     return {
       schemeId: scheme?.SchemeId,
@@ -85,7 +85,7 @@ useImperativeHandle(ref, () => ({
     return metalTypes[metalType] || metalType;
   };
 
-  if (loadingSchemes || loadingTrans) {
+  if (loadingSchemes) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#4CAF50" />
@@ -98,14 +98,6 @@ useImperativeHandle(ref, () => ({
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>Error loading schemes: {errorSchemes}</Text>
-      </View>
-    );
-  }
-  
-  if (errorTrans) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Error loading payment types: {errorTrans}</Text>
       </View>
     );
   }
@@ -172,41 +164,7 @@ useImperativeHandle(ref, () => ({
         )}
       </View>
 
-      {/* Payment Type Selection */}
-      {/* <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Select Payment Method</Text>
-        <Text style={styles.label}>Payment Type:</Text>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={selectedPayment}
-            onValueChange={(itemValue) => setSelectedPayment(itemValue)}
-            style={styles.picker}
-          >
-            {transactionTypes.length === 0 ? (
-              <Picker.Item label="No payment types available" value="" />
-            ) : (
-              transactionTypes.map((type, index) => (
-                <Picker.Item
-                  key={index}
-                  label={`${type.NAME} (${type.ACCOUNT})`}
-                  value={type.ACCOUNT}
-                />
-              ))
-            )}
-          </Picker>
-        </View>
-        
-        {selectedPayment && (
-          <View style={styles.paymentDetails}>
-            <Text style={styles.paymentLabel}>Selected Payment:</Text>
-            <Text style={styles.paymentValue}>
-              {transactionTypes.find(t => t.ACCOUNT === selectedPayment)?.NAME || "N/A"}
-            </Text>
-          </View>
-        )}
-      </View> */}
-
-      {/* Payment Method - Hardcoded Online */}
+      {/* Payment Method (see note above the component: always Online via Razorpay) */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Payment Method</Text>
         <View style={styles.paymentDetails}>

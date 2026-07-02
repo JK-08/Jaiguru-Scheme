@@ -143,18 +143,12 @@ const handleSubmit = useCallback(async () => {
   const newMpinString = newMpin.join("");
   const confirmMpinString = confirmMpin.join("");
 
-  console.log('=== Reset MPIN Debug Info ===');
-  console.log('Old MPIN:', oldMpinString);
-  console.log('New MPIN:', newMpinString);
-  console.log('Confirm MPIN:', confirmMpinString);
-
   if (oldMpinString.length !== 4 || newMpinString.length !== 4 || confirmMpinString.length !== 4) {
     showToast({ message: "Please enter all 4-digit MPINs", type: ToastTypes.WARNING, duration: 3000, position: ToastPositions.TOP });
     return;
   }
 
   if (newMpinString !== confirmMpinString) {
-    console.log('Validation Failed: MPINs do not match');
     const newAttempts = attempts + 1;
     setAttempts(newAttempts);
 

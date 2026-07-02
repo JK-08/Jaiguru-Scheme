@@ -17,7 +17,8 @@ export default function AllSchemesScreen() {
   const [filter, setFilter] = useState('all'); // all, active, due, completed
 
   const handleBackPress = () => {
-    navigation.navigate("MainDrawer");
+    if (navigation.canGoBack()) navigation.goBack();
+    else navigation.navigate("MainDrawer");
   };
 
   const FilterButton = ({ title, value, isActive }) => (
@@ -44,9 +45,17 @@ export default function AllSchemesScreen() {
         <View style={styles.headerRight} />
       </View>
 
+      {/* Filters */}
+      <View style={styles.filterContainer}>
+        <FilterButton title="All" value="all" isActive={filter === 'all'} />
+        <FilterButton title="Active" value="active" isActive={filter === 'active'} />
+        <FilterButton title="Due" value="due" isActive={filter === 'due'} />
+        <FilterButton title="Completed" value="completed" isActive={filter === 'completed'} />
+      </View>
+
       {/* Vertical Scheme Cards */}
       <View style={styles.content}>
-        <SchemeDetailsCard layout="vertical" />
+        <SchemeDetailsCard layout="vertical" filter={filter} />
       </View>
       <BottomTab activeScreen={"SCHEMES"} />
     </SafeAreaView>
