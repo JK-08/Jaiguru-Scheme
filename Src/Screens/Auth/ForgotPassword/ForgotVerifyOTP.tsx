@@ -1,0 +1,254 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import useAuth from '../../../api/hooks/Auth/useAuth';
+import CommonHeader from '../../../Components/CommonHeader/CommonHeader';
+import theme from '../../../Utills/AppTheme';
+import { AppOTPInput, AppOTPInputRef, AppInput, AppButton } from '../../../Components/ui/appcomponents';
+
+const { COLORS, SIZES, FONTS, SHADOWS } = theme;
+
+interface Props {
+  route: { params: { contactNumber: string } };
+  navigation: any;
+}
+
+const ForgotVerifyOTPScreen = ({ route, navigation }: Props) => {
+  const { contactNumber } = route.params;
+
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [timer, setTimer] = useState(60);
+  const [canResend, setCanResend] = useState(false);
+
+  const otpRef = useRef<AppOTPInputRef>(null);
+  const { updatePassword, loading, sendForgotPassword } = useAuth();
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prevTimer) => prevTimer - 1);
+      }, 1000);
+    } else {
+      setCanResend(true);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [timer]);
+
+  const handleResendOtp = async () => {
+    if (!canResend) return;
+    const res: any = await sendForgotPassword({ contactNumber });
+    if (!res?.error) {
+      Alert.alert('Success', 'OTP resent successfully');
+      setTimer(60);
+      setCanResend(false);
+      setOtp('');
+      otpRef.current?.clear();
+    } else {
+      Alert.alert('Error', res.error);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (otp.length !== 6) {
+      Alert.alert('Error', 'Please enter a valid 6-digit OTP');
+      return;
+    }
+    if (!newPassword) {
+      Alert.alert('Error', 'Please enter a new password');
+      return;
+    }
+    if (newPassword.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters long');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
+      return;
+    }
+    const res: any = await updatePassword({ contactNumber, otp, newPassword });
+    if (!res?.error) {
+      Alert.alert('Success', 'Password updated successfully! Please login with your new password.', [
+        { text: 'OK', onPress: () => navigation.navigate('Login') },
+      ]);
+    } else {
+      Alert.alert('Error', res.error);
+    }
+  };
+
+  const isFormValid = () => otp.length === 6 && newPassword.length >= 6 && newPassword === confirmPassword;
+
+  return (
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
+      <CommonHeader title="Verify OTP" />
+
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} bounces={false} keyboardShouldPersistTaps="handled">
+        <View style={styles.blueAccent} />
+        <View style={styles.goldAccent} />
+
+        <View style={styles.content}>
+          <View style={styles.headerSection}>
+            <View style={styles.iconWrapper}>
+              <View style={styles.iconCircle}>
+                <Text style={styles.iconText}>✓</Text>
+              </View>
+            </View>
+            <Text style={styles.title}>Verify OTP</Text>
+            <Text style={styles.subtitle}>
+              Enter the 6-digit OTP sent to <Text style={styles.phoneNumber}>{contactNumber}</Text>
+            </Text>
+          </View>
+
+          <View style={styles.otpContainer}>
+            <AppOTPInput ref={otpRef} length={6} onChangeText={setOtp} autoFocus />
+          </View>
+
+          <View style={styles.timerContainer}>
+            {timer > 0 ? (
+              <Text style={styles.timerText}>
+                Resend OTP in <Text style={styles.timerBold}>{timer}s</Text>
+              </Text>
+            ) : (
+              <TouchableOpacity onPress={handleResendOtp} disabled={!canResend}>
+                <Text style={[styles.resendText, !canResend && styles.resendDisabled]}>Resend OTP</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>Create New Password</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <View style={styles.passwordSection}>
+            <AppInput
+              label="New Password"
+              value={newPassword}
+              onChangeText={setNewPassword}
+              placeholder="Enter new password"
+              isPassword
+              hint={newPassword.length > 0 && newPassword.length < 6 ? 'Password must be at least 6 characters' : undefined}
+              leftIcon="lock-closed-outline"
+              containerStyle={styles.inputWrapper}
+            />
+
+            <AppInput
+              label="Confirm Password"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="Confirm new password"
+              isPassword
+              error={confirmPassword && newPassword !== confirmPassword ? 'Passwords do not match' : undefined}
+              leftIcon="lock-closed-outline"
+              containerStyle={styles.inputWrapper}
+            />
+
+            {newPassword.length > 0 && confirmPassword.length > 0 && (
+              <View style={styles.passwordIndicator}>
+                <View style={styles.indicatorRow}>
+                  <Text style={[styles.indicatorDot, newPassword.length >= 6 ? styles.validIcon : styles.invalidIcon]}>
+                    {newPassword.length >= 6 ? '✓' : '○'}
+                  </Text>
+                  <Text style={[styles.indicatorText, newPassword.length >= 6 && styles.validText]}>Minimum 6 characters</Text>
+                </View>
+
+                <View style={[styles.indicatorRow, { marginBottom: 0 }]}>
+                  <Text style={[styles.indicatorDot, newPassword === confirmPassword && confirmPassword ? styles.validIcon : styles.invalidIcon]}>
+                    {newPassword === confirmPassword && confirmPassword ? '✓' : '○'}
+                  </Text>
+                  <Text style={[styles.indicatorText, newPassword === confirmPassword && confirmPassword && styles.validText]}>
+                    Passwords match
+                  </Text>
+                </View>
+              </View>
+            )}
+          </View>
+
+          <AppButton
+            label="Update Password"
+            onPress={handleResetPassword}
+            disabled={loading || !isFormValid()}
+            loading={loading}
+            variant="primary"
+            size="lg"
+          />
+
+          <TouchableOpacity style={styles.backToLogin} onPress={() => navigation.navigate('Login')}>
+            <Text style={styles.backToLoginText}>Back to Login</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: COLORS.background },
+  scrollContent: { flexGrow: 1, paddingBottom: SIZES.padding.xxxl },
+  blueAccent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: SIZES.screen.width * 0.28,
+    height: SIZES.screen.width * 0.28,
+    backgroundColor: COLORS.blueOpacity10,
+    borderBottomRightRadius: SIZES.radius.xxxl,
+  },
+  goldAccent: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: SIZES.screen.width * 0.35,
+    height: SIZES.screen.width * 0.35,
+    backgroundColor: COLORS.goldOpacity10,
+    borderTopLeftRadius: SIZES.radius.xxxl,
+  },
+  content: { paddingHorizontal: SIZES.padding.xl, paddingTop: SIZES.padding.xl },
+  headerSection: { alignItems: 'center', marginBottom: SIZES.margin.xl },
+  iconWrapper: { marginBottom: SIZES.margin.md },
+  iconCircle: {
+    width: SIZES.icon.xxxl,
+    height: SIZES.icon.xxxl,
+    borderRadius: SIZES.icon.xxxl / 2,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...SHADOWS.blue,
+  },
+  iconText: { fontSize: SIZES.font.xxl, color: COLORS.white, fontWeight: 'bold', lineHeight: SIZES.font.xxl * 1.2 },
+  title: { ...FONTS.h2, color: COLORS.primary, marginBottom: SIZES.margin.xs, textAlign: 'center' },
+  subtitle: { ...FONTS.bodySmall, color: COLORS.textSecondary, textAlign: 'center', paddingHorizontal: SIZES.padding.lg, lineHeight: SIZES.font.sm * 1.6 },
+  phoneNumber: { ...FONTS.bodyBold, color: COLORS.primary },
+  otpContainer: { marginBottom: SIZES.margin.md, alignItems: 'center' },
+  timerContainer: { alignItems: 'center', marginBottom: SIZES.margin.lg, minHeight: 24 },
+  timerText: { ...FONTS.bodySmall, color: COLORS.textSecondary },
+  timerBold: { ...FONTS.bodyBold, color: COLORS.primary },
+  resendText: { ...FONTS.bodyMedium, color: COLORS.primary, textDecorationLine: 'underline' },
+  resendDisabled: { color: COLORS.gray400, textDecorationLine: 'none' },
+  dividerContainer: { flexDirection: 'row', alignItems: 'center', marginVertical: SIZES.margin.lg },
+  dividerLine: { flex: 1, height: 1, backgroundColor: COLORS.gray300 },
+  dividerText: { ...FONTS.bodySmall, color: COLORS.textSecondary, marginHorizontal: SIZES.margin.sm },
+  passwordSection: { marginBottom: SIZES.margin.xl },
+  inputWrapper: { marginBottom: SIZES.margin.lg },
+  passwordIndicator: {
+    backgroundColor: COLORS.gray100,
+    borderRadius: SIZES.radius.md,
+    paddingHorizontal: SIZES.padding.md,
+    paddingVertical: SIZES.padding.sm,
+    marginTop: SIZES.margin.xs,
+  },
+  indicatorRow: { flexDirection: 'row', alignItems: 'center', marginBottom: SIZES.margin.xs },
+  indicatorDot: { fontSize: SIZES.font.md, width: 20, textAlign: 'center' },
+  validIcon: { color: COLORS.success },
+  invalidIcon: { color: COLORS.gray400 },
+  indicatorText: { ...FONTS.bodySmall, color: COLORS.textSecondary, flex: 1 },
+  validText: { color: COLORS.success },
+  backToLogin: { marginTop: SIZES.margin.md, alignSelf: 'center', paddingVertical: SIZES.padding.sm, paddingHorizontal: SIZES.padding.lg },
+  backToLoginText: { ...FONTS.bodyMedium, color: COLORS.primary, textDecorationLine: 'underline' },
+});
+
+export default ForgotVerifyOTPScreen;
