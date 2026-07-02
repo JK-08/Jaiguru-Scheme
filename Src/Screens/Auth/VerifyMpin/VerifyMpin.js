@@ -211,10 +211,18 @@ const MpinVerifyScreen = () => {
     [locked, mpin, handleSubmit, blockAutoSubmit]
   );
 
+  // onKeyPress fires reliably for the physical Backspace key even when
+  // onChangeText doesn't (a known RN maxLength={1} quirk), so it owns both
+  // clearing the current box and moving focus back in a single press.
   const handleKeyPress = useCallback((e, index) => {
-    if (e.nativeEvent.key === "Backspace" && !mpin[index] && index > 0) {
-      mpinRefs.current[index - 1]?.focus();
+    if (e.nativeEvent.key !== "Backspace" || index === 0) return;
+
+    if (mpin[index]) {
+      const updated = [...mpin];
+      updated[index] = "";
+      setMpin(updated);
     }
+    mpinRefs.current[index - 1]?.focus();
   }, [mpin]);
 
   const handleForgotMpin = useCallback(() => {

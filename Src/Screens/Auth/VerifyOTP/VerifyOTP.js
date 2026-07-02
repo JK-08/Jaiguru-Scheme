@@ -327,19 +327,33 @@ const VerifyOTPScreen = () => {
     updated[idx] = val;
     setOtp(updated);
 
-    // Auto-focus next/previous input
+    // Auto-focus next input only. Backward navigation on delete is handled
+    // in handleKeyPress below — onChangeText isn't guaranteed to fire with
+    // an empty value when deleting the last character of a maxLength={1}
+    // field on every Android keyboard, so relying on it here made the
+    // "jump back" only happen on a second backspace press instead of the
+    // first.
     if (val && idx < otp.length - 1) {
       inputRefs.current[idx + 1]?.focus();
-    } else if (!val && idx > 0) {
-      inputRefs.current[idx - 1]?.focus();
     }
   };
 
-  // Handle backspace/delete
+  // Handle backspace/delete — onKeyPress fires reliably for the physical
+  // Backspace key regardless of whether onChangeText also fires, so it's
+  // the single source of truth for moving focus back.
   const handleKeyPress = (e, idx) => {
-    if (e.nativeEvent.key === 'Backspace' && !otp[idx] && idx > 0) {
-      inputRefs.current[idx - 1]?.focus();
+    if (e.nativeEvent.key !== 'Backspace' || idx === 0) return;
+
+    if (otp[idx]) {
+      // Current box has a digit — clear it here directly (don't wait on
+      // onChangeText) and jump back so one backspace both clears and
+      // moves focus.
+      const updated = [...otp];
+      updated[idx] = '';
+      setOtp(updated);
     }
+
+    inputRefs.current[idx - 1]?.focus();
   };
 
   // Clear OTP

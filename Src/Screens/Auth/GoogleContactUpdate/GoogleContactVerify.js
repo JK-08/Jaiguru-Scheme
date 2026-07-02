@@ -58,10 +58,17 @@ const GoogleContactOtpScreen = ({ route, navigation }) => {
   };
 
   const handleKeyPress = (e, index) => {
-    // Handle backspace to focus previous input
-    if (e.nativeEvent.key === "Backspace" && !otp[index] && index > 0) {
-      inputRefs.current[index - 1].focus();
+    // onKeyPress fires reliably for the physical Backspace key even when
+    // onChangeText doesn't (a known RN maxLength={1} quirk), so it owns
+    // both clearing the current box and moving focus back in one press.
+    if (e.nativeEvent.key !== "Backspace" || index === 0) return;
+
+    if (otp[index]) {
+      const newOtp = [...otp];
+      newOtp[index] = "";
+      setOtp(newOtp);
     }
+    inputRefs.current[index - 1].focus();
   };
 
  const handleVerifyOtp = async () => {

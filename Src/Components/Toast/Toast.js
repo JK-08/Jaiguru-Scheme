@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -477,7 +477,10 @@ export const useToast = () => {
     customStyle: null
   });
 
-  const showToast = (config) => {
+  // Stable identities (empty dep arrays — they only ever use setState's
+  // functional/direct forms, never stale outer values) so that `Toast`
+  // below doesn't get a new component identity on every render.
+  const showToast = useCallback((config) => {
     setToastState({
       visible: true,
       message: config.message,
@@ -494,26 +497,36 @@ export const useToast = () => {
       customBackground: config.customBackground || null,
       customStyle: config.customStyle || null
     });
-  };
+  }, []);
 
-  const hideToast = () => {
+  const hideToast = useCallback(() => {
     setToastState(prev => ({ ...prev, visible: false }));
-  };
+  }, []);
 
-  const updateProgress = (progress) => {
+  const updateProgress = useCallback((progress) => {
     setToastState(prev => ({ ...prev, progress }));
-  };
+  }, []);
+
+  // IMPORTANT: `Toast` must keep a stable function identity across
+  // re-renders that don't actually change the toast (e.g. a parent screen
+  // re-rendering every second because of an unrelated countdown timer).
+  // Previously this was a plain arrow function recreated on every call to
+  // useToast(), which made React treat it as a brand-new component type on
+  // every render and remount <ToastComponent /> from scratch each time —
+  // replaying its entrance animation and making the toast appear to
+  // "blink" continuously. Memoizing on [toastState, hideToast] means its
+  // identity (and therefore the mounted instance) only changes when the
+  // toast's own state actually changes.
+  const Toast = useCallback(
+    () => <ToastComponent {...toastState} onHide={hideToast} />,
+    [toastState, hideToast]
+  );
 
   return {
     showToast,
     hideToast,
     updateProgress,
-    Toast: () => (
-      <ToastComponent
-        {...toastState}
-        onHide={hideToast}
-      />
-    ),
+    Toast,
     toastState
   };
 };

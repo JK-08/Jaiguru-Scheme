@@ -414,10 +414,11 @@ const VerifyForgotMpinScreen = () => {
     updated[idx] = val;
     setOtp(updated);
 
+    // Backward navigation on delete is handled in handleKeyPress, since
+    // onKeyPress reliably fires for the physical Backspace key even when
+    // onChangeText doesn't (a known RN maxLength={1} quirk).
     if (val && idx < otp.length - 1) {
       otpInputRefs.current[idx + 1]?.focus();
-    } else if (!val && idx > 0) {
-      otpInputRefs.current[idx - 1]?.focus();
     }
   };
 
@@ -446,23 +447,41 @@ const VerifyForgotMpinScreen = () => {
     updated[idx] = val;
     setter(updated);
 
+    // Backward navigation on delete is handled in handleKeyPress (see
+    // below).
     if (val && idx < 3) {
       refs.current[idx + 1]?.focus();
-    } else if (!val && idx > 0) {
-      refs.current[idx - 1]?.focus();
     }
   };
 
-  // Handle key press
+  // Handle key press — onKeyPress fires reliably for the physical
+  // Backspace key even when onChangeText doesn't, so it owns both clearing
+  // the current box and moving focus back (one press does both instead of
+  // requiring two).
   const handleKeyPress = (e, idx, type = 'otp') => {
-    if (e.nativeEvent.key === 'Backspace') {
-      if (type === 'otp' && !otp[idx] && idx > 0) {
-        otpInputRefs.current[idx - 1]?.focus();
-      } else if (type === 'new' && !newMpin[idx] && idx > 0) {
-        mpinInputRefs.current[idx - 1]?.focus();
-      } else if (type === 'confirm' && !confirmMpin[idx] && idx > 0) {
-        confirmMpinRefs.current[idx - 1]?.focus();
+    if (e.nativeEvent.key !== 'Backspace' || idx === 0) return;
+
+    if (type === 'otp') {
+      if (otp[idx]) {
+        const updated = [...otp];
+        updated[idx] = '';
+        setOtp(updated);
       }
+      otpInputRefs.current[idx - 1]?.focus();
+    } else if (type === 'new') {
+      if (newMpin[idx]) {
+        const updated = [...newMpin];
+        updated[idx] = '';
+        setNewMpin(updated);
+      }
+      mpinInputRefs.current[idx - 1]?.focus();
+    } else if (type === 'confirm') {
+      if (confirmMpin[idx]) {
+        const updated = [...confirmMpin];
+        updated[idx] = '';
+        setConfirmMpin(updated);
+      }
+      confirmMpinRefs.current[idx - 1]?.focus();
     }
   };
 

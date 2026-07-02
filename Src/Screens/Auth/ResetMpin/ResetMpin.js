@@ -128,12 +128,24 @@ const handleMpinChange = useCallback((text, index, type) => {
 }, [oldMpin, newMpin, confirmMpin, isLocked, validateMpin]);
 
 
+  // onKeyPress fires reliably for the physical Backspace key even when
+  // onChangeText doesn't (a known RN TextInput maxLength={1} quirk), so it
+  // owns both clearing the current box and moving focus back — a single
+  // backspace press now does both instead of requiring two presses.
   const handleKeyPress = useCallback((e, index, type) => {
-    if (e.nativeEvent.key === "Backspace") {
-      const refs = type === "old" ? oldMpinRefs : type === "new" ? newMpinRefs : confirmMpinRefs;
-      const mpinArray = type === "old" ? oldMpin : type === "new" ? newMpin : confirmMpin;
-      if (!mpinArray[index] && index > 0) refs.current[index - 1]?.focus();
+    if (e.nativeEvent.key !== "Backspace" || index === 0) return;
+
+    const refs = type === "old" ? oldMpinRefs : type === "new" ? newMpinRefs : confirmMpinRefs;
+    const mpinArray = type === "old" ? oldMpin : type === "new" ? newMpin : confirmMpin;
+    const setter = type === "old" ? setOldMpin : type === "new" ? setNewMpin : setConfirmMpin;
+
+    if (mpinArray[index]) {
+      const updated = [...mpinArray];
+      updated[index] = "";
+      setter(updated);
     }
+
+    refs.current[index - 1]?.focus();
   }, [oldMpin, newMpin, confirmMpin]);
 
 const handleSubmit = useCallback(async () => {
