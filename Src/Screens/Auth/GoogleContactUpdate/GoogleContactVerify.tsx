@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.radius.full,
     alignSelf: 'center',
   },
-  phoneIcon: { fontSize: SIZES.font.md, marginRight: SIZES.xxs },
+  phoneIcon: { fontSize: SIZES.font.md, marginRight: SIZES.font.xxs },
   phoneNumber: { ...FONTS.bodyBold, color: COLORS.primary },
   otpContainer: { alignItems: 'center', marginBottom: SIZES.lg, zIndex: 1 },
   button: { marginBottom: SIZES.lg, zIndex: 1 },

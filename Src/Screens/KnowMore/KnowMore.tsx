@@ -5,7 +5,12 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
 import { COLORS, SIZES, FONTS, SHADOWS, moderateScale, verticalScale } from '../../Utills/AppTheme';
 
-const STEPS_JOIN = [
+interface Step {
+  icon: string;
+  text: string;
+}
+
+const STEPS_JOIN: Step[] = [
   { icon: 'account-plus',        text: 'Click "Join Now" on the Gold Scheme' },
   { icon: 'currency-inr',        text: 'Enter the amount you wish to start with' },
   { icon: 'credit-card-outline', text: 'Make payment using any mode' },
@@ -13,7 +18,7 @@ const STEPS_JOIN = [
   { icon: 'check-circle-outline',text: 'Continue your savings' },
 ];
 
-const STEPS_REDEEM = [
+const STEPS_REDEEM: Step[] = [
   { icon: 'store-outline',   text: 'Visit Jaiguru Jewellery' },
   { icon: 'form-select',     text: 'Submit redemption request form' },
   { icon: 'diamond-outline', text: 'Choose your jewel' },
@@ -21,10 +26,10 @@ const STEPS_REDEEM = [
 
 function KnowMore() {
   const route = useRoute();
-  const navigation = useNavigation();
-  const { } = route.params || {};
+  const navigation = useNavigation<any>();
+  const {} = (route.params as any) || {};
 
-  const StepItem = ({ icon, text }) => (
+  const StepItem = ({ icon, text }: Step) => (
     <View style={styles.stepRow}>
       <View style={styles.stepIconWrap}>
         <Icon name={icon} size={moderateScale(22)} color={COLORS.primary} />
@@ -33,20 +38,20 @@ function KnowMore() {
     </View>
   );
 
-  const SectionTitle = ({ label }) => (
+  const SectionTitle = ({ label }: { label: string }) => (
     <View style={styles.sectionTitleRow}>
       <View style={styles.sectionTitleBar} />
       <Text style={styles.sectionTitle}>{label}</Text>
     </View>
   );
 
-  const SubHeading = ({ label }) => (
+  const SubHeading = ({ label }: { label: string }) => (
     <Text style={styles.subHeading}>{label}</Text>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      <CommonHeader title="Know More" onBack={() => navigation.goBack()} />
+      <CommonHeader title="Know More" onBackPress={() => navigation.goBack()} />
 
       <ScrollView
         contentContainerStyle={styles.content}

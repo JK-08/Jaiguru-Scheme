@@ -1,7 +1,7 @@
-// utils/useFonts.js
+// utils/useFonts.ts
 import { useFonts as useExpoFonts } from 'expo-font';
 
-const useFonts = () => {
+const useFonts = (): boolean => {
   const [fontsLoaded] = useExpoFonts({
     'Poppins-Thin': require('../Assets/Fonts/Poppins/Poppins-Thin.ttf'),
     'Poppins-Light': require('../Assets/Fonts/Poppins/Poppins-Light.ttf'),

@@ -1,4 +1,4 @@
-// theme.js
+// theme.ts
 import { Dimensions, PixelRatio, Platform } from "react-native";
 
 const { width, height } = Dimensions.get("window");
@@ -10,18 +10,18 @@ const guidelineBaseWidth = 375; // iPhone 11 Pro base
 const guidelineBaseHeight = 812;
 
 // Scale based on device width
-const scale = (size) => (width / guidelineBaseWidth) * size;
+const scale = (size: number): number => (width / guidelineBaseWidth) * size;
 
 // Scale based on device height
-const verticalScale = (size) => (height / guidelineBaseHeight) * size;
+const verticalScale = (size: number): number => (height / guidelineBaseHeight) * size;
 
 // Moderate scale with configurable factor (prevents extreme scaling)
-const moderateScale = (size, factor = 0.25) => {
+const moderateScale = (size: number, factor: number = 0.25): number => {
   return size + (scale(size) - size) * factor;
 };
 
 // Font scale with pixel ratio consideration
-const fontScale = (size) => {
+const fontScale = (size: number): number => {
   const scaled = moderateScale(size, 0.2);
   return Math.round(PixelRatio.roundToNearestPixel(scaled));
 };
@@ -186,25 +186,25 @@ export const COLORS = {
     blueLight: ["#3D6DB8", "#6A92D4"], // Light blue gradient
     blueSky: ["#2563EB", "#7CA9F7"], // Vivid to sky blue
     blueToWhite: ["#1c467cff", "#FFFFFF"], // Navy to white
-    
+
     // Gold gradients
     goldLight: ["#FFD700", "#FFE44D"], // Gold gradient
     goldDark: ["#CCA900", "#FFD700"], // Dark to light gold
     luxuryGold: ["#D4AF37", "#FFD700", "#F4E5B5"], // Luxury gold
     shimmer: ["#FFD700", "#FFF4CC", "#FFD700"], // Gold shimmer
-    
+
     // Blue & Gold combinations
     blueToGold: ["#1c467cff", "#FFD700"], // Navy to Gold
     goldToBlue: ["#FFD700", "#1c467cff"], // Gold to Navy
     elegance: ["#152F5C", "#D4AF37"], // Deep blue to rich gold
     luxury: ["#1c467cff", "#FFD700", "#2A5A9E"], // Navy-Gold-Light Navy
     premium: ["#0D2847", "#1c467cff", "#D4AF37"], // Deep navy to gold
-    
+
     // Neutral surfaces
     surface: ["#FAFBFC", "#FFFFFF"], // Neutral surface
     surfaceBlue: ["#F0F4F9", "#FFFFFF"], // Blue tint surface
     darkSurface: ["#1A2C4D", "#0D2847"], // Dark blue surface
-  },
+  } as Record<string, string[]>,
 };
 
 // ============================================
@@ -341,7 +341,7 @@ export const SIZES = {
 // ============================================
 // 🔤 TYPOGRAPHY SYSTEM (POPPINS)
 // ============================================
-export const FONTS = {
+export const FONTS: Record<string, any> = {
   // ===== FONT FAMILIES =====
   family: {
     thin: "Poppins-Thin",
@@ -525,7 +525,7 @@ export const FONTS = {
 // ============================================
 // 🎭 SHADOWS
 // ============================================
-export const SHADOWS = {
+export const SHADOWS: Record<string, any> = {
   none: {
     shadowColor: "transparent",
     shadowOffset: { width: 0, height: 0 },
@@ -617,7 +617,7 @@ export const BREAKPOINTS = {
 // ============================================
 // 🎨 COMMON STYLES
 // ============================================
-export const COMMON_STYLES = {
+export const COMMON_STYLES: Record<string, any> = {
   // ===== CONTAINER STYLES =====
   container: {
     flex: 1,

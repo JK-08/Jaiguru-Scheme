@@ -9,13 +9,15 @@ import {
   Dimensions,
   SafeAreaView,
   Easing,
-  PanResponder
+  PanResponder,
+  StyleProp,
+  ViewStyle,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {LinearGradient} from 'expo-linear-gradient';
+import { LinearGradient } from 'expo-linear-gradient';
 import theme from '../../Utills/AppTheme';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 export const ToastTypes = {
   SUCCESS: 'success',
@@ -25,20 +27,53 @@ export const ToastTypes = {
   DEFAULT: 'default',
   PREMIUM: 'premium', // New premium type with gold accent
   PROGRESS: 'progress' // New type for progress notifications
-};
+} as const;
 
 export const ToastPositions = {
   TOP: 'top',
   BOTTOM: 'bottom',
   CENTER: 'center'
-};
+} as const;
 
 export const ToastAnimationTypes = {
   SLIDE: 'slide',
   FADE: 'fade',
   SCALE: 'scale',
   BOUNCE: 'bounce'
-};
+} as const;
+
+type ToastType = typeof ToastTypes[keyof typeof ToastTypes];
+type ToastPosition = typeof ToastPositions[keyof typeof ToastPositions];
+type ToastAnimationType = typeof ToastAnimationTypes[keyof typeof ToastAnimationTypes];
+
+export interface ToastConfig {
+  message: string;
+  type?: ToastType;
+  duration?: number;
+  title?: string | null;
+  position?: ToastPosition;
+  animationType?: ToastAnimationType;
+  showProgress?: boolean;
+  progress?: number;
+  actionText?: string | null;
+  onActionPress?: (() => void) | null;
+  customIcon?: string | null;
+  customBackground?: React.ReactNode | null;
+  customStyle?: StyleProp<ViewStyle> | null;
+}
+
+interface ToastComponentProps extends ToastConfig {
+  visible: boolean;
+  onHide?: (() => void) | null;
+  hideOnSwipe?: boolean;
+  hideOnTap?: boolean;
+  multiline?: boolean;
+  maxLines?: number;
+  showCloseButton?: boolean;
+  elevation?: number;
+  borderRadius?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  showIcon?: boolean;
+}
 
 const ToastComponent = ({
   visible,
@@ -64,14 +99,14 @@ const ToastComponent = ({
   elevation = 8,
   borderRadius = 'md',
   showIcon = true
-}) => {
+}: ToastComponentProps) => {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [scaleAnim] = useState(new Animated.Value(0.8));
   const [slideAnim] = useState(new Animated.Value(position === ToastPositions.BOTTOM ? 100 : -100));
   const [bounceAnim] = useState(new Animated.Value(0));
   const [progressAnim] = useState(new Animated.Value(0));
-  const progressIntervalRef = useRef(null);
-  
+  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const pan = useRef(new Animated.ValueXY()).current;
   const panResponder = useRef(
     PanResponder.create({
@@ -94,7 +129,7 @@ const ToastComponent = ({
   useEffect(() => {
     if (visible) {
       startShowAnimation();
-      
+
       if (showProgress && progress > 0) {
         animateProgress();
       } else if (duration > 0) {
@@ -114,7 +149,7 @@ const ToastComponent = ({
 
   const startShowAnimation = () => {
     pan.setValue({ x: 0, y: 0 });
-    
+
     switch (animationType) {
       case ToastAnimationTypes.FADE:
         Animated.timing(fadeAnim, {
@@ -124,7 +159,7 @@ const ToastComponent = ({
           easing: Easing.out(Easing.cubic)
         }).start();
         break;
-      
+
       case ToastAnimationTypes.SCALE:
         Animated.parallel([
           Animated.timing(fadeAnim, {
@@ -140,7 +175,7 @@ const ToastComponent = ({
           })
         ]).start();
         break;
-      
+
       case ToastAnimationTypes.BOUNCE:
         Animated.sequence([
           Animated.timing(fadeAnim, {
@@ -156,7 +191,7 @@ const ToastComponent = ({
           })
         ]).start();
         break;
-      
+
       default: // SLIDE
         Animated.parallel([
           Animated.timing(fadeAnim, {
@@ -178,7 +213,7 @@ const ToastComponent = ({
     if (progressIntervalRef.current) {
       clearInterval(progressIntervalRef.current);
     }
-    
+
     Animated.timing(progressAnim, {
       toValue: progress,
       duration: 300,
@@ -194,7 +229,7 @@ const ToastComponent = ({
         duration: 250,
         useNativeDriver: true,
       }),
-      animationType === ToastAnimationTypes.SLIDE ? 
+      animationType === ToastAnimationTypes.SLIDE ?
         Animated.timing(slideAnim, {
           toValue: position === ToastPositions.BOTTOM ? 100 : -100,
           duration: 250,
@@ -213,7 +248,7 @@ const ToastComponent = ({
   if (!visible) return null;
 
   const getToastStyle = () => {
-    const styles = {
+    const styles: Record<string, any> = {
       success: {
         backgroundColor: theme.COLORS.success,
         borderColor: theme.COLORS.successDark,
@@ -314,7 +349,7 @@ const ToastComponent = ({
           opacity: fadeAnim,
           transform: [{ scale: scaleAnim }]
         };
-      case ToastAnimationTypes.BOUNCE:
+      case ToastAnimationTypes.BOUNCE: {
         const bounceValue = bounceAnim.interpolate({
           inputRange: [0, 0.5, 1],
           outputRange: [0, -15, 0]
@@ -323,6 +358,7 @@ const ToastComponent = ({
           opacity: fadeAnim,
           transform: [{ translateY: bounceValue }]
         };
+      }
       default: // SLIDE
         return {
           opacity: fadeAnim,
@@ -335,7 +371,7 @@ const ToastComponent = ({
   };
 
   const getBorderRadius = () => {
-    const radiusMap = {
+    const radiusMap: Record<string, number> = {
       xs: theme.SIZES.radius.xs,
       sm: theme.SIZES.radius.sm,
       md: theme.SIZES.radius.md,
@@ -347,7 +383,7 @@ const ToastComponent = ({
   };
 
   const getElevation = () => {
-    const elevationMap = {
+    const elevationMap: Record<number, any> = {
       0: theme.SHADOWS.none,
       1: theme.SHADOWS.xs,
       2: theme.SHADOWS.sm,
@@ -397,28 +433,28 @@ const ToastComponent = ({
           >
             <View style={styles.content}>
               {showIcon && (
-                <Icon 
-                  name={customIcon || toastStyle.icon} 
-                  size={24} 
-                  color={toastStyle.iconColor} 
-                  style={styles.icon} 
+                <Icon
+                  name={customIcon || toastStyle.icon}
+                  size={24}
+                  color={toastStyle.iconColor}
+                  style={styles.icon}
                 />
               )}
-              
+
               <View style={styles.textContainer}>
                 {title && (
                   <Text style={[styles.title, { color: toastStyle.textColor }]}>
                     {title}
                   </Text>
                 )}
-                <Text 
+                <Text
                   style={[styles.message, { color: toastStyle.textColor }]}
                   numberOfLines={multiline ? undefined : maxLines}
                 >
                   {message}
                 </Text>
               </View>
-              
+
               <View style={styles.rightActions}>
                 {actionText && onActionPress && (
                   <TouchableOpacity onPress={onActionPress} style={styles.actionButton}>
@@ -427,10 +463,10 @@ const ToastComponent = ({
                     </Text>
                   </TouchableOpacity>
                 )}
-                
+
                 {showCloseButton && (
-                  <TouchableOpacity 
-                    onPress={hideToast} 
+                  <TouchableOpacity
+                    onPress={hideToast}
                     style={styles.closeButton}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
@@ -439,16 +475,16 @@ const ToastComponent = ({
                 )}
               </View>
             </View>
-            
+
             {showProgress && (
-              <Animated.View 
+              <Animated.View
                 style={[
                   styles.progressBar,
-                  { 
+                  {
                     width: progressWidth,
-                    backgroundColor: toastStyle.progressColor 
+                    backgroundColor: toastStyle.progressColor
                   }
-                ]} 
+                ]}
               />
             )}
           </LinearGradient>
@@ -458,9 +494,26 @@ const ToastComponent = ({
   );
 };
 
+interface ToastState {
+  visible: boolean;
+  message: string;
+  type: ToastType;
+  duration: number;
+  title: string | null;
+  position: ToastPosition;
+  animationType: ToastAnimationType;
+  showProgress: boolean;
+  progress: number;
+  actionText: string | null;
+  onActionPress: (() => void) | null;
+  customIcon: string | null;
+  customBackground: React.ReactNode | null;
+  customStyle: StyleProp<ViewStyle> | null;
+}
+
 // Toast Hook for easy usage
 export const useToast = () => {
-  const [toastState, setToastState] = useState({
+  const [toastState, setToastState] = useState<ToastState>({
     visible: false,
     message: '',
     type: ToastTypes.DEFAULT,
@@ -480,12 +533,12 @@ export const useToast = () => {
   // Stable identities (empty dep arrays — they only ever use setState's
   // functional/direct forms, never stale outer values) so that `Toast`
   // below doesn't get a new component identity on every render.
-  const showToast = useCallback((config) => {
+  const showToast = useCallback((config: ToastConfig) => {
     setToastState({
       visible: true,
       message: config.message,
       type: config.type || ToastTypes.DEFAULT,
-      duration: config.duration || 3000,
+      duration: config.duration ?? 3000,
       title: config.title || null,
       position: config.position || ToastPositions.TOP,
       animationType: config.animationType || ToastAnimationTypes.SLIDE,
@@ -503,7 +556,7 @@ export const useToast = () => {
     setToastState(prev => ({ ...prev, visible: false }));
   }, []);
 
-  const updateProgress = useCallback((progress) => {
+  const updateProgress = useCallback((progress: number) => {
     setToastState(prev => ({ ...prev, progress }));
   }, []);
 
@@ -532,7 +585,7 @@ export const useToast = () => {
 };
 
 // Quick Toast Methods
-export const showSuccessToast = (message, title = 'Success', duration = 3000) => ({
+export const showSuccessToast = (message: string, title = 'Success', duration = 3000): ToastConfig & { visible: boolean } => ({
   visible: true,
   message,
   title,
@@ -540,7 +593,7 @@ export const showSuccessToast = (message, title = 'Success', duration = 3000) =>
   duration
 });
 
-export const showErrorToast = (message, title = 'Error', duration = 4000) => ({
+export const showErrorToast = (message: string, title = 'Error', duration = 4000): ToastConfig & { visible: boolean } => ({
   visible: true,
   message,
   title,
@@ -548,7 +601,7 @@ export const showErrorToast = (message, title = 'Error', duration = 4000) => ({
   duration
 });
 
-export const showPremiumToast = (message, title = 'Premium', duration = 3000) => ({
+export const showPremiumToast = (message: string, title = 'Premium', duration = 3000): ToastConfig & { visible: boolean } => ({
   visible: true,
   message,
   title,
@@ -556,7 +609,7 @@ export const showPremiumToast = (message, title = 'Premium', duration = 3000) =>
   duration
 });
 
-export const showProgressToast = (message, title = 'Loading...', initialProgress = 0) => ({
+export const showProgressToast = (message: string, title = 'Loading...', initialProgress = 0): ToastConfig & { visible: boolean } => ({
   visible: true,
   message,
   title,
@@ -638,9 +691,9 @@ const styles = StyleSheet.create({
 });
 
 // Toast Provider for global usage
-export const ToastProvider = ({ children }) => {
+export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   const { Toast } = useToast();
-  
+
   return (
     <>
       {children}

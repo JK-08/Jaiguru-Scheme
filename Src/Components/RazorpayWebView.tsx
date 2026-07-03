@@ -3,7 +3,7 @@ import {
   Modal, View, StyleSheet, ActivityIndicator,
   TouchableOpacity, Text, Linking, AppState, StatusBar, Platform,
 } from "react-native";
-import { WebView } from "react-native-webview";
+import { WebView, WebViewNavigation } from "react-native-webview";
 import { COLORS, SIZES, FONTS } from "../Utills/AppTheme";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -23,13 +23,31 @@ const THEME = {
   white:   COLORS.white,
 };
 
+export interface RazorpayOptions {
+  key?: string;
+  amount?: number | string;
+  currency?: string;
+  order_id?: string;
+  name?: string;
+  description?: string;
+  prefill?: {
+    name?: string;
+    email?: string;
+    contact?: string;
+  };
+  theme?: {
+    color?: string;
+  };
+  [key: string]: any;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const isUpiDeepLink = (url) =>
+const isUpiDeepLink = (url?: string | null): boolean =>
   UPI_SCHEMES.some((scheme) => url?.startsWith(scheme));
 
-const buildHtml = (options) => {
+const buildHtml = (options: RazorpayOptions): string => {
   const o = options;
-  const safeStr = (s) => String(s || "").replace(/"/g, "&quot;").replace(/`/g, "\\`");
+  const safeStr = (s: any): string => String(s || "").replace(/"/g, "&quot;").replace(/`/g, "\\`");
 
   return `<!DOCTYPE html>
 <html>
@@ -58,7 +76,7 @@ const buildHtml = (options) => {
 
   var rzp = new Razorpay({
     key:         "${safeStr(o.key)}",
-    amount:      ${parseInt(o.amount) || 0},
+    amount:      ${parseInt(String(o.amount)) || 0},
     currency:    "${safeStr(o.currency || "INR")}",
     order_id:    "${safeStr(o.order_id)}",
     name:        "${safeStr(o.name)}",
@@ -100,7 +118,12 @@ const buildHtml = (options) => {
 };
 
 // ─── Header Component ─────────────────────────────────────────────────────────
-const WebViewHeader = ({ title, onBack }) => (
+interface WebViewHeaderProps {
+  title: string;
+  onBack: () => void;
+}
+
+const WebViewHeader = ({ title, onBack }: WebViewHeaderProps) => (
   <View style={headerStyles.container}>
     <TouchableOpacity style={headerStyles.backBtn} onPress={onBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
       <Text style={headerStyles.backIcon}>‹</Text>
@@ -140,16 +163,23 @@ const overlayStyles = StyleSheet.create({
 });
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-const RazorpayWebView = ({ visible, options, onSuccess, onDismiss }) => {
-  const mainWebViewRef = useRef(null);
-  const bankWebViewRef = useRef(null);
+interface RazorpayWebViewProps {
+  visible: boolean;
+  options: RazorpayOptions | null;
+  onSuccess: (data: any) => void;
+  onDismiss?: () => void;
+}
+
+const RazorpayWebView = ({ visible, options, onSuccess, onDismiss }: RazorpayWebViewProps) => {
+  const mainWebViewRef = useRef<WebView>(null);
+  const bankWebViewRef = useRef<WebView>(null);
 
   // Refs (no re-render needed)
   const paymentDone  = useRef(false);
   const upiLaunched  = useRef(false);
   const dismissed    = useRef(false);
 
-  const [bankUrl,       setBankUrl]       = useState(null);
+  const [bankUrl,       setBankUrl]       = useState<string | null>(null);
   const [bankTitle,     setBankTitle]     = useState("Bank Authentication");
   const [mainLoading,   setMainLoading]   = useState(true);
 
@@ -178,8 +208,8 @@ const RazorpayWebView = ({ visible, options, onSuccess, onDismiss }) => {
   }, []);
 
   // ── Message handler ──
-  const handleMessage = useCallback((event) => {
-    let msg;
+  const handleMessage = useCallback((event: any) => {
+    let msg: any;
     try { msg = JSON.parse(event.nativeEvent.data); }
     catch { return; }
 
@@ -221,7 +251,7 @@ const RazorpayWebView = ({ visible, options, onSuccess, onDismiss }) => {
   }, [onSuccess, onDismiss]);
 
   // ── UPI deep-link guard ──
-  const shouldStartLoad = useCallback((req) => {
+  const shouldStartLoad = useCallback((req: { url: string }): boolean => {
     if (isUpiDeepLink(req.url)) {
       upiLaunched.current = true;
       Linking.openURL(req.url).catch(() => {});
@@ -231,7 +261,7 @@ const RazorpayWebView = ({ visible, options, onSuccess, onDismiss }) => {
   }, []);
 
   // ── Bank WebView navigation ──
-  const handleBankNav = useCallback((navState) => {
+  const handleBankNav = useCallback((navState: WebViewNavigation) => {
     if (navState.title) setBankTitle(navState.title);
   }, []);
 

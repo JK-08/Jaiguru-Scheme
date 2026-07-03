@@ -25,6 +25,15 @@ import {
 } from "../../Utills/AsynchStorageHelper";
 import { COLORS, FONTS, SIZES, SHADOWS } from "../../Utills/AppTheme";
 
+interface MenuItem {
+  key: string;
+  label: string;
+  icon: string;
+  route: string;
+  badge: number;
+  subItems?: { label: string; route: string }[];
+}
+
 // Menu items data - Add more items as needed
 // NOTE: The internal "LoginCheck" admin/user-list tool used to be exposed
 // here to every logged-in user, gated only by a hardcoded admin/admin
@@ -32,14 +41,14 @@ import { COLORS, FONTS, SIZES, SHADOWS } from "../../Utills/AppTheme";
 // let any user view every member's personal data, so it has been removed
 // from end-user navigation. Re-add it only behind real, server-verified
 // admin authentication.
-const MENU_ITEMS = [
+const MENU_ITEMS: MenuItem[] = [
   {
     key: "home",
     label: "Home",
     icon: "home",
     route: "Home",
     badge: 0,
-  }, 
+  },
   {
     key: "resetmpin",
     label: "Reset MPIN",
@@ -60,7 +69,7 @@ const MENU_ITEMS = [
     icon: "description",
     route: "TermsAndConditions",
     badge: 0,
-  
+
   },
   {
     key: "deleteaccount",
@@ -68,12 +77,12 @@ const MENU_ITEMS = [
     icon: "delete-outline",
     route: "DeleteAccount",
     badge: 0,
-  
+
   },
 ];
 
 // Memoized Badge Component
-const Badge = memo(({ count }) => {
+const Badge = memo(({ count }: { count: number }) => {
   if (count <= 0) return null;
 
   return (
@@ -86,7 +95,7 @@ const Badge = memo(({ count }) => {
 Badge.displayName = "Badge";
 
 // Memoized SubItem Component
-const SubItem = memo(({ subItem, onPress }) => (
+const SubItem = memo(({ subItem, onPress }: { subItem: { label: string; route: string }; onPress: (route: string) => void }) => (
   <TouchableOpacity
     style={styles.subItem}
     onPress={() => onPress(subItem.route)}
@@ -99,9 +108,17 @@ const SubItem = memo(({ subItem, onPress }) => (
 
 SubItem.displayName = "SubItem";
 
+interface DrawerItemProps {
+  item: MenuItem;
+  isActive: boolean;
+  onPress: (route: string) => void;
+  showSubItems: boolean;
+  onToggleSubItems: (key: string) => void;
+}
+
 // Enhanced DrawerItem Component
 const DrawerItem = memo(
-  ({ item, isActive, onPress, showSubItems, onToggleSubItems }) => {
+  ({ item, isActive, onPress, showSubItems, onToggleSubItems }: DrawerItemProps) => {
     const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
     const handlePressIn = useCallback(() => {
@@ -159,7 +176,7 @@ const DrawerItem = memo(
               <Icon
                 name={showSubItems ? "expand-less" : "expand-more"}
                 size={SIZES.icon.md}
-                color={isActive ? COLORS.white : COLORS.gray}
+                color={isActive ? COLORS.white : COLORS.gray500}
                 style={styles.arrowIcon}
               />
             )}
@@ -168,7 +185,7 @@ const DrawerItem = memo(
 
         {hasSubItems && showSubItems && (
           <View style={styles.subItemsContainer}>
-            {item.subItems.map((subItem, index) => (
+            {item.subItems!.map((subItem, index) => (
               <SubItem
                 key={`${item.key}-sub-${index}`}
                 subItem={subItem}
@@ -184,8 +201,20 @@ const DrawerItem = memo(
 
 DrawerItem.displayName = "DrawerItem";
 
+interface SidebarUser {
+  id: string | number | null;
+  name: string;
+  email: string;
+  contactNumber: string;
+  picture: string;
+  referralCode: string;
+  loginType: string;
+  avatarColor: string;
+  isLoading: boolean;
+}
+
 // User Avatar Component with Fallback
-const UserAvatar = memo(({ user, size = 60 }) => {
+const UserAvatar = memo(({ user, size = 60 }: { user: SidebarUser; size?: number }) => {
   if (user.picture && user.picture !== "") {
     return (
       <Image
@@ -202,10 +231,10 @@ const UserAvatar = memo(({ user, size = 60 }) => {
     <View
       style={[
         styles.avatarFallback,
-        { 
-          width: size, 
-          height: size, 
-          backgroundColor: user.avatarColor 
+        {
+          width: size,
+          height: size,
+          backgroundColor: user.avatarColor
         },
       ]}
     >
@@ -218,8 +247,15 @@ const UserAvatar = memo(({ user, size = 60 }) => {
 
 UserAvatar.displayName = "UserAvatar";
 
+interface SideBarProps {
+  navigation: any;
+  activeRoute?: string;
+  onClose?: () => void;
+  isVisible?: boolean;
+}
+
 // Main SideBar Component with RTL animation
-const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }) => {
+const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }: SideBarProps) => {
   const { width, height } = Dimensions.get("window");
   const insets = useSafeAreaInsets();
   const isLandscape = width > height;
@@ -229,8 +265,8 @@ const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }) => {
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const overlayAnim = useRef(new Animated.Value(0)).current;
 
-  const [expandedItems, setExpandedItems] = useState(new Set());
-  const [user, setUser] = useState({
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [user, setUser] = useState<SidebarUser>({
     id: null,
     name: "",
     email: "",
@@ -300,25 +336,25 @@ const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }) => {
     const fetchUserData = async () => {
       try {
         console.log("=== SIDEBAR: FETCHING USER DATA ===");
-        
+
         // Method 1: Get user data directly
         const userData = await getUserData();
         console.log("User data from getUserData():", userData);
-        
+
         // Method 2: Get auth session
         const session = await getAuthSession();
         console.log("Auth session:", session);
-        
+
         // Method 3: Get user ID separately
         const userId = await getUserId();
         console.log("User ID from getUserId():", userId);
-        
+
         // Debug all AsyncStorage
         await debugAsyncStorage();
 
         // Use the data we have
-        const userInfo = userData || session?.user || {};
-        
+        const userInfo: Record<string, any> = userData || session?.user || {};
+
         console.log("Extracted user info:", {
           id: userInfo.userId || userInfo.userid,
           username: userInfo.username,
@@ -362,7 +398,7 @@ const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }) => {
   }, []);
 
   // Function to generate avatar color based on name
-  const getAvatarColor = useCallback((name) => {
+  const getAvatarColor = useCallback((name: string): string => {
     const colors = [
       "#4A90E2", // Blue
       "#50C878", // Green
@@ -385,7 +421,7 @@ const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }) => {
   }, []);
 
   // Optimized toggle function
-  const toggleSubItems = useCallback((key) => {
+  const toggleSubItems = useCallback((key: string) => {
     setExpandedItems((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(key)) {
@@ -399,7 +435,7 @@ const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }) => {
 
   // Optimized navigation handler
   const handleNavigate = useCallback(
-    (route) => {
+    (route: string) => {
       // Close drawer first
       if (onClose) {
         onClose();
@@ -415,27 +451,20 @@ const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }) => {
     try {
       // Clear all auth data
       await clearAuthData();
-      
+
       // Close drawer first
       if (onClose) {
         onClose();
       }
-      
+
       // Navigate to Login screen
       navigation.getParent()?.navigate('Login');
-      
+
       console.log("Logout successful");
     } catch (error) {
       console.error("Logout error:", error);
     }
   }, [navigation, onClose]);
-
-  // Handle back/close
-  const handleBack = useCallback(() => {
-    if (onClose) {
-      onClose();
-    }
-  }, [onClose]);
 
   // Handle overlay press to close drawer
   const handleOverlayPress = useCallback(() => {
@@ -447,7 +476,7 @@ const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }) => {
   return (
     <>
       {/* Overlay background */}
-      <Animated.View 
+      <Animated.View
         style={[
           styles.overlay,
           {
@@ -483,9 +512,8 @@ const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }) => {
 
         {/* Header with Back and Edit Icons */}
         <View style={styles.header}>
-          
 
-          
+
         </View>
 
         {/* User Profile Section */}
@@ -504,26 +532,26 @@ const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }) => {
             ) : (
               <View style={styles.profileContent}>
                 <UserAvatar user={user} size={70} />
-                
+
                 <View style={styles.profileInfo}>
                   <View style={styles.nameRow}>
                     <Text style={styles.profileName} numberOfLines={1}>
                       {user.name}
                     </Text>
                     {user.loginType === "GOOGLE" && (
-                      <Icon 
-                        name="verified" 
-                        size={16} 
-                        color={COLORS.success} 
+                      <Icon
+                        name="verified"
+                        size={16}
+                        color={COLORS.success}
                         style={styles.verifiedIcon}
                       />
                     )}
                   </View>
-                  
+
                   <Text style={styles.profileEmail} numberOfLines={1}>
                     {user.email}
                   </Text>
-                  
+
                   {user.contactNumber ? (
                     <View style={styles.contactRow}>
                       <Icon
@@ -605,7 +633,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: COLORS.white,
-    ...SHADOWS.large,
+    ...SHADOWS.lg,
     zIndex: 1000,
     elevation: 5,
   },
@@ -625,7 +653,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: COLORS.lightGray,
+    backgroundColor: COLORS.gray200,
   },
   profileSection: {
     marginHorizontal: SIZES.margin.lg,
@@ -730,7 +758,7 @@ const styles = StyleSheet.create({
   },
   activeItem: {
     backgroundColor: COLORS.primary,
-    ...SHADOWS.small,
+    ...SHADOWS.sm,
   },
   iconContainer: {
     position: "relative",
@@ -762,7 +790,7 @@ const styles = StyleSheet.create({
   },
   label: {
     ...FONTS.body,
-    color: COLORS.text,
+    color: COLORS.textPrimary,
     flex: 1,
     fontSize: 15,
   },
@@ -793,12 +821,12 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: COLORS.gray,
+    backgroundColor: COLORS.gray500,
     marginRight: SIZES.margin.md,
   },
   subItemLabel: {
     ...FONTS.body,
-    color: COLORS.gray,
+    color: COLORS.gray500,
     fontSize: 14,
   },
   footer: {
@@ -831,7 +859,7 @@ const styles = StyleSheet.create({
   },
   versionText: {
     ...FONTS.caption,
-    color: COLORS.gray,
+    color: COLORS.gray500,
     fontSize: 12,
   },
   statusDot: {

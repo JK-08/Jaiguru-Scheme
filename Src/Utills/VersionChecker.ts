@@ -6,7 +6,7 @@ import { Alert, Linking, Platform } from "react-native";
  * Compare semantic versions (e.g. 1.1.1)
  * Returns true if current < target
  */
-const isVersionLower = (current, target) => {
+const isVersionLower = (current: string, target: string): boolean => {
   const c = current.split(".").map(Number);
   const t = target.split(".").map(Number);
 
@@ -17,9 +17,9 @@ const isVersionLower = (current, target) => {
   return false;
 };
 
-export const checkForAppUpdate = async () => {
+export const checkForAppUpdate = async (): Promise<void> => {
   try {
-    const localVersion = Application.nativeApplicationVersion;
+    const localVersion = Application.nativeApplicationVersion as string;
     console.log("Installed version:", localVersion);
 
     /* ----------------------------------
@@ -48,7 +48,7 @@ export const checkForAppUpdate = async () => {
     }
 
     const text = await response.text();
-    let config;
+    let config: any;
     try {
       config = JSON.parse(text);
     } catch {
@@ -76,7 +76,7 @@ export const checkForAppUpdate = async () => {
         console.log("App is up to date. Installed:", localVersion);
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     console.log("Version check failed:", error.message || error);
   }
 };

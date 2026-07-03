@@ -5,14 +5,26 @@ import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { COLORS, SIZES } from "../../Utills/AppTheme";
 import styles from "./styles";
 
-function BottomTab({ activeScreen }) {
-  const navigation = useNavigation();
+interface TabDef {
+  key: string;
+  label: string;
+  screen: string | { name: string; params?: Record<string, any> };
+  icon: React.ReactElement<any>;
+  isSpecial?: boolean;
+}
 
-  const tabs = [
+interface BottomTabProps {
+  activeScreen: string;
+}
+
+function BottomTab({ activeScreen }: BottomTabProps) {
+  const navigation = useNavigation<any>();
+
+  const tabs: TabDef[] = [
     {
-  key: "HOME",
-  label: "Home",
-  screen: { name: "MainDrawer", params: { screen: "Home" } },
+      key: "HOME",
+      label: "Home",
+      screen: { name: "MainDrawer", params: { screen: "Home" } },
       icon: <MaterialCommunityIcons name="home" size={SIZES.icon.md} />,
     },
     {
@@ -21,8 +33,8 @@ function BottomTab({ activeScreen }) {
       screen: "AllSchemes",
       icon: <MaterialIcons name="savings" size={SIZES.icon.md} />,
     },
-    
-   
+
+
     {
       key: "SUPPORT",
       label: "Support",
@@ -42,7 +54,7 @@ function BottomTab({ activeScreen }) {
             <TouchableOpacity
               key={tab.key}
               style={styles.payNowContainer}
-              onPress={() => navigation.navigate(tab.screen)}
+              onPress={() => navigation.navigate(tab.screen as never)}
               activeOpacity={0.7}
             >
               <View style={[
@@ -71,7 +83,7 @@ function BottomTab({ activeScreen }) {
           <TouchableOpacity
             key={tab.key}
             style={styles.footerBtnContainer}
-            onPress={() => navigation.navigate(tab.screen)}
+            onPress={() => navigation.navigate(tab.screen as never)}
             activeOpacity={0.7}
           >
             {React.cloneElement(tab.icon, {

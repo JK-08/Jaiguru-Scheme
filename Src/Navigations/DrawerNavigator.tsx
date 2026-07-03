@@ -1,10 +1,8 @@
-// Src/Navigations/DrawerNavigator.js
+// Src/Navigations/DrawerNavigator.tsx
 import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 
 import HomeScreen from '../Screens/Home/HomeScreen';
-import ResetMPINScreen from '../Screens/Auth/ResetMpin/ResetMpin';
-import MemberCreation from '../Screens/MemberCreation/MemberCreation';
 import SideBar from '../Components/Sidebar/Sidebar';
 
 const Drawer = createDrawerNavigator();
@@ -13,7 +11,7 @@ export default function MainDrawerNavigator() {
   return (
     <Drawer.Navigator
       initialRouteName="Home"
-      drawerContent={(props) => <SideBar {...props} />}
+      drawerContent={(props) => <SideBar {...(props as any)} />}
       screenOptions={{
         headerShown: false,
         drawerType: 'slide',
@@ -28,4 +26,3 @@ export default function MainDrawerNavigator() {
     </Drawer.Navigator>
   );
 }
-

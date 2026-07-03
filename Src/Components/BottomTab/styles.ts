@@ -1,4 +1,4 @@
-// styles.js
+// styles.ts
 import { StyleSheet } from "react-native";
 import { COLORS, SIZES, FONTS, SHADOWS } from "../../Utills/AppTheme";
 
@@ -12,14 +12,14 @@ const styles = StyleSheet.create({
     paddingBottom: SIZES.padding.xs,
     ...SHADOWS.md,
   },
-  
+
   footerBtnContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: SIZES.padding.xs,
   },
-  
+
   activeText: {
     fontSize: SIZES.font.xs,
     fontFamily: FONTS.family.medium,
@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     includeFontPadding: false,
   },
-  
+
   inactiveText: {
     fontSize: SIZES.font.xs,
     fontFamily: FONTS.family.regular,

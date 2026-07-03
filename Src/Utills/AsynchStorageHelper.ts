@@ -15,12 +15,12 @@ const STORAGE_KEYS = {
  * Normalizes all types of auth responses (Normal, Google, OTP)
  * This ensures consistent user data structure
  */
-const normalizeAuthResponse = (response) => {
+const normalizeAuthResponse = (response: any): { token: string; user: Record<string, any> } | null => {
   if (!response) return null;
 
   // Extract token from various possible locations
   const token = response.token || response.accessToken || response.data?.token || null;
-  
+
   if (!token) {
     console.log('No token found in response:', response);
     return null;
@@ -33,25 +33,25 @@ const normalizeAuthResponse = (response) => {
       // User identification
       userId: response.id || response.userId || response.data?.id,
       userid: response.id || response.userId || response.data?.id, // Both formats for compatibility
-      
+
       // User info
       username: response.username || response.name || response.data?.username,
       email: response.email || response.data?.email,
       contactNumber: response.contactNumber || response.mobileNumber || response.phone || response.data?.contactNumber,
-      
+
       // Referral info
       referralCode: response.referralCode || response.data?.referralCode,
       referralLink: response.referralLink || response.data?.referralLink,
-      
+
       // App links
       playStoreLink: response.playStoreLink || response.data?.playStoreLink,
-      
+
       // Social media info (for Google login)
       socialMedia: response.socialMedia || response.data?.socialMedia,
-      
+
       // Profile picture (for Google login)
       picture: response.picture || response.avatar || response.data?.picture,
-      
+
       // Metadata
       lastLogin: new Date().toISOString(),
       isActive: true,
@@ -63,13 +63,13 @@ const normalizeAuthResponse = (response) => {
 /**
  * Save auth data with consistent structure
  */
-export const saveAuthData = async (apiResponse) => {
+export const saveAuthData = async (apiResponse: any): Promise<{ success: boolean; user?: Record<string, any>; error?: string }> => {
   try {
     console.log('=== SAVE AUTH DATA STARTED ===');
     console.log('Raw API Response:', JSON.stringify(apiResponse, null, 2));
-    
+
     const normalized = normalizeAuthResponse(apiResponse);
-    
+
     if (!normalized) {
       throw new Error('Invalid response format');
     }
@@ -104,9 +104,9 @@ export const saveAuthData = async (apiResponse) => {
     console.log('Auth data saved successfully');
     console.log('User ID stored:', cleanUserData.userId);
     console.log('Login type:', cleanUserData.loginType);
-    
+
     return { success: true, user: cleanUserData };
-  } catch (error) {
+  } catch (error: any) {
     console.error('saveAuthData error:', error);
     return { success: false, error: error.message };
   }
@@ -115,7 +115,7 @@ export const saveAuthData = async (apiResponse) => {
 /**
  * Get auth token
  */
-export const getAuthToken = async () => {
+export const getAuthToken = async (): Promise<string | null> => {
   try {
     const token = await AsyncStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
     return token;
@@ -128,13 +128,13 @@ export const getAuthToken = async () => {
 /**
  * Get complete user data
  */
-export const getUserData = async () => {
+export const getUserData = async (): Promise<Record<string, any> | null> => {
   try {
     const data = await AsyncStorage.getItem(STORAGE_KEYS.USER_DATA);
     if (!data) return null;
-    
+
     const userData = JSON.parse(data);
-    
+
     return userData;
   } catch (error) {
     console.error('getUserData error:', error);
@@ -145,15 +145,15 @@ export const getUserData = async () => {
 /**
  * Get a specific user field
  */
-export const getUserField = async (field) => {
+export const getUserField = async (field: string): Promise<any> => {
   try {
     const userData = await getUserData();
-    
+
     // Handle both userId and userid for compatibility
     if (field === 'userId' || field === 'userid') {
       return userData?.userId || userData?.userid || null;
     }
-    
+
     return userData ? userData[field] ?? null : null;
   } catch (error) {
     console.error('getUserField error:', error);
@@ -164,7 +164,7 @@ export const getUserField = async (field) => {
 /**
  * Get user ID (primary method)
  */
-export const getUserId = async () => {
+export const getUserId = async (): Promise<any> => {
   try {
     const userData = await getUserData();
     const userId = userData?.userId || userData?.userid || null;
@@ -179,7 +179,7 @@ export const getUserId = async () => {
 /**
  * Update specific user fields
  */
-export const updateUserData = async (updates) => {
+export const updateUserData = async (updates: Record<string, any>): Promise<{ success: boolean; data?: Record<string, any>; error?: string }> => {
   try {
     const currentData = await getUserData();
     if (!currentData) {
@@ -194,7 +194,7 @@ export const updateUserData = async (updates) => {
 
     await AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(updatedData));
     return { success: true, data: updatedData };
-  } catch (error) {
+  } catch (error: any) {
     console.error('updateUserData error:', error);
     return { success: false, error: error.message };
   }
@@ -203,16 +203,16 @@ export const updateUserData = async (updates) => {
 /**
  * Check if user is logged in
  */
-export const isLoggedIn = async () => {
+export const isLoggedIn = async (): Promise<boolean> => {
   try {
     const [loggedIn, token] = await Promise.all([
       AsyncStorage.getItem(STORAGE_KEYS.IS_LOGGED_IN),
       getAuthToken(),
     ]);
-    
+
     const isAuthenticated = loggedIn === 'true' && token !== null;
     console.log('isLoggedIn check:', { loggedIn, hasToken: !!token, isAuthenticated });
-    
+
     return isAuthenticated;
   } catch (error) {
     console.error('isLoggedIn error:', error);
@@ -223,7 +223,7 @@ export const isLoggedIn = async () => {
 /**
  * Get complete auth session
  */
-export const getAuthSession = async () => {
+export const getAuthSession = async (): Promise<{ isAuthenticated: boolean; token: string | null; user: Record<string, any> | null }> => {
   try {
     const [token, userData, loggedIn] = await Promise.all([
       getAuthToken(),
@@ -236,13 +236,13 @@ export const getAuthSession = async () => {
       token,
       user: userData,
     };
-    
+
     console.log('Auth session retrieved:', {
       isAuthenticated: session.isAuthenticated,
       userId: session.user?.userId || session.user?.userid,
       tokenExists: !!token,
     });
-    
+
     return session;
   } catch (error) {
     console.error('getAuthSession error:', error);
@@ -257,12 +257,12 @@ export const getAuthSession = async () => {
 /**
  * Save MPIN status
  */
-export const setMpinStatus = async (hasMpin) => {
+export const setMpinStatus = async (hasMpin: boolean): Promise<{ success: boolean; error?: string }> => {
   try {
     await AsyncStorage.setItem(STORAGE_KEYS.HAS_MPIN, hasMpin.toString());
     console.log('MPIN status saved:', hasMpin);
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error('setMpinStatus error:', error);
     return { success: false, error: error.message };
   }
@@ -271,7 +271,7 @@ export const setMpinStatus = async (hasMpin) => {
 /**
  * Get MPIN status
  */
-export const getMpinStatus = async () => {
+export const getMpinStatus = async (): Promise<boolean> => {
   try {
     const hasMpin = await AsyncStorage.getItem(STORAGE_KEYS.HAS_MPIN);
     return hasMpin === 'true';
@@ -284,17 +284,17 @@ export const getMpinStatus = async () => {
 /**
  * Logout (clear everything)
  */
-export const clearAuthData = async () => {
+export const clearAuthData = async (): Promise<{ success: boolean; error?: string }> => {
   try {
     await AsyncStorage.multiRemove([
       STORAGE_KEYS.AUTH_TOKEN,
       STORAGE_KEYS.USER_DATA,
       STORAGE_KEYS.IS_LOGGED_IN,
     ]);
-    
+
     console.log('Auth data cleared successfully');
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error('clearAuthData error:', error);
     return { success: false, error: error.message };
   }
@@ -303,12 +303,12 @@ export const clearAuthData = async () => {
 /**
  * Debug function to check all AsyncStorage contents
  */
-export const debugAsyncStorage = async () => {
+export const debugAsyncStorage = async (): Promise<void> => {
   try {
     console.log('=== DEBUG ASYNC STORAGE ===');
     const allKeys = await AsyncStorage.getAllKeys();
     console.log('Total keys:', allKeys.length);
-    
+
     const multiData = await AsyncStorage.multiGet(allKeys);
     multiData.forEach(([key, value]) => {
       if (key === STORAGE_KEYS.USER_DATA && value) {
@@ -337,7 +337,7 @@ export const debugAsyncStorage = async () => {
 /**
  * Check if it's first app launch
  */
-export const checkFirstLaunch = async () => {
+export const checkFirstLaunch = async (): Promise<boolean> => {
   try {
     const firstLaunch = await AsyncStorage.getItem(STORAGE_KEYS.FIRST_LAUNCH);
     if (firstLaunch === null) {

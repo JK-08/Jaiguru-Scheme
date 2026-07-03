@@ -1,4 +1,4 @@
-// Src/Navigations/StackNavigator.js
+// Src/Navigations/StackNavigator.tsx
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -31,13 +31,12 @@ import WebViewScreen from '../Screens/WebView/WebViewScreen';
 import GoogleContactMobileScreen from '../Screens/Auth/GoogleContactUpdate/GoogleContactMobile';
 import GoogleContactOtpScreen from '../Screens/Auth/GoogleContactUpdate/GoogleContactVerify';
 import HelpCentre from '../Screens/HelpCenter/HelpCenter';
-import HomeScreen from '../Screens/Home/HomeScreen';
 import KnowMore from '../Screens/KnowMore/KnowMore'
 
 const Stack = createNativeStackNavigator();
 
 export default function StackNavigator() {
-  const [initialRoute, setInitialRoute] = useState(null);
+  const [initialRoute, setInitialRoute] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -109,14 +108,14 @@ export default function StackNavigator() {
         <Stack.Screen name="ForgotMpin" component={ForgotMpinScreen} />
         <Stack.Screen name="VerifyForgotMpin" component={VerifyForgotMpinScreen} />
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-        <Stack.Screen name="ForgotVerifyOTP" component={ForgotVerifyOtpScreen} />
-        <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
-        <Stack.Screen name="ResetMPIN" component={ResetMpinScreen} /> 
+        <Stack.Screen name="ForgotVerifyOTP" component={ForgotVerifyOtpScreen as any} />
+        <Stack.Screen name="ResetPassword" component={ResetPasswordScreen as any} />
+        <Stack.Screen name="ResetMPIN" component={ResetMpinScreen} />
         <Stack.Screen name="Paynow" component={PayNow} />
         <Stack.Screen name="MemberCreation" component={MemberCreation} />
-        <Stack.Screen name="WebViewScreen" component={WebViewScreen} />    
-        <Stack.Screen name="GoogleContactVerification" component={GoogleContactMobileScreen} />
-        <Stack.Screen name="GoogleContactVerify" component={GoogleContactOtpScreen} />
+        <Stack.Screen name="WebViewScreen" component={WebViewScreen} />
+        <Stack.Screen name="GoogleContactVerification" component={GoogleContactMobileScreen as any} />
+        <Stack.Screen name="GoogleContactVerify" component={GoogleContactOtpScreen as any} />
         <Stack.Screen name="HelpCenter" component={HelpCentre} />
         <Stack.Screen name="KnowMore" component={KnowMore} />
 

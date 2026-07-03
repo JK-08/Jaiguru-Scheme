@@ -148,6 +148,6 @@ const styles = StyleSheet.create({
   infoText: { ...FONTS.bodySmall, color: COLORS.primary, flex: 1 },
   button: { marginBottom: SIZES.xl, zIndex: 1 },
   securityNote: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', zIndex: 1 },
-  securityIcon: { fontSize: SIZES.font.sm, marginRight: SIZES.xxs },
+  securityIcon: { fontSize: SIZES.font.sm, marginRight: SIZES.font.xxs },
   securityText: { ...FONTS.caption, color: COLORS.textTertiary },
 });

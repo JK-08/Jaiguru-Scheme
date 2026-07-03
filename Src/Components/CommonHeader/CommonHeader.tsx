@@ -1,4 +1,4 @@
-// Header.js
+// Header.tsx
 import React, { useEffect, useRef } from 'react';
 import {
   View,
@@ -16,6 +16,41 @@ import theme from '../../Utills/AppTheme';
 
 const { COLORS, FONTS, SIZES, moderateScale, verticalScale, SHADOWS } = theme;
 
+interface HeaderProps {
+  title?: string;
+  subtitle?: string | null;
+
+  showBack?: boolean;
+  leftIconName?: string;
+  leftIconSize?: number;
+  leftIconColor?: string;
+  onBackPress?: (() => void) | null;
+  // Aliases accepted by some older screens for leftIconName/leftIconColor
+  backIconName?: string;
+  backIconColor?: string;
+
+  rightIconName?: string | null;
+  rightIconSize?: number;
+  rightIconColor?: string;
+  onRightPress?: (() => void) | null;
+
+  backgroundColor?: string;
+  // Unused alias kept for prop-compatibility with older callers (title color
+  // is fixed to COLORS.textPrimary, matching the original component).
+  textColor?: string;
+  borderBottom?: boolean;
+  shadow?: boolean;
+  transparent?: boolean;
+  animated?: boolean;
+  centerTitle?: boolean;
+
+  leftComponent?: React.ReactNode;
+  rightComponent?: React.ReactNode;
+  centerComponent?: React.ReactNode;
+
+  IconComponent?: React.ComponentType<any>;
+}
+
 const Header = ({
   /* ───────────── Basic ───────────── */
   title,
@@ -23,10 +58,12 @@ const Header = ({
 
   /* ───────────── Left ───────────── */
   showBack = true,
-  leftIconName = 'arrow-back',
+  leftIconName,
   leftIconSize = moderateScale(24),
-  leftIconColor = COLORS.white,
+  leftIconColor,
   onBackPress = null,
+  backIconName,
+  backIconColor,
 
   /* ───────────── Right ───────────── */
   rightIconName = null,
@@ -49,8 +86,11 @@ const Header = ({
 
   /* ───────────── Icons ───────────── */
   IconComponent = Ionicons, // ✅ DEFAULT ICON SET
-}) => {
-  const navigation = useNavigation();
+}: HeaderProps) => {
+  const navigation = useNavigation<any>();
+
+  const resolvedLeftIconName = leftIconName || backIconName || 'arrow-back';
+  const resolvedLeftIconColor = leftIconColor || backIconColor || COLORS.white;
 
   const slideAnim = useRef(new Animated.Value(animated ? -40 : 0)).current;
   const fadeAnim = useRef(new Animated.Value(animated ? 0 : 1)).current;
@@ -115,9 +155,9 @@ const Header = ({
               >
                 <View style={styles.iconContainer}>
                   <IconComponent
-                    name={leftIconName}
+                    name={resolvedLeftIconName}
                     size={leftIconSize}
-                    color={leftIconColor}
+                    color={resolvedLeftIconColor}
                   />
                 </View>
               </TouchableOpacity>
@@ -158,7 +198,7 @@ const Header = ({
             ) : rightIconName ? (
               <TouchableOpacity
                 style={styles.iconButton}
-                onPress={onRightPress}
+                onPress={onRightPress ?? undefined}
                 activeOpacity={0.7}
               >
                 <View style={styles.iconContainer}>
@@ -243,5 +283,5 @@ const styles = StyleSheet.create({
 
 /* Web cursor fix */
 if (Platform.OS === 'web') {
-  styles.iconButton = { ...styles.iconButton, cursor: 'pointer' };
+  (styles as any).iconButton = { ...styles.iconButton, cursor: 'pointer' };
 }

@@ -285,7 +285,7 @@ const TermsAndConditions = ({ navigation }: TermsAndConditionsProps) => {
       ...FONTS.body,
       color: COLORS.textSecondary,
       flex: 1,
-      lineHeight: SIZES.font.body * 1.4,
+      lineHeight: SIZES.font.md * 1.4,
     },
     disclaimerCard: {
       ...COMMON_STYLES.card.default,
@@ -304,7 +304,7 @@ const TermsAndConditions = ({ navigation }: TermsAndConditionsProps) => {
       ...FONTS.body,
       color: COLORS.textSecondary,
       fontStyle: 'italic',
-      lineHeight: SIZES.font.body * 1.4,
+      lineHeight: SIZES.font.md * 1.4,
     },
     contactSection: {
       ...COMMON_STYLES.card.default,
