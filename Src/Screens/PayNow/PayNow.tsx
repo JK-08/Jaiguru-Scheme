@@ -3,7 +3,6 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform, StatusBar } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { useRazorpayPayment } from '../../api/hooks/Razorpay/useRazorpay';
-import { useMemberActions } from '../../api/hooks/Member/useMemberCreate';
 import RazorpayWebView from '../../Components/RazorpayWebView';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
 import theme from '../../Utills/AppTheme';
@@ -64,8 +63,6 @@ const PayNow = () => {
     handlePaymentDismiss,
   } = useRazorpayPayment();
 
-  const { handleInsertInstallment, loading: insertLoading } = useMemberActions();
-
   const formatCurrency = useCallback((value: unknown) => {
     const n = parseFloat(String(value)) || 0;
     return `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
@@ -96,10 +93,40 @@ const PayNow = () => {
   };
 
   const handlePayment = useCallback(async () => {
-    if (isLoading) return;
+    if (paymentLoading) return;
     setStatus(STATUS.IDLE);
     setStatusMsg('');
     resetPayment();
+
+    // Built up front — the backend parks this against the Razorpay order
+    // the moment create-order is called, and only inserts it as a real
+    // installment once payment is confirmed (verify-payment or webhook).
+    // Note: the Razorpay payment/order id isn't known yet at this point
+    // (the order doesn't exist until create-order returns), so chqCardNo /
+    // chqRtnReason can't carry that reference the way the old pre-payment
+    // flow did.
+    const today = formatApiDate();
+    const installmentPayload = {
+      groupCode: groupCode || '',
+      regNo: parseInt(String(regNo), 10) || 0,
+      rDate: today,
+      amount: paymentAmount,
+      modePay: 4,
+      accCode: '00001',
+      updateTime: today,
+      installment: nextInstallment,
+      weight:
+        accountData?.schemeSummary?.weightLedger === 'Y' ? parseFloat(accountData?.schemeSummary?.totalWeight || 0) : 0,
+      sWeight:
+        accountData?.schemeSummary?.weightLedger === 'Y' ? parseFloat(accountData?.schemeSummary?.lastWeight || 0) : 0,
+      userID: 999,
+      schemeId: parseInt(String(schemeId), 10) || 0,
+      chqBankCode: 4,
+      chqCardNo: '',
+      chqBranch: 'Online',
+      chkBank: 'Razorpay',
+      chqRtnReason: '',
+    };
 
     const result = await startPayment(
       paymentAmount,
@@ -109,64 +136,22 @@ const PayNow = () => {
         email: accountData?.personalInfo?.email || 'customer@example.com',
       },
       regNo?.toString() || '1',
-      groupCode || 'MAN'
+      groupCode || 'MAN',
+      { newJoin: false, schemeDetails: installmentPayload }
     );
 
     if (result.success) {
-      try {
-        const today = formatApiDate();
-        const installmentPayload = {
-          groupCode: groupCode || '',
-          regNo: parseInt(String(regNo), 10) || 0,
-          rDate: today,
-          amount: paymentAmount,
-          modePay: 4,
-          accCode: '00001',
-          updateTime: today,
-          installment: nextInstallment,
-          weight:
-            accountData?.schemeSummary?.weightLedger === 'Y' ? parseFloat(accountData?.schemeSummary?.totalWeight || 0) : 0,
-          sWeight:
-            accountData?.schemeSummary?.weightLedger === 'Y' ? parseFloat(accountData?.schemeSummary?.lastWeight || 0) : 0,
-          userID: 999,
-          schemeId: parseInt(String(schemeId), 10) || 0,
-          chqBankCode: 4,
-          chqCardNo: result.paymentId || '',
-          chqBranch: 'Online',
-          chkBank: 'Razorpay',
-          chqRtnReason: result.orderId || '',
-        };
-        console.log('[PayNow] insertInstallment PARAMS:', installmentPayload);
-        const insertResponse = await handleInsertInstallment(installmentPayload);
-        console.log('[PayNow] insertInstallment RESPONSE:', insertResponse);
-        setPaymentId(result.paymentId || '');
-        setStatus(STATUS.SUCCESS);
-        resetPayment();
-      } catch (e) {
-        setStatusMsg(`Payment successful but record update failed.\nPayment ID: ${result.paymentId}\nPlease contact support.`);
-        setStatus(STATUS.FAILED);
-        resetPayment();
-      }
+      setPaymentId(result.paymentId || '');
+      setStatus(STATUS.SUCCESS);
+      resetPayment();
     } else if (result.message !== 'Payment cancelled by user') {
       setStatusMsg(result.message || 'Payment failed. Please try again.');
       setStatus(STATUS.FAILED);
       resetPayment();
     }
-  }, [
-    isLoading,
-    paymentAmount,
-    memberName,
-    accountData,
-    regNo,
-    groupCode,
-    startPayment,
-    handleInsertInstallment,
-    nextInstallment,
-    schemeId,
-    resetPayment,
-  ]);
+  }, [paymentLoading, paymentAmount, memberName, accountData, regNo, groupCode, startPayment, nextInstallment, schemeId, resetPayment]);
 
-  const isLoading = paymentLoading || insertLoading;
+  const isLoading = paymentLoading;
 
   if (status === STATUS.SUCCESS) {
     return (

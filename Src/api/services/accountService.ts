@@ -12,14 +12,6 @@ export const accountService = {
       url: ACCOUNT.PHONE_DETAILS(phoneNo),
     }),
 
-  /** POST /account/insert — record a scheme installment payment */
-  insertInstallment: (payload: Record<string, unknown>) =>
-    callApi<Record<string, unknown>, unknown>({
-      method: 'post',
-      url: ACCOUNT.INSERT,
-      data: payload,
-    }),
-
   /** GET /account/getTranType */
   getTransactionTypes: () =>
     callApi<null, TransactionTypeListResponse>({

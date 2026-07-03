@@ -4,7 +4,6 @@ import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, ActivityIn
 import { useRoute, useNavigation, useFocusEffect, RouteProp } from '@react-navigation/native';
 import UserRegistrationForm, { UserRegistrationFormData, UserRegistrationFormRef } from './UserRegistrationForm';
 import SchemeJoiningForm, { SchemeJoiningFormRef } from './SchemeJoiningForm';
-import { useMemberActions } from '../../api/hooks/Member/useMemberCreate';
 import { useRazorpayPayment } from '../../api/hooks/Razorpay/useRazorpay';
 import PaymentModal from './PaymentModal';
 import RazorpayWebView from '../../Components/RazorpayWebView';
@@ -40,7 +39,6 @@ const MemberCreation = () => {
   const schemeFormRef = useRef<SchemeJoiningFormRef>(null);
 
   // Hooks
-  const { handleCreateMember: create, loading: createLoading } = useMemberActions();
   const {
     loading: paymentLoading,
     startPayment,
@@ -82,6 +80,7 @@ const MemberCreation = () => {
   };
 
   const handleRegistrationSubmit = useCallback((formData: UserRegistrationFormData) => {
+    console.log('[SCHEME JOIN] STEP 1 — User registration form submitted', { name: formData.userName, mobile: formData.mobileNumber });
     setUserRegistrationData(formData);
     setCurrentStep(STEPS.SCHEME_JOINING);
   }, []);
@@ -124,7 +123,7 @@ const MemberCreation = () => {
   }, []);
 
   const createMemberPayload = useCallback(
-    (formData: any, paymentId?: string, orderId?: string): CreateMemberPayload => {
+    (formData: any): CreateMemberPayload => {
       const user = userRegistrationData;
       const aadhaar = user.aadharNumber?.replace(/\s/g, '') || '';
       const maskedAadhaar = aadhaar.length >= 4 ? `XXXX-XXXX-${aadhaar.slice(-4)}` : '';
@@ -158,11 +157,17 @@ const MemberCreation = () => {
           idProof: 'Aadhaar',
           idProofNo: aadhaar,
           aadhaarMasked: maskedAadhaar,
-          panNumber: user.panNumber || '',
+          // Backend NewMember model calls this field "panno", not "panNumber" —
+          // sending the wrong key throws a Jackson UnrecognizedPropertyException
+          // and silently kills the entire member creation (caught only inside
+          // processPendingPayment's error handling on the backend).
+          panno: user.panNumber || '',
           dob: formatDate(user.dob),
           email: user.emailAddress || '',
-          mobileVerified: true,
-          aadhaarVerified: true,
+          // mobileVerified/aadhaarVerified deliberately omitted — the backend's
+          // NewMember model has no such fields for the primary member (only
+          // nomineeMobileVerified/nomineeAadhaarVerified exist), so sending them
+          // causes the same unrecognized-field failure as panNumber did.
           nomineeMobileVerified: true,
           nomineeAadhaarVerified: false,
           upDateTime: nowDateTime,
@@ -175,19 +180,24 @@ const MemberCreation = () => {
           groupCode: formData.selectedScheme || '',
           regNo: 1,
           joinDate: nowDateTime,
-          upDateTime2: nowDateTime,
+          // Backend CreateSchemeSummary model calls these "updateTime"/"userId",
+          // not "upDateTime2"/"userId2" — same unrecognized-field failure mode.
+          updateTime: nowDateTime,
           openingDate: nowDateTime,
-          userId2: currentUserId || '0',
+          userId: currentUserId || '0',
         },
         schemeCollectInsert: {
           amount: formData.amount || 0,
           modePay: 4,
           accCode: '00001',
           chqBankCode: 4,
-          chqCardNo: paymentId || '',
+          // Payment/order id aren't known yet — this payload is built and
+          // parked server-side BEFORE the Razorpay order (and therefore the
+          // payment id) exists.
+          chqCardNo: '',
           chqBranch: 'Online',
           chkBank: 'Razorpay',
-          chqRtnReason: orderId || '',
+          chqRtnReason: '',
         },
         ...(currentReferralCode ? { referralCode: currentReferralCode } : {}),
       };
@@ -195,37 +205,44 @@ const MemberCreation = () => {
     [userRegistrationData, formatDate, currentUserId, currentReferralCode]
   );
 
-  const handleMemberCreation = useCallback(
-    async (formData: any, paymentId?: string, orderId?: string) => {
-      try {
-        const payload = createMemberPayload(formData, paymentId, orderId);
-        console.log('[MemberCreation] createMember PARAMS:', JSON.stringify(payload, null, 2));
+  // The backend returns the parked-payload outcome as a stringified map,
+  // e.g. "PROCESSED: {status=Success, personalId=123, regNo=45, ...}" once
+  // the member has actually been created (either via this /verify-payment
+  // call, or — if the webhook beat it to it — already done by the time we
+  // ask). Parse that instead of calling member/create ourselves.
+  const showMemberCreatedAlert = useCallback(
+    (formData: any, processResult?: string) => {
+      const msgStr = (processResult || '').replace(/^PROCESSED:\s*/, '');
 
-        const response: any = await create(payload);
-        console.log('[MemberCreation] createMember RESPONSE:', response);
-
-        // Parse the message string into an object
-        const msgStr = response?.message || '';
-        const parsed: Record<string, string> = {};
-        msgStr
-          .replace(/[{}]/g, '')
-          .split(', ')
-          .forEach((pair: string) => {
-            const [key, ...rest] = pair.split('=');
-            if (key) parsed[key.trim()] = rest.join('=').trim();
-          });
-
+      // processResult can still come back empty in rare cases where the backend's
+      // brief poll (for a webhook that beat us to processing) times out before the
+      // member insert finishes. The payment itself is confirmed either way — don't
+      // show fabricated dashes as if we have real member details when we don't.
+      if (!msgStr) {
         Alert.alert(
-          '✅ Member Created Successfully',
-          `Personal ID: ${parsed.personalId || '-'}\nReg No: ${parsed.regNo || '-'}\nGroup Code: ${parsed.groupCode || '-'}\nScheme: ${formData.schemeName || '-'}\nAmount: ₹${parsed.amount || formData.amount || 0}\nReceipt No: ${parsed.sno || '-'}`,
+          '✅ Payment Successful',
+          `Your payment for ${formData.schemeName || 'the scheme'} was received. We're finishing up your member record — check "My Schemes" in a moment if the details don't appear immediately.`,
           [{ text: 'OK', onPress: () => navigation.navigate('MainDrawer') }]
         );
-      } catch (error: any) {
-        console.error('Member creation error:', error);
-        Alert.alert('Error', error?.message || 'Failed to create member');
+        return;
       }
+
+      const parsed: Record<string, string> = {};
+      msgStr
+        .replace(/[{}]/g, '')
+        .split(', ')
+        .forEach((pair: string) => {
+          const [key, ...rest] = pair.split('=');
+          if (key) parsed[key.trim()] = rest.join('=').trim();
+        });
+
+      Alert.alert(
+        '✅ Member Created Successfully',
+        `Personal ID: ${parsed.personalId || '-'}\nReg No: ${parsed.regNo || '-'}\nGroup Code: ${parsed.groupCode || '-'}\nScheme: ${formData.schemeName || '-'}\nAmount: ₹${parsed.amount || formData.amount || 0}\nReceipt No: ${parsed.sno || '-'}`,
+        [{ text: 'OK', onPress: () => navigation.navigate('MainDrawer') }]
+      );
     },
-    [create, createMemberPayload, navigation]
+    [navigation]
   );
 
   const handleSubmit = useCallback(async () => {
@@ -235,9 +252,16 @@ const MemberCreation = () => {
     if (!isValid) return;
 
     const formData = schemeFormRef.current.getFormData();
-    console.log('[MemberCreation] startPayment PARAMS:', { amount: formData.amount, regNo: 3, groupCode: formData.selectedScheme || 'MAN', userDetails: { name: userRegistrationData.userName, phone: userRegistrationData.mobileNumber, email: userRegistrationData.emailAddress } });
     const regNo = 3;
     const groupCode = formData.selectedScheme || 'MAN';
+
+    console.log('[SCHEME JOIN] STEP 2 — Scheme joining form submitted', { scheme: formData.schemeName, groupCode, amount: formData.amount });
+
+    // Built up front and sent as NMDATA on create-order (NEWJOIN=true) —
+    // the backend parks it and creates the member automatically once
+    // payment is confirmed. There's no more separate member/create call.
+    const nmData = createMemberPayload(formData);
+    console.log('[SCHEME JOIN] STEP 2 — Member payload built (NMDATA)', { pName: nmData.newMember.pName, schemeId: nmData.createSchemeSummary.schemeId });
 
     const result = await startPayment(
       formData.amount || 0,
@@ -247,17 +271,20 @@ const MemberCreation = () => {
         email: userRegistrationData.emailAddress,
       },
       regNo,
-      groupCode
+      groupCode,
+      { newJoin: true, nmData }
     );
 
     if (result.success) {
-      await handleMemberCreation(formData, result.paymentId, result.orderId);
+      console.log('[SCHEME JOIN] STEP 8 — Flow complete. Showing success alert.', { processResult: result.processResult });
+      showMemberCreatedAlert(formData, result.processResult);
     } else if (result.message !== 'Payment cancelled by user') {
+      console.log('[SCHEME JOIN] FLOW FAILED —', result.message);
       Alert.alert('Payment Failed', result.message || 'Payment failed');
     }
-  }, [currentStep, userRegistrationData, startPayment, handleMemberCreation]);
+  }, [currentStep, userRegistrationData, startPayment, createMemberPayload, showMemberCreatedAlert]);
 
-  const isLoading = createLoading || paymentLoading;
+  const isLoading = paymentLoading;
 
   return (
     <View style={styles.container}>
@@ -286,7 +313,7 @@ const MemberCreation = () => {
 
       {/* Loading Overlay */}
       {isLoading && paymentStep === PAYMENT_STEPS.IDLE && (
-        <LoadingOverlay message={createLoading ? 'Creating Member...' : 'Processing...'} />
+        <LoadingOverlay message="Processing..." />
       )}
 
       {/* Navigation Buttons */}

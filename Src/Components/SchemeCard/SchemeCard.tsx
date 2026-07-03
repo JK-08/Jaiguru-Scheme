@@ -12,7 +12,8 @@ export default function SchemeCardSlider() {
   const { schemes, loading } = useSchemeCatalog();
   const navigation = useNavigation<any>();
 
-  if (loading || !schemes || schemes.length === 0) return null;
+  const filtered = schemes.filter((s) => s.SchemeId === 17);
+  if (loading || filtered.length === 0) return null;
 
   const screenWidth = Dimensions.get('window').width;
   const CARD_WIDTH = screenWidth * 0.85;
@@ -53,7 +54,7 @@ export default function SchemeCardSlider() {
 
   return (
     <FlatList
-      data={schemes}
+      data={filtered}
       keyExtractor={(item) => item.SchemeId.toString()}
       renderItem={renderItem}
       horizontal

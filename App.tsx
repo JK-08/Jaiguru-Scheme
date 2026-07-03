@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
@@ -9,6 +9,8 @@ import {
 import StackNavigator from './Src/Navigations/StackNavigator';
 import useFonts from './Src/Utills/Fonts';
 import { checkForAppUpdate } from './Src/Utills/VersionChecker';
+import appLogo from './Src/Assets/Company/logo.png';
+import { COLORS } from './Src/Utills/AppTheme';
 
 export default function App() {
   const [appReady, setAppReady] = useState(false);
@@ -39,7 +41,8 @@ export default function App() {
   if (!fontsLoaded || !appReady) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" />
+        <Image source={appLogo} style={styles.loadingLogo} resizeMode="contain" />
+        <ActivityIndicator size="large" color={COLORS.primary} style={styles.loadingSpinner} />
       </View>
     );
   }
@@ -69,5 +72,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
+  },
+  loadingLogo: {
+    width: 140,
+    height: 140,
+    marginBottom: 24,
+  },
+  loadingSpinner: {
+    marginTop: 8,
   },
 });

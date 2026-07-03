@@ -48,13 +48,15 @@ export const SCHEMES = {
   BY_SCHEME_ID: (schemeId: number | string) => `/member/schemeid?schemeId=${schemeId}`,
 };
 
-export const MEMBER = {
-  CREATE: '/member/create',
-};
+// NOTE: /member/create and /account/insert are disabled server-side (the
+// backend controllers have them commented out). New members and scheme
+// installments are now created exclusively via the Razorpay webhook flow —
+// see RAZORPAY.CREATE_ORDER (NMDATA / SCHEMEDETAILS parked against the
+// order, committed to the real DB once payment is verified). Do not add
+// direct calls to those two paths back in.
 
 export const ACCOUNT = {
   PHONE_DETAILS: (phoneNo: string) => `/account/phone_details?phoneNo=${phoneNo}`,
-  INSERT: '/account/insert',
   TODAY_RATE: '/account/todayrate',
   TRANSACTION_TYPES: '/account/getTranType',
 };
@@ -71,6 +73,8 @@ export const LOGIN_CHECK = {
 export const RAZORPAY = {
   CREATE_ORDER: '/razorpay/create-order',
   VERIFY_PAYMENT: '/razorpay/verify-payment',
+  PAYMENT_FAILED: '/razorpay/payment-failed',
+  PAYMENT_BY_RECEIPT: (receipt: string) => `/razorpay/payment/receipt/${receipt}`,
 };
 
 export const USER = {

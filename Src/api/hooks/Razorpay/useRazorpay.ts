@@ -1,11 +1,19 @@
 // Src/api/hooks/Razorpay/useRazorpay.ts
 //
-// Ported from Src/Hooks/useRazorPay.js (useRazorpayPayment) with the exact
-// same 3-step flow (create-order -> WebView checkout -> verify-payment) and
-// return shape, just retyped and calling the new razorpayService.
+// Webhook-based payment flow:
+//   1. createOrder() — sends NEWJOIN + NMDATA (new member) or SCHEMEDETAILS
+//      (installment) up front. The backend "parks" that payload against the
+//      Razorpay order id and does NOT touch the real DB yet.
+//   2. WebView checkout runs.
+//   3. On success we call verify-payment. Whichever finishes first — this
+//      call or Razorpay's own server-to-server webhook — is the one that
+//      actually creates the member / inserts the installment (idempotent,
+//      race-safe on the backend). Either way, by the time verify-payment
+//      responds, the member/installment has been committed.
 import { useState, useCallback, useRef } from 'react';
 import { razorpayService } from '../../services/razorpayService';
 import { COLORS } from '../../../Utills/AppTheme';
+import { CreateMemberPayload } from '../../../types/Member/Member';
 
 export const PAYMENT_STEPS = {
   IDLE: 'idle',
@@ -24,11 +32,21 @@ export interface UserDetails {
   phone?: string;
 }
 
+/** Which payload create-order should park server-side for this payment. */
+export interface OrderExtras {
+  /** true = new member + first payment (sends NMDATA); false = installment on an existing member (sends SCHEMEDETAILS) */
+  newJoin: boolean;
+  nmData?: CreateMemberPayload;
+  schemeDetails?: Record<string, any>;
+}
+
 export interface PaymentResult {
   success: boolean;
   message?: string;
   paymentId?: string;
   orderId?: string;
+  /** Backend's stringified outcome of the parked payload once processed, e.g. "{status=Success, personalId=..., regNo=...}" */
+  processResult?: string;
   data?: unknown;
   error?: unknown;
 }
@@ -40,6 +58,7 @@ export const useRazorpayPayment = () => {
   const [webViewVisible, setWebViewVisible] = useState(false);
   const [razorpayOptions, setRazorpayOptions] = useState<Record<string, any> | null>(null);
   const resolveRef = useRef<((result: PaymentResult) => void) | null>(null);
+  const currentOrderIdRef = useRef<string | null>(null);
 
   const resetState = useCallback(() => {
     setLoading(false);
@@ -53,14 +72,19 @@ export const useRazorpayPayment = () => {
     setWebViewVisible(false);
 
     if (paymentData?.failed) {
+      console.log('[SCHEME JOIN] STEP 5 — Payment FAILED in checkout', paymentData.error);
       setPaymentStep(PAYMENT_STEPS.FAILED);
       const errMsg = paymentData.error?.description || 'Payment failed';
       setError(errMsg);
       setLoading(false);
+      if (currentOrderIdRef.current) {
+        razorpayService.markFailed(currentOrderIdRef.current).catch(() => {});
+      }
       resolveRef.current?.({ success: false, message: errMsg });
       return;
     }
 
+    console.log('[SCHEME JOIN] STEP 5 — Payment SUCCESS from Razorpay checkout', { payment_id: paymentData.razorpay_payment_id, order_id: paymentData.razorpay_order_id });
     setPaymentStep(PAYMENT_STEPS.VERIFYING);
 
     try {
@@ -69,23 +93,42 @@ export const useRazorpayPayment = () => {
         razorpay_payment_id: paymentData.razorpay_payment_id,
         razorpay_signature: paymentData.razorpay_signature,
       };
-      console.log('[Razorpay] verifyPayment PARAMS:', verifyPayload);
+      console.log('[SCHEME JOIN] STEP 6 — Verifying payment with backend | PARAMS:', verifyPayload);
       const verifyResponse: any = await razorpayService.verifyPayment(verifyPayload);
-      console.log('[Razorpay] verifyPayment RESPONSE:', verifyResponse);
+      console.log('[SCHEME JOIN] STEP 6 — verify-payment RESPONSE:', verifyResponse);
 
-      if (!verifyResponse?.success) throw new Error(verifyResponse?.message || 'Payment verification failed');
+      // Razorpay itself already confirmed the capture in STEP 5 (we have a
+      // real payment_id from checkout). If our backend's verify-payment
+      // comes back saying the payment was "already captured/processed" —
+      // whatever the exact success flag/code it uses for that case — it
+      // means the webhook (or a previous verify call) beat us to recording
+      // it, NOT that anything failed. Treat all of these as success so a
+      // real payment never surfaces as "FLOW FAILED" to the user.
+      const alreadyHandledElsewhere =
+        verifyResponse?.code === 'ALREADY_PAID' ||
+        verifyResponse?.code === 'ALREADY_PROCESSED' ||
+        /already\s*(captured|processed|paid)/i.test(verifyResponse?.message || '');
 
+      const isVerifySuccess =
+        verifyResponse?.success === true ||
+        verifyResponse?.code === 'PAYMENT_SUCCESS' ||
+        alreadyHandledElsewhere;
+
+      if (!isVerifySuccess) throw new Error(verifyResponse?.message || 'Payment verification failed');
+
+      console.log('[SCHEME JOIN] STEP 7 — Payment verified. Member created by backend.', { processResult: verifyResponse?.data?.processResult, viaAlreadyHandledPath: alreadyHandledElsewhere });
       setPaymentStep(PAYMENT_STEPS.SUCCESS);
       setLoading(false);
-      const successResult = {
+      const successResult: PaymentResult = {
         success: true,
         paymentId: paymentData.razorpay_payment_id,
         orderId: paymentData.razorpay_order_id,
+        processResult: verifyResponse?.data?.processResult,
         data: verifyResponse,
       };
-      console.log('[Razorpay] Payment SUCCESS result:', successResult);
       resolveRef.current?.(successResult);
     } catch (err: any) {
+      console.log('[SCHEME JOIN] STEP 6 ERROR — Payment verification failed', err?.message);
       setPaymentStep(PAYMENT_STEPS.FAILED);
       setError(err?.message);
       setLoading(false);
@@ -94,16 +137,30 @@ export const useRazorpayPayment = () => {
   }, []);
 
   const handlePaymentDismiss = useCallback(() => {
+    console.log('[SCHEME JOIN] STEP 5 — User dismissed Razorpay checkout. Marking order as failed.');
     setWebViewVisible(false);
     setPaymentStep(PAYMENT_STEPS.IDLE);
     setLoading(false);
+    if (currentOrderIdRef.current) {
+      razorpayService.markFailed(currentOrderIdRef.current).catch(() => {});
+    }
     resolveRef.current?.({ success: false, message: 'Payment cancelled by user' });
   }, []);
 
   const startPayment = useCallback(
-    (amount: number, userDetails: UserDetails, regNo: string | number, groupCode: string): Promise<PaymentResult> => {
+    (
+      amount: number,
+      userDetails: UserDetails,
+      regNo: string | number,
+      groupCode: string,
+      orderExtras: OrderExtras
+    ): Promise<PaymentResult> => {
       if (!amount || amount <= 0) return Promise.resolve({ success: false, message: 'Invalid amount' });
       if (!regNo || !groupCode) return Promise.resolve({ success: false, message: 'Missing registration details' });
+      if (orderExtras.newJoin && !orderExtras.nmData)
+        return Promise.resolve({ success: false, message: 'Missing member registration details' });
+      if (!orderExtras.newJoin && !orderExtras.schemeDetails)
+        return Promise.resolve({ success: false, message: 'Missing installment details' });
 
       return new Promise((resolve) => {
         resolveRef.current = resolve;
@@ -113,14 +170,24 @@ export const useRazorpayPayment = () => {
 
         (async () => {
           try {
-            console.log('[Razorpay] createOrder PARAMS:', { amount, regNo, groupCode });
-            const orderResponse: any = await razorpayService.createOrder(amount, regNo, groupCode);
-            console.log('[Razorpay] createOrder RESPONSE:', orderResponse);
+            const createOrderParams = { amount, regNo, groupCode, newJoin: orderExtras.newJoin, nmData: orderExtras.nmData, schemeDetails: orderExtras.schemeDetails };
+            console.log('[SCHEME JOIN] STEP 3 — Creating Razorpay order | PARAMS:', createOrderParams);
+            const orderResponse: any = await razorpayService.createOrder({
+              amount,
+              regNo,
+              groupCode,
+              newJoin: orderExtras.newJoin,
+              nmData: orderExtras.nmData,
+              schemeDetails: orderExtras.schemeDetails,
+            });
+            console.log('[SCHEME JOIN] STEP 3 — create-order RESPONSE:', orderResponse);
             if (!orderResponse?.success) throw new Error(orderResponse?.message || 'Order creation failed');
 
             const backendOrder = orderResponse.data;
             if (!backendOrder?.order_id) throw new Error('Invalid order response from backend');
 
+            console.log('[SCHEME JOIN] STEP 4 — Order created, launching Razorpay checkout', { order_id: backendOrder.order_id, amount: backendOrder.amount });
+            currentOrderIdRef.current = backendOrder.order_id;
             setPaymentStep(PAYMENT_STEPS.PROCESSING_PAYMENT);
 
             const options = {

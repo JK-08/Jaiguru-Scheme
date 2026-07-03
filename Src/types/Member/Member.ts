@@ -1,7 +1,10 @@
 // Src/types/Member/Member.ts
 //
-// Request/response shapes for POST /member/create, matching the payload
-// built in Src/Screens/MemberCreation/MemberCreation.js.
+// Shape of the NMDATA payload sent as part of POST /razorpay/create-order
+// (NEWJOIN=true), built in Src/Screens/MemberCreation/MemberCreation.tsx.
+// There is no longer a standalone /member/create call — the backend parks
+// this payload against the Razorpay order and creates the member once
+// payment is confirmed (webhook or /verify-payment).
 
 export interface NewMemberPayload {
   title?: string;
@@ -30,11 +33,14 @@ export interface NewMemberPayload {
   idProof?: string;
   idProofNo?: string;
   aadhaarMasked?: string;
-  panNumber?: string;
+  /** Maps to the backend NewMember model's "panno" field — do not rename to "panNumber", Jackson will reject it as unrecognized and fail the whole request. */
+  panno?: string;
   dob?: string | null;
   email?: string;
-  mobileVerified?: boolean;
-  aadhaarVerified?: boolean;
+  // The backend's NewMember model has no "mobileVerified"/"aadhaarVerified" fields
+  // for the primary member (only nomineeMobileVerified/nomineeAadhaarVerified exist,
+  // for the nominee) — sending them throws a Jackson UnrecognizedPropertyException
+  // that fails the entire member creation. Don't add them back here.
   nomineeMobileVerified?: boolean;
   nomineeAadhaarVerified?: boolean;
   upDateTime?: string;
@@ -48,9 +54,11 @@ export interface CreateSchemeSummaryPayload {
   groupCode: string;
   regNo: number;
   joinDate: string;
-  upDateTime2: string;
+  /** Maps to the backend CreateSchemeSummary model's "updateTime" field — do not rename to "upDateTime2". */
+  updateTime: string;
   openingDate: string;
-  userId2?: string | number;
+  /** Maps to the backend CreateSchemeSummary model's "userId" field — do not rename to "userId2". */
+  userId?: string | number;
 }
 
 export interface SchemeCollectInsertPayload {
