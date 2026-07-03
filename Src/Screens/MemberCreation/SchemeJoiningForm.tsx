@@ -111,7 +111,7 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
     }
 
     return (
-      <ScrollView style={styles.container}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Scheme Joining</Text>
@@ -227,7 +227,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
+  },
+  contentContainer: {
     padding: 16,
+    paddingBottom: 100,
   },
   loadingContainer: {
     flex: 1,

@@ -52,12 +52,17 @@ const MemberCreation = () => {
     handlePaymentDismiss,
   } = useRazorpayPayment();
 
-  // Reset state on screen focus
+  // Reset state on screen focus — but ONLY when not mid-payment.
+  // If the user switches to a UPI app and comes back, useFocusEffect fires
+  // again and was resetting the entire payment state while the WebView was
+  // still open, killing the in-flight payment.
   useFocusEffect(
     useCallback(() => {
-      resetForm();
+      if (!webViewVisible && paymentStep === PAYMENT_STEPS.IDLE) {
+        resetForm();
+      }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, [webViewVisible, paymentStep])
   );
 
   // Load the logged-in user's id / referral code once for the payload
@@ -246,6 +251,8 @@ const MemberCreation = () => {
   );
 
   const handleSubmit = useCallback(async () => {
+    // Guard: prevent double-tap / re-entry while payment is already in flight
+    if (paymentLoading) return;
     if (currentStep !== STEPS.SCHEME_JOINING || !schemeFormRef.current) return;
 
     const isValid = schemeFormRef.current.validateAndSubmit();
@@ -293,13 +300,13 @@ const MemberCreation = () => {
       {/* Step Indicator */}
       <StepIndicator currentStep={currentStep} />
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+      <View style={styles.scrollView}>
         {currentStep === STEPS.REGISTRATION ? (
           <UserRegistrationForm ref={registrationFormRef} onSubmit={handleRegistrationSubmit} initialData={userRegistrationData} />
         ) : (
           <SchemeJoiningForm ref={schemeFormRef} scheme={scheme} initialData={schemeJoiningData} />
         )}
-      </ScrollView>
+      </View>
 
       {/* Razorpay Checkout WebView */}
       <RazorpayWebView visible={webViewVisible} options={razorpayOptions} onSuccess={handlePaymentSuccess} onDismiss={handlePaymentDismiss} />
@@ -382,9 +389,6 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 80,
   },
   stepIndicator: {
     backgroundColor: '#FFFFFF',

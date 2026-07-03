@@ -11,6 +11,7 @@ import useFonts from './Src/Utills/Fonts';
 import { checkForAppUpdate } from './Src/Utills/VersionChecker';
 import appLogo from './Src/Assets/Company/logo.png';
 import { COLORS } from './Src/Utills/AppTheme';
+import ErrorBoundary from './Src/Components/ErrorBoundary';
 
 export default function App() {
   const [appReady, setAppReady] = useState(false);
@@ -51,7 +52,9 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          <StackNavigator />
+          <ErrorBoundary>
+            <StackNavigator />
+          </ErrorBoundary>
           <StatusBar style="auto" />
         </View>
       </SafeAreaView>

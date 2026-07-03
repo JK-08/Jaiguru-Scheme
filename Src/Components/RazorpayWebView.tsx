@@ -47,7 +47,17 @@ const isUpiDeepLink = (url?: string | null): boolean =>
 
 const buildHtml = (options: RazorpayOptions): string => {
   const o = options;
-  const safeStr = (s: any): string => String(s || "").replace(/"/g, "&quot;").replace(/`/g, "\\`");
+  // Escape ALL characters that can break an inline JS string or HTML attribute
+  const safeStr = (s: any): string =>
+    String(s || '')
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      .replace(/'/g, "\\'")
+      .replace(/`/g, '\\`')
+      .replace(/</g, '\\u003C')
+      .replace(/>/g, '\\u003E')
+      .replace(/\n/g, '\\n')
+      .replace(/\r/g, '\\r');
 
   return `<!DOCTYPE html>
 <html>
@@ -179,6 +189,13 @@ const RazorpayWebView = ({ visible, options, onSuccess, onDismiss }: RazorpayWeb
   const upiLaunched  = useRef(false);
   const dismissed    = useRef(false);
 
+  // Keep latest callbacks in refs so handleMessage/shouldStartLoad never
+  // change identity — prevents WebView from remounting on every parent render
+  const onSuccessRef = useRef(onSuccess);
+  const onDismissRef = useRef(onDismiss);
+  useEffect(() => { onSuccessRef.current = onSuccess; }, [onSuccess]);
+  useEffect(() => { onDismissRef.current = onDismiss; }, [onDismiss]);
+
   const [bankUrl,       setBankUrl]       = useState<string | null>(null);
   const [bankTitle,     setBankTitle]     = useState("Bank Authentication");
   const [mainLoading,   setMainLoading]   = useState(true);
@@ -217,23 +234,22 @@ const RazorpayWebView = ({ visible, options, onSuccess, onDismiss }: RazorpayWeb
       case "success": {
         paymentDone.current = true;
         setBankUrl(null);
-        onSuccess(msg.data);
+        onSuccessRef.current(msg.data);
         break;
       }
       case "failed": {
         if (!dismissed.current) {
           paymentDone.current = true;
           setBankUrl(null);
-          onSuccess({ failed: true, error: msg.data });
+          onSuccessRef.current({ failed: true, error: msg.data });
         }
         break;
       }
       case "dismiss": {
-        // If paymentDone is already true (success/failed already handled), ignore dismiss
         if (paymentDone.current || dismissed.current) break;
         dismissed.current = true;
         setBankUrl(null);
-        onDismiss?.();
+        onDismissRef.current?.();
         break;
       }
       case "newwindow": {
@@ -243,7 +259,8 @@ const RazorpayWebView = ({ visible, options, onSuccess, onDismiss }: RazorpayWeb
       default:
         break;
     }
-  }, [onSuccess, onDismiss]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // stable — uses refs internally
 
   // ── UPI deep-link guard ──
   const shouldStartLoad = useCallback((req: { url: string }): boolean => {
@@ -253,6 +270,30 @@ const RazorpayWebView = ({ visible, options, onSuccess, onDismiss }: RazorpayWeb
       return false;
     }
     return true;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // stable
+
+  // ── WebView renderer crash recovery ──
+  // Android: renderer process killed under memory pressure → without this
+  // handler react-native-webview crashes the ENTIRE app. Catch it and
+  // gracefully close the checkout instead.
+  const handleRenderProcessGone = useCallback(() => {
+    console.warn('[RazorpayWebView] Android WebView renderer crashed — closing checkout gracefully');
+    if (!paymentDone.current && !dismissed.current) {
+      dismissed.current = true;
+      onDismissRef.current?.();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // iOS: WKWebView content process terminated (same memory-pressure scenario)
+  const handleContentProcessDidTerminate = useCallback(() => {
+    console.warn('[RazorpayWebView] iOS WebView content process terminated — closing checkout gracefully');
+    if (!paymentDone.current && !dismissed.current) {
+      dismissed.current = true;
+      onDismissRef.current?.();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Bank WebView navigation ──
@@ -275,7 +316,7 @@ const RazorpayWebView = ({ visible, options, onSuccess, onDismiss }: RazorpayWeb
       onRequestClose={() => {
         if (!paymentDone.current && !dismissed.current) {
           dismissed.current = true;
-          onDismiss?.();
+          onDismissRef.current?.();
         }
       }}
     >
@@ -290,6 +331,8 @@ const RazorpayWebView = ({ visible, options, onSuccess, onDismiss }: RazorpayWeb
               ref={bankWebViewRef}
               source={{ uri: bankUrl }}
               onNavigationStateChange={handleBankNav}
+              onRenderProcessGone={handleRenderProcessGone}
+              onContentProcessDidTerminate={handleContentProcessDidTerminate}
               startInLoadingState
               renderLoading={() => <LoadingOverlay />}
               javaScriptEnabled
@@ -307,6 +350,8 @@ const RazorpayWebView = ({ visible, options, onSuccess, onDismiss }: RazorpayWeb
               source={{ html: htmlContent }}
               onMessage={handleMessage}
               onShouldStartLoadWithRequest={shouldStartLoad}
+              onRenderProcessGone={handleRenderProcessGone}
+              onContentProcessDidTerminate={handleContentProcessDidTerminate}
               onLoadStart={() => setMainLoading(true)}
               onLoadEnd={()   => setMainLoading(false)}
               startInLoadingState={false}
