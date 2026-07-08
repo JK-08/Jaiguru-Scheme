@@ -23,6 +23,7 @@ import {
   getUserId,
   debugAsyncStorage,
 } from "../../Utills/AsynchStorageHelper";
+import { clearFCMToken } from "../../Helpers/NotificationHelper";
 import { COLORS, FONTS, SIZES, SHADOWS } from "../../Utills/AppTheme";
 
 interface MenuItem {
@@ -445,6 +446,7 @@ const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }: SideBar
     try {
       // Clear all auth data
       await clearAuthData();
+      await clearFCMToken();
 
       // Close drawer first
       if (onClose) {

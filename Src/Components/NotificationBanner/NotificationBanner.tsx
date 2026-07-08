@@ -6,6 +6,7 @@ import {
 import { EventEmitter } from 'eventemitter3';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import theme from '../../Utills/AppTheme';
+import { handleNotificationNavigation } from '../../Navigations/navigationRef';
 
 const { COLORS } = theme;
 
@@ -15,6 +16,7 @@ export interface BannerData {
   title: string;
   body: string;
   imageUrl?: string;
+  data?: Record<string, string>;
 }
 
 const BANNER_HEIGHT = 80;
@@ -44,9 +46,17 @@ const BannerContent = ({ data, onHide }: { data: BannerData; onHide: () => void 
     }).start(() => onHide());
   };
 
+  const handlePress = () => {
+    // Tapping the banner both dismisses it and takes the user to whatever
+    // screen the push notification's data payload points at (falls back to
+    // the notification list if none was specified).
+    handleNotificationNavigation(data.data);
+    slideOut();
+  };
+
   return (
     <Animated.View style={[styles.wrapper, { paddingTop: STATUS_BAR_HEIGHT + 8, transform: [{ translateY }] }]}>
-      <TouchableOpacity activeOpacity={0.95} onPress={slideOut} style={styles.card}>
+      <TouchableOpacity activeOpacity={0.95} onPress={handlePress} style={styles.card}>
         <View style={styles.appRow}>
           <MaterialCommunityIcons name="bell-outline" size={12} color={COLORS.textTertiary} />
           <Text style={styles.appName}>Jaiguru DigiGold</Text>

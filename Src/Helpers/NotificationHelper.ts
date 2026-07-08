@@ -3,8 +3,40 @@ import { Platform, PermissionsAndroid } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import { notificationEmitter } from '../Components/NotificationBanner/NotificationBanner';
+import { handleNotificationNavigation } from '../Navigations/navigationRef';
 
 const FCM_TOKEN_KEY = 'fcmToken';
+
+/**
+ * Registers the three notification-open scenarios Firebase distinguishes:
+ * tapped while app was backgrounded, tapped while app was fully quit
+ * (cold start), and — for symmetry — a helper the foreground banner calls
+ * when the user taps the in-app banner. Call once near the app root.
+ */
+export function registerNotificationOpenHandlers(): () => void {
+  // App was in the background and the user tapped the push notification.
+  const unsubscribeOpenedApp = messaging().onNotificationOpenedApp((remoteMessage) => {
+    if (remoteMessage?.data) {
+      handleNotificationNavigation(remoteMessage.data as Record<string, string>);
+    }
+  });
+
+  // App was fully closed (quit state) and was launched by tapping a push
+  // notification — check once on mount.
+  messaging()
+    .getInitialNotification()
+    .then((remoteMessage) => {
+      if (remoteMessage?.data) {
+        // Give the navigator a moment to finish mounting before navigating.
+        setTimeout(() => handleNotificationNavigation(remoteMessage.data as Record<string, string>), 800);
+      }
+    })
+    .catch(() => {});
+
+  return () => {
+    unsubscribeOpenedApp();
+  };
+}
 
 // ─── Permission ───────────────────────────────────────────────────────────────
 export async function requestNotificationPermission(): Promise<boolean> {
@@ -68,7 +100,11 @@ export function setupNotificationListeners(): () => void {
       title: remoteMessage.notification?.title ?? 'Notification',
       body: remoteMessage.notification?.body ?? '',
       imageUrl: remoteMessage.notification?.android?.imageUrl,
+      data: remoteMessage.data as Record<string, string> | undefined,
     });
+    // Lets the header bell / bottom-tab badge refresh immediately instead of
+    // waiting on their own polling interval.
+    notificationEmitter.emit('unread-changed');
   });
 
   // Token refresh

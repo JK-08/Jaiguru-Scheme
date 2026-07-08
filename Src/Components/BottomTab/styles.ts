@@ -40,6 +40,28 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
   },
 
+  // Unread-count badge on the Alerts tab icon.
+  tabBadge: {
+    position: "absolute",
+    top: -4,
+    right: -8,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: COLORS.error,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 3,
+    borderWidth: 1.5,
+    borderColor: COLORS.white,
+  },
+  tabBadgeText: {
+    fontSize: 9,
+    fontFamily: FONTS.family.bold,
+    color: COLORS.white,
+    includeFontPadding: false,
+  },
+
   // Small dot under the icon of the active (non-center) tab.
   activeDot: {
     position: "absolute",

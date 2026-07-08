@@ -33,6 +33,7 @@ import GoogleContactOtpScreen from '../Screens/Auth/GoogleContactUpdate/GoogleCo
 import HelpCentre from '../Screens/HelpCenter/HelpCenter';
 import KnowMore from '../Screens/KnowMore/KnowMore'
 import ProfileScreen from '../Screens/Profile/Profile';
+import { navigationRef } from './navigationRef';
 
 const Stack = createNativeStackNavigator();
 
@@ -91,7 +92,7 @@ export default function StackNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={initialRoute}>
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />

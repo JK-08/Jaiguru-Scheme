@@ -14,6 +14,7 @@ import CommonHeader from '../../Components/CommonHeader/CommonHeader';
 import BottomTab from '../../Components/BottomTab/BottomTab';
 import { AppText, AppCard, AppBadge } from '../../Components/ui/appcomponents';
 import { getAuthSession, getUserData, getUserId, clearAuthData } from '../../Utills/AsynchStorageHelper';
+import { clearFCMToken } from '../../Helpers/NotificationHelper';
 import theme from '../../Utills/AppTheme';
 
 const { COLORS, SIZES } = theme;
@@ -128,6 +129,10 @@ const ProfileScreen = () => {
         style: 'destructive',
         onPress: async () => {
           await clearAuthData();
+          // Local-only cleanup: the backend has no device-deactivation
+          // endpoint yet, so this just stops treating the cached FCM token as
+          // "already registered" — the next login will re-register it fresh.
+          await clearFCMToken();
           navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
         },
       },

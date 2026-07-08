@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
   setupNotificationListeners,
   setupAndroidChannel,
+  registerNotificationOpenHandlers,
 } from './Src/Helpers/NotificationHelper';
 import StackNavigator from './Src/Navigations/StackNavigator';
 import useFonts from './Src/Utills/Fonts';
@@ -38,8 +39,14 @@ export default function App() {
     };
 
     initApp();
-    const cleanup = setupNotificationListeners();
-    return cleanup;
+    const cleanupListeners = setupNotificationListeners();
+    // Background-tap and quit-state (cold start) notification taps —
+    // separate from setupNotificationListeners' foreground-only onMessage.
+    const cleanupOpenHandlers = registerNotificationOpenHandlers();
+    return () => {
+      cleanupListeners();
+      cleanupOpenHandlers();
+    };
   }, []);
 
   // Show loading until fonts are loaded and app is ready

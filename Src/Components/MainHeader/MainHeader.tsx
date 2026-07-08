@@ -5,6 +5,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useCompany } from '../../api/hooks/Company/useCompany';
 import { useTodayRate } from '../../api/hooks/Rates/useTodayRate';
 import useNotifications from '../../api/hooks/Notifications/useNotifications';
+import { notificationEmitter } from '../NotificationBanner/NotificationBanner';
 import { COLORS, SIZES, FONTS, SHADOWS, moderateScale } from '../../Utills/AppTheme';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 
@@ -20,19 +21,29 @@ const HomeHeaderRedesigned = ({ onLogoPress }: HomeHeaderRedesignedProps) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const navigation = useNavigation<any>();
 
-  const { unreadCount, refresh } = useNotifications();
+  const { unreadCount, refreshUnreadCount } = useNotifications();
 
   const handleMenuPress = () => {
     navigation.dispatch(DrawerActions.openDrawer());
   };
 
+  // Was polling the full notification list every 1 second — needlessly
+  // hammering the API. Now it refreshes just the unread count on a gentle
+  // interval, plus instantly whenever a push notification actually arrives
+  // in the foreground (see NotificationHelper's 'unread-changed' emit).
   useEffect(() => {
     const interval = setInterval(() => {
-      refresh(); // refresh notifications
-    }, 1000); // every 1 second
+      refreshUnreadCount();
+    }, 60000); // every 60s as a safety-net refresh
 
-    return () => clearInterval(interval);
-  }, [refresh]);
+    const handler = () => refreshUnreadCount();
+    notificationEmitter.on('unread-changed', handler);
+
+    return () => {
+      clearInterval(interval);
+      notificationEmitter.off('unread-changed', handler);
+    };
+  }, [refreshUnreadCount]);
 
   // Update time every minute
   useEffect(() => {

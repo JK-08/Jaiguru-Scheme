@@ -14,6 +14,8 @@ import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES } from '../../Utills/AppTheme';
+import useNotifications from '../../api/hooks/Notifications/useNotifications';
+import { notificationEmitter } from '../NotificationBanner/NotificationBanner';
 import styles from './styles';
 
 type ScreenTarget = string | { name: string; params?: Record<string, any> };
@@ -79,12 +81,13 @@ interface AnimatedTabProps {
   tab: TabDef;
   isActive: boolean;
   onPress: () => void;
+  badgeCount?: number;
 }
 
 // Each tab animates its own scale/lift/color on activation instead of
 // snapping — this is the "diesin animated to active and not active" the
 // user asked for.
-const AnimatedTab = ({ tab, isActive, onPress }: AnimatedTabProps) => {
+const AnimatedTab = ({ tab, isActive, onPress, badgeCount = 0 }: AnimatedTabProps) => {
   const progress = useRef(new Animated.Value(isActive ? 1 : 0)).current;
 
   useEffect(() => {
@@ -120,7 +123,14 @@ const AnimatedTab = ({ tab, isActive, onPress }: AnimatedTabProps) => {
   return (
     <TouchableOpacity style={styles.footerBtnContainer} onPress={onPress} activeOpacity={0.7}>
       <Animated.View style={{ transform: [{ scale }, { translateY: lift }] }}>
-        <IconComponent name={iconName} size={SIZES.icon.md} color={color} />
+        <View>
+          <IconComponent name={iconName} size={SIZES.icon.md} color={color} />
+          {badgeCount > 0 && (
+            <View style={styles.tabBadge}>
+              <Text style={styles.tabBadgeText}>{badgeCount > 99 ? '99+' : badgeCount}</Text>
+            </View>
+          )}
+        </View>
       </Animated.View>
       <Text style={isActive ? styles.activeText : styles.inactiveText}>{tab.label}</Text>
       {isActive && <View style={styles.activeDot} />}
@@ -130,6 +140,19 @@ const AnimatedTab = ({ tab, isActive, onPress }: AnimatedTabProps) => {
 
 function BottomTab({ activeScreen }: BottomTabProps) {
   const navigation = useNavigation<any>();
+  // Only used for the Alerts tab's badge — each BottomTab instance is
+  // remounted per-screen (it's not a persistent Tab.Navigator), so this
+  // fetches fresh on every screen that renders the bar, plus refreshes
+  // instantly when a push notification arrives in the foreground.
+  const { unreadCount, refreshUnreadCount } = useNotifications();
+
+  useEffect(() => {
+    const handler = () => refreshUnreadCount();
+    notificationEmitter.on('unread-changed', handler);
+    return () => {
+      notificationEmitter.off('unread-changed', handler);
+    };
+  }, [refreshUnreadCount]);
 
   const handlePress = (screen: ScreenTarget) => {
     if (typeof screen === 'string') {
@@ -142,7 +165,13 @@ function BottomTab({ activeScreen }: BottomTabProps) {
   return (
     <View style={styles.footerContainer}>
       {TABS.map((tab) => (
-        <AnimatedTab key={tab.key} tab={tab} isActive={activeScreen === tab.key} onPress={() => handlePress(tab.screen)} />
+        <AnimatedTab
+          key={tab.key}
+          tab={tab}
+          isActive={activeScreen === tab.key}
+          onPress={() => handlePress(tab.screen)}
+          badgeCount={tab.key === 'ALERTS' ? unreadCount : 0}
+        />
       ))}
     </View>
   );
