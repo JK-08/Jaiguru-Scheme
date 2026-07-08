@@ -1,15 +1,17 @@
 // styles.ts
-import { StyleSheet } from "react-native";
+import { StyleSheet, Platform } from "react-native";
 import { COLORS, SIZES, FONTS, SHADOWS } from "../../Utills/AppTheme";
 
 const styles = StyleSheet.create({
   footerContainer: {
     flexDirection: "row",
+    alignItems: "flex-start",
     backgroundColor: COLORS.white,
     height: SIZES.tabBar.height,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
-    paddingBottom: SIZES.padding.xs,
+    paddingBottom: Platform.OS === "ios" ? SIZES.padding.md : SIZES.padding.xs,
+    paddingTop: SIZES.padding.xs,
     ...SHADOWS.md,
   },
 
@@ -38,50 +40,50 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
   },
 
-  // Optional: Add a small indicator for active tab
-  activeIndicator: {
+  // Small dot under the icon of the active (non-center) tab.
+  activeDot: {
     position: "absolute",
     top: 0,
-    width: SIZES.radius.sm * 2,
-    height: SIZES.radius.sm * 0.5,
+    width: SIZES.radius.sm * 0.7,
+    height: SIZES.radius.sm * 0.7,
+    borderRadius: SIZES.radius.full,
     backgroundColor: COLORS.primary,
-    borderBottomLeftRadius: SIZES.radius.xs,
-    borderBottomRightRadius: SIZES.radius.xs,
   },
 
-  // Optional: Special style for the "Pay Now" button to make it stand out
-  payNowContainer: {
+  // Center "Home" tab — elevated pill/FAB style so it visually anchors the
+  // middle of the bar as requested.
+  centerContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: SIZES.padding.xs,
-    marginTop: -SIZES.margin.md,
+    marginTop: -SIZES.margin.xl,
   },
-
-  payNowIconContainer: {
-    width: SIZES.icon.xl * 1.2,
-    height: SIZES.icon.xl * 1.2,
+  centerIconWrap: {
+    width: SIZES.icon.xl * 1.3,
+    height: SIZES.icon.xl * 1.3,
     borderRadius: SIZES.radius.full,
     backgroundColor: COLORS.primary,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 3,
+    borderColor: COLORS.white,
     ...SHADOWS.blue,
   },
-
-  payNowActiveIconContainer: {
-    backgroundColor: COLORS.secondary,
-    ...SHADOWS.gold,
-  },
-
-  payNowText: {
+  centerActiveText: {
     fontSize: SIZES.font.xs,
-    fontFamily: FONTS.family.medium,
+    fontFamily: FONTS.family.bold,
     color: COLORS.primary,
     marginTop: SIZES.margin.xs,
+    textAlign: "center",
+    includeFontPadding: false,
   },
-
-  payNowActiveText: {
-    color: COLORS.secondary,
+  centerInactiveText: {
+    fontSize: SIZES.font.xs,
+    fontFamily: FONTS.family.medium,
+    color: COLORS.textSecondary,
+    marginTop: SIZES.margin.xs,
+    textAlign: "center",
+    includeFontPadding: false,
   },
 });
 

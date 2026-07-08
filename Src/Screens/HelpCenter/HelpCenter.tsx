@@ -1,14 +1,18 @@
 // Src/Screens/HelpCenter/HelpCenter.tsx
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, Linking, TouchableOpacity, ActivityIndicator, SafeAreaView, RefreshControl } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, Linking, TouchableOpacity, ActivityIndicator, SafeAreaView, RefreshControl, Animated } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { companyService } from '../../api/services/companyService';
 import { Company } from '../../types/Company/Company';
 import { API_BASE_URL, IMAGE_BASE_URL } from '../../Config/BaseUrl';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
 import BottomTab from '../../Components/BottomTab/BottomTab';
+import theme from '../../Utills/AppTheme';
+
+const { COLORS, SIZES, FONTS, SHADOWS } = theme;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -35,6 +39,37 @@ const openPhone = (phone: string) => Linking.openURL(`tel:${phone}`);
 const openEmail = (email: string) => Linking.openURL(`mailto:${email}`);
 const openMaps = (addr: string) => Linking.openURL(`https://maps.google.com/?q=${encodeURIComponent(addr)}`);
 
+// ─── Entrance animation wrapper ─────────────────────────────────────────────
+// Small fade + slide-up used to stagger each section in on mount — this is
+// the "animated / elegant" treatment requested, applied consistently across
+// the hero, company card, and every section below it.
+const FadeInUp = ({ delay = 0, children, style }: { delay?: number; children: React.ReactNode; style?: any }) => {
+  const anim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: 1,
+      duration: 420,
+      delay,
+      useNativeDriver: true,
+    }).start();
+  }, [anim, delay]);
+
+  return (
+    <Animated.View
+      style={[
+        style,
+        {
+          opacity: anim,
+          transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }],
+        },
+      ]}
+    >
+      {children}
+    </Animated.View>
+  );
+};
+
 // ─── Sub-components ─────────────────────────────────────────────────────────
 
 interface InfoRowProps {
@@ -51,7 +86,7 @@ const InfoRow = ({ icon, label, value, onPress, isLink, multiline }: InfoRowProp
   return (
     <TouchableOpacity style={styles.infoRow} onPress={onPress ?? undefined} disabled={!onPress} activeOpacity={onPress ? 0.65 : 1}>
       <View style={styles.iconBox}>
-        <Icon name={icon} size={20} color="#6366F1" />
+        <Icon name={icon} size={20} color={COLORS.primary} />
       </View>
       <View style={[styles.infoContent, multiline ? { paddingVertical: 2 } : undefined]}>
         <Text style={styles.infoLabel}>{label}</Text>
@@ -59,7 +94,7 @@ const InfoRow = ({ icon, label, value, onPress, isLink, multiline }: InfoRowProp
           {value}
         </Text>
       </View>
-      {onPress && <Icon name="chevron-right" size={18} color="#C4B5FD" />}
+      {onPress && <Icon name="chevron-right" size={18} color={COLORS.primaryLighter} />}
     </TouchableOpacity>
   );
 };
@@ -73,8 +108,8 @@ interface SocialButtonProps {
 const SocialButton = ({ iconName, link, label }: SocialButtonProps) => {
   if (!link) return null;
   return (
-    <TouchableOpacity style={styles.socialBtn} onPress={() => openUrl(link)}>
-      <MaterialCommunityIcons name={iconName as any} size={22} color="#6366F1" />
+    <TouchableOpacity style={styles.socialBtn} onPress={() => openUrl(link)} activeOpacity={0.75}>
+      <MaterialCommunityIcons name={iconName as any} size={22} color={COLORS.primary} />
       <Text style={styles.socialBtnLabel}>{label}</Text>
     </TouchableOpacity>
   );
@@ -83,21 +118,21 @@ const SocialButton = ({ iconName, link, label }: SocialButtonProps) => {
 const AppStoreButton = ({ iconName, link, label }: SocialButtonProps) => {
   if (!link) return null;
   return (
-    <TouchableOpacity style={styles.appButton} onPress={() => openUrl(link)}>
-      <MaterialCommunityIcons name={iconName as any} size={20} color="#6366F1" />
+    <TouchableOpacity style={styles.appButton} onPress={() => openUrl(link)} activeOpacity={0.75}>
+      <MaterialCommunityIcons name={iconName as any} size={20} color={COLORS.primary} />
       <Text style={styles.appButtonText}>{label}</Text>
     </TouchableOpacity>
   );
 };
 
-const SectionWrapper = ({ title, children }: { title: string; children: React.ReactNode }) => {
+const SectionWrapper = ({ title, delay, children }: { title: string; delay: number; children: React.ReactNode }) => {
   const hasContent = React.Children.toArray(children).some(Boolean);
   if (!hasContent) return null;
   return (
-    <View style={styles.section}>
+    <FadeInUp delay={delay} style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
       {children}
-    </View>
+    </FadeInUp>
   );
 };
 
@@ -144,7 +179,7 @@ const HelpCentreScreen = () => {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#6366F1" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
         <Text style={styles.loadingText}>Loading company details…</Text>
       </View>
     );
@@ -154,10 +189,10 @@ const HelpCentreScreen = () => {
   if (error || !company) {
     return (
       <View style={styles.center}>
-        <Icon name="error-outline" size={52} color="#EF4444" />
+        <Icon name="error-outline" size={52} color={COLORS.error} />
         <Text style={styles.errorTitle}>Something went wrong</Text>
         <Text style={styles.errorMsg}>{error || 'Company details not found'}</Text>
-        <TouchableOpacity style={styles.retryBtn} onPress={fetchCompanyDetails}>
+        <TouchableOpacity style={styles.retryBtn} onPress={fetchCompanyDetails} activeOpacity={0.85}>
           <Text style={styles.retryBtnText}>Try Again</Text>
         </TouchableOpacity>
       </View>
@@ -177,18 +212,29 @@ const HelpCentreScreen = () => {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366F1" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
       >
         {/* ── Hero Banner ── */}
-        <View style={styles.heroBanner} />
+        <LinearGradient
+          colors={[COLORS.primary, COLORS.primaryDark]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.heroBanner}
+        >
+          <View style={styles.heroIconWrap}>
+            <MaterialCommunityIcons name="headset" size={26} color={COLORS.white} />
+          </View>
+          <Text style={styles.heroTitle}>How can we help?</Text>
+          <Text style={styles.heroSubtitle}>Reach us, or explore everything about the company below</Text>
+        </LinearGradient>
 
         {/* ── Company Card ── */}
-        <View style={styles.companyCard}>
+        <FadeInUp delay={60} style={styles.companyCard}>
           {company.CompanyLogoUrl ? (
             <Image source={{ uri: company.CompanyLogoUrl }} style={styles.logo} resizeMode="contain" />
           ) : (
             <View style={styles.logoPlaceholder}>
-              <Icon name="business" size={44} color="#A5B4FC" />
+              <Icon name="business" size={44} color={COLORS.primaryLighter} />
             </View>
           )}
 
@@ -201,13 +247,13 @@ const HelpCentreScreen = () => {
           </View>
 
           <View style={[styles.badge, isActive ? styles.badgeActive : styles.badgeInactive]}>
-            <View style={[styles.badgeDot, { backgroundColor: isActive ? '#10B981' : '#EF4444' }]} />
+            <View style={[styles.badgeDot, { backgroundColor: isActive ? COLORS.success : COLORS.error }]} />
             <Text style={styles.badgeText}>{isActive ? 'Active' : 'Inactive'}</Text>
           </View>
-        </View>
+        </FadeInUp>
 
         {/* ── Contact ── */}
-        <SectionWrapper title="📞 Contact Information">
+        <SectionWrapper title="📞 Contact Information" delay={110}>
           <InfoRow icon="phone" label="Phone" value={company.PHONE} onPress={company.PHONE ? () => openPhone(company.PHONE!) : undefined} isLink />
           <InfoRow icon="email" label="Email" value={company.EMAIL} onPress={company.EMAIL ? () => openEmail(company.EMAIL!) : undefined} isLink />
           <InfoRow
@@ -221,7 +267,7 @@ const HelpCentreScreen = () => {
         </SectionWrapper>
 
         {/* ── Tax ── */}
-        <SectionWrapper title="💰 Tax Information">
+        <SectionWrapper title="💰 Tax Information" delay={160}>
           <InfoRow icon="qr-code" label="GST No" value={company.GSTNO} />
           <InfoRow icon="assignment" label="PAN No" value={company.PANNO} />
           <InfoRow icon="local-offer" label="TIN No" value={company.TINNO} />
@@ -232,7 +278,7 @@ const HelpCentreScreen = () => {
         </SectionWrapper>
 
         {/* ── Digital Presence ── */}
-        <SectionWrapper title="🌐 Digital Presence">
+        <SectionWrapper title="🌐 Digital Presence" delay={210}>
           <InfoRow
             icon="language"
             label="Website"
@@ -276,11 +322,13 @@ const HelpCentreScreen = () => {
         </SectionWrapper>
 
         {/* ── Footer ── */}
-        <View style={styles.footer}>
-          <Icon name="support-agent" size={28} color="#6366F1" />
+        <FadeInUp delay={260} style={styles.footer}>
+          <View style={styles.footerIconWrap}>
+            <Icon name="support-agent" size={28} color={COLORS.primary} />
+          </View>
           <Text style={styles.footerTitle}>Need more help?</Text>
           <Text style={styles.footerSub}>Contact us through any of the channels above</Text>
-        </View>
+        </FadeInUp>
       </ScrollView>
       <BottomTab activeScreen="SUPPORT" />
     </SafeAreaView>
@@ -289,13 +337,12 @@ const HelpCentreScreen = () => {
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
-const INDIGO = '#6366F1';
-const INDIGO_LIGHT = '#EEF2FF';
-const SURFACE = '#FFFFFF';
-const BG = '#F5F5F9';
-const TEXT_PRIMARY = '#1E1B4B';
-const TEXT_SECONDARY = '#6B7280';
-const BORDER = '#E5E7EB';
+const INDIGO_LIGHT = COLORS.primaryPale;
+const SURFACE = COLORS.white;
+const BG = COLORS.backgroundSecondary;
+const TEXT_PRIMARY = COLORS.textPrimary;
+const TEXT_SECONDARY = COLORS.textSecondary;
+const BORDER = COLORS.border;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
@@ -305,27 +352,41 @@ const styles = StyleSheet.create({
   loadingText: { marginTop: 12, fontSize: 15, color: TEXT_SECONDARY },
   errorTitle: { marginTop: 16, fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY },
   errorMsg: { marginTop: 8, fontSize: 14, color: TEXT_SECONDARY, textAlign: 'center', lineHeight: 20 },
-  retryBtn: { marginTop: 20, paddingHorizontal: 28, paddingVertical: 12, backgroundColor: INDIGO, borderRadius: 10 },
+  retryBtn: { marginTop: 20, paddingHorizontal: 28, paddingVertical: 12, backgroundColor: COLORS.primary, borderRadius: 10, ...SHADOWS.blue },
   retryBtnText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
 
   // Hero
-  heroBanner: { backgroundColor: INDIGO, paddingHorizontal: 20, paddingTop: 24, paddingBottom: 32 },
-  heroTitle: { fontSize: 26, fontWeight: '800', color: '#FFF', letterSpacing: -0.5 },
-  heroSubtitle: { fontSize: 14, color: '#C7D2FE', marginTop: 4 },
+  heroBanner: {
+    paddingHorizontal: 20,
+    paddingTop: 28,
+    paddingBottom: 40,
+    alignItems: 'center',
+  },
+  heroIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(255,255,255,0.16)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  heroTitle: { fontSize: 22, fontWeight: '800', color: '#FFF', letterSpacing: -0.3, textAlign: 'center' },
+  heroSubtitle: { fontSize: 13, color: 'rgba(255,255,255,0.85)', marginTop: 6, textAlign: 'center', paddingHorizontal: 12 },
 
   // Company Card
   companyCard: {
     backgroundColor: SURFACE,
     marginHorizontal: 16,
-    marginTop: -18,
-    borderRadius: 16,
+    marginTop: -22,
+    borderRadius: 18,
     padding: 20,
     alignItems: 'center',
-    shadowColor: '#6366F1',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.14,
+    shadowRadius: 16,
+    elevation: 6,
     marginBottom: 12,
   },
   logo: { width: 100, height: 100, borderRadius: 50, backgroundColor: INDIGO_LIGHT },
@@ -341,7 +402,7 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: 12, color: TEXT_SECONDARY, fontWeight: '500' },
 
   // Section
-  section: { backgroundColor: SURFACE, marginBottom: 10, paddingBottom: 4 },
+  section: { backgroundColor: SURFACE, marginHorizontal: 16, marginBottom: 12, paddingBottom: 4, borderRadius: 16, overflow: 'hidden', ...SHADOWS.xs },
   sectionTitle: {
     fontSize: 15,
     fontWeight: '700',
@@ -374,7 +435,7 @@ const styles = StyleSheet.create({
   infoContent: { flex: 1 },
   infoLabel: { fontSize: 11, color: TEXT_SECONDARY, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 },
   infoValue: { fontSize: 15, color: TEXT_PRIMARY, fontWeight: '500' },
-  linkText: { color: INDIGO },
+  linkText: { color: COLORS.primary },
 
   // Social
   socialSection: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 6 },
@@ -389,7 +450,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
   },
-  socialBtnLabel: { fontSize: 13, color: INDIGO, fontWeight: '500' },
+  socialBtnLabel: { fontSize: 13, color: COLORS.primary, fontWeight: '500' },
 
   // App buttons
   appSection: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 14 },
@@ -403,15 +464,27 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 10,
   },
-  appButtonText: { color: INDIGO, fontSize: 14, fontWeight: '500' },
+  appButtonText: { color: COLORS.primary, fontSize: 14, fontWeight: '500' },
 
   // Footer
   footer: {
     backgroundColor: SURFACE,
+    marginHorizontal: 16,
+    borderRadius: 16,
     paddingVertical: 28,
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 16,
     gap: 6,
+    ...SHADOWS.xs,
+  },
+  footerIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: INDIGO_LIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
   },
   footerTitle: { fontSize: 16, fontWeight: '700', color: TEXT_PRIMARY },
   footerSub: { fontSize: 13, color: TEXT_SECONDARY },

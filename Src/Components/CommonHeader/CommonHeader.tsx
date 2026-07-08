@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     ...SHADOWS.sm,
   },
   side: {
-    width: moderateScale(52),
+    minWidth: moderateScale(52),
     justifyContent: 'center',
     alignItems: 'center',
   },

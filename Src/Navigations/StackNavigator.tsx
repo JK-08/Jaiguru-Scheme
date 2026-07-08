@@ -32,6 +32,7 @@ import GoogleContactMobileScreen from '../Screens/Auth/GoogleContactUpdate/Googl
 import GoogleContactOtpScreen from '../Screens/Auth/GoogleContactUpdate/GoogleContactVerify';
 import HelpCentre from '../Screens/HelpCenter/HelpCenter';
 import KnowMore from '../Screens/KnowMore/KnowMore'
+import ProfileScreen from '../Screens/Profile/Profile';
 
 const Stack = createNativeStackNavigator();
 
@@ -118,6 +119,7 @@ export default function StackNavigator() {
         <Stack.Screen name="GoogleContactVerify" component={GoogleContactOtpScreen as any} />
         <Stack.Screen name="HelpCenter" component={HelpCentre} />
         <Stack.Screen name="KnowMore" component={KnowMore} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
 
         {/* Drawer after MPIN success */}
         <Stack.Screen name="MainDrawer" component={MainDrawerNavigator} />

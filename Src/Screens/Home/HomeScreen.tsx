@@ -11,7 +11,7 @@ import SliderComponent from '../../Components/Slider/Slider';
 import SchemeDetailsCard from '../../Components/SchemeDetailsCard/SchemeDetailsCard';
 import SchemesList from '../../Components/SchemeCard/SchemeCard';
 import { deviceService } from '../../api/services/deviceService';
-import { registerForPushNotificationsAsync, wasTokenSent, markTokenAsSent, getStoredPushToken } from '../../Helpers/NotificationHelper';
+import { getFCMToken } from '../../Helpers/NotificationHelper';
 import BottomTab from '../../Components/BottomTab/BottomTab';
 import MainPageWithYouTube from '../../Components/Youtube/Youtube';
 import { AppText, AppCard, ScreenWrapper } from '../../Components/ui/appcomponents';
@@ -130,16 +130,11 @@ const HomeScreen = () => {
   const handlePushNotificationRegistration = async () => {
     try {
       setNotificationStatus('registering');
-      const existingToken = await getStoredPushToken();
-      if (existingToken) {
-        const tokenSent = await wasTokenSent();
-        if (!tokenSent) await sendTokenToServer(existingToken);
-        else setNotificationStatus('registered');
-      } else {
-        const token = await registerForPushNotificationsAsync(userId);
-        if (token) await sendTokenToServer(token);
-        else setNotificationStatus('failed');
-      }
+      // Clear old Expo token if present
+      await AsyncStorage.multiRemove(['pushToken', 'tokenSentToServer']);
+      const token = await getFCMToken();
+      if (token) await sendTokenToServer(token);
+      else setNotificationStatus('failed');
     } catch {
       setNotificationStatus('failed');
     }
@@ -148,12 +143,8 @@ const HomeScreen = () => {
   const sendTokenToServer = async (token: string) => {
     try {
       const success = await deviceService.registerDevice(token, userId ?? '');
-      if (success) {
-        await markTokenAsSent();
-        setNotificationStatus('registered');
-      } else {
-        setNotificationStatus('failed');
-      }
+      if (success) setNotificationStatus('registered');
+      else setNotificationStatus('failed');
     } catch {
       setNotificationStatus('failed');
     }

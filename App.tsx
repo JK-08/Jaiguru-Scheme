@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
   setupNotificationListeners,
+  setupAndroidChannel,
 } from './Src/Helpers/NotificationHelper';
 import StackNavigator from './Src/Navigations/StackNavigator';
 import useFonts from './Src/Utills/Fonts';
@@ -13,6 +14,7 @@ import appLogo from './Src/Assets/Company/logo.png';
 import { COLORS } from './Src/Utills/AppTheme';
 import ErrorBoundary from './Src/Components/ErrorBoundary';
 import { AppToastProvider } from './Src/Components/ui/appcomponents';
+import NotificationBanner from './Src/Components/NotificationBanner/NotificationBanner';
 
 export default function App() {
   const [appReady, setAppReady] = useState(false);
@@ -27,6 +29,7 @@ export default function App() {
   useEffect(() => {
     const initApp = async () => {
       try {
+        await setupAndroidChannel();
         setAppReady(true);
       } catch (error) {
         console.error('App initialization error:', error);
@@ -61,6 +64,7 @@ export default function App() {
           <StatusBar style="auto" />
         </View>
       </SafeAreaView>
+      <NotificationBanner />
     </GestureHandlerRootView>
   );
 }

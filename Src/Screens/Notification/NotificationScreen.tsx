@@ -1,20 +1,48 @@
 // Src/Screens/Notification/NotificationScreen.tsx
-import React, { useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Alert, Animated, Platform } from 'react-native';
+import React, { useRef, useMemo, useState } from 'react';
+import { View, Text, StyleSheet, SectionList, TouchableOpacity, ActivityIndicator, RefreshControl, Alert, Animated, Platform } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import useNotifications, { FormattedNotification } from '../../api/hooks/Notifications/useNotifications';
 import { notificationService } from '../../api/services/notificationService';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
+import BottomTab from '../../Components/BottomTab/BottomTab';
+import theme from '../../Utills/AppTheme';
+
+const { COLORS } = theme;
+
+const isSameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+const groupByDate = (items: FormattedNotification[]) => {
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  const buckets: Record<string, FormattedNotification[]> = { Today: [], Yesterday: [], Earlier: [] };
+
+  items.forEach((item) => {
+    const created = new Date(item.createdAt ?? 0);
+    if (isSameDay(created, today)) buckets.Today.push(item);
+    else if (isSameDay(created, yesterday)) buckets.Yesterday.push(item);
+    else buckets.Earlier.push(item);
+  });
+
+  return Object.entries(buckets)
+    .filter(([, data]) => data.length > 0)
+    .map(([title, data]) => ({ title, data }));
+};
 
 const NotificationScreen = () => {
   const swipeableRefs = useRef(new Map<number | string, Swipeable>());
+  const animatedIds = useRef(new Set<number | string>());
 
   const { notifications, unreadCount, loading, refresh, markAsRead, markAllAsRead, deleteNotification, deleteAllNotifications } =
     useNotifications();
+
+  const sections = useMemo(() => groupByDate(notifications), [notifications]);
 
   const handleDeleteAll = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -31,24 +59,9 @@ const NotificationScreen = () => {
     ]);
   };
 
-  const handleDeleteSingle = (id: number | string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Alert.alert('Delete Notification', 'Remove this notification?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        onPress: async () => {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          // Close swipeable before deleting
-          const swipeable = swipeableRefs.current.get(id);
-          if (swipeable) {
-            swipeable.close();
-          }
-          await deleteNotification(id);
-        },
-        style: 'destructive',
-      },
-    ]);
+  const handleDeleteSingle = async (id: number | string) => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    await deleteNotification(id);
   };
 
   const handleMarkAsRead = async (item: FormattedNotification) => {
@@ -67,143 +80,108 @@ const NotificationScreen = () => {
 
   const getNotificationIcon = (title?: string) => {
     if (title?.toLowerCase().includes('welcome')) {
-      return { name: 'hand-wave', color: '#4CAF50', bg: '#E8F5E9' };
+      return { name: 'hand-wave', color: COLORS.success, bg: COLORS.success + '18' };
     } else if (title?.toLowerCase().includes('gold') || title?.toLowerCase().includes('silver')) {
-      return { name: 'gold', color: '#FFA000', bg: '#FFF8E1' };
+      return { name: 'gold', color: COLORS.goldDark, bg: COLORS.goldOpacity10 };
     } else if (title?.toLowerCase().includes('scheme')) {
-      return { name: 'account-cash', color: '#7E57C2', bg: '#EDE7F6' };
-    } else {
-      return { name: 'bell-outline', color: '#6200ee', bg: '#F3E5F5' };
+      return { name: 'account-cash', color: COLORS.primaryLight, bg: COLORS.blueOpacity10 };
     }
+    return { name: 'bell-outline', color: COLORS.primary, bg: COLORS.primaryPale };
   };
 
   interface NotificationItemProps {
     item: FormattedNotification;
-    swipeableRefs: React.RefObject<Map<number | string, Swipeable>>;
-    handleDeleteSingle: (id: number | string) => void;
-    handleMarkAsRead: (item: FormattedNotification) => void;
+    index: number;
   }
 
-  const NotificationItem = ({ item, swipeableRefs, handleDeleteSingle, handleMarkAsRead }: NotificationItemProps) => {
+  const NotificationItem = ({ item, index }: NotificationItemProps) => {
     const scaleAnim = useRef(new Animated.Value(1)).current;
+    const isFirstMount = !animatedIds.current.has(item.id);
+    const entrance = useRef(new Animated.Value(isFirstMount ? 0 : 1)).current;
+    const [expanded, setExpanded] = useState(false);
     const isRead = item.isRead;
     const icon = getNotificationIcon(item.title);
 
-    const handlePressIn = () => {
-      Animated.spring(scaleAnim, {
-        toValue: 0.98,
-        useNativeDriver: true,
-      }).start();
+    React.useEffect(() => {
+      if (isFirstMount) {
+        animatedIds.current.add(item.id);
+        Animated.timing(entrance, {
+          toValue: 1,
+          duration: 380,
+          delay: Math.min(index, 8) * 55,
+          useNativeDriver: true,
+        }).start();
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const handlePress = () => {
+      setExpanded((prev) => !prev);
+      if (!isRead) handleMarkAsRead(item);
     };
 
-    const handlePressOut = () => {
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        useNativeDriver: true,
-      }).start();
-    };
+    const handlePressIn = () => Animated.spring(scaleAnim, { toValue: 0.98, useNativeDriver: true }).start();
+    const handlePressOut = () => Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start();
 
     return (
-      <Animated.View style={[styles.cardWrapper, { transform: [{ scale: scaleAnim }] }]}>
+      <Animated.View
+        style={[
+          styles.cardWrapper,
+          {
+            opacity: entrance,
+            transform: [
+              { scale: scaleAnim },
+              { translateY: entrance.interpolate({ inputRange: [0, 1], outputRange: [18, 0] }) },
+            ],
+          },
+        ]}
+      >
         <Swipeable
           ref={(ref) => {
-            if (ref) {
-              swipeableRefs.current.set(item.id, ref);
-            } else {
-              swipeableRefs.current.delete(item.id);
-            }
+            if (ref) swipeableRefs.current.set(item.id, ref);
+            else swipeableRefs.current.delete(item.id);
           }}
-          renderRightActions={() => (
-            <TouchableOpacity activeOpacity={0.8} onPress={() => handleDeleteSingle(item.id)}>
-              <LinearGradient colors={['#ff6b6b', '#ee5253']} style={styles.deleteSwipe}>
-                <MaterialCommunityIcons name="delete-outline" size={24} color="#fff" />
-                <Text style={styles.deleteText}>Delete</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          )}
+          renderRightActions={() => <View style={styles.deleteSwipe} />}
+          onSwipeableOpen={(direction) => {
+            if (direction === 'right') handleDeleteSingle(item.id);
+          }}
           overshootRight={false}
         >
-          <TouchableOpacity activeOpacity={0.9} onPress={() => handleMarkAsRead(item)} onPressIn={handlePressIn} onPressOut={handlePressOut}>
-            <LinearGradient colors={isRead ? ['#ffffff', '#fafafa'] : ['#F8F4FF', '#F0E6FF']} style={[styles.card, !isRead && styles.unreadCard]}>
+          <TouchableOpacity activeOpacity={0.9} onPress={handlePress} onPressIn={handlePressIn} onPressOut={handlePressOut}>
+            <View style={styles.card}>
+              {!isRead && <View style={styles.accentBar} />}
               <View style={styles.cardContent}>
                 <View style={[styles.iconContainer, { backgroundColor: icon.bg }]}>
-                  <MaterialCommunityIcons name={icon.name as any} size={24} color={icon.color} />
+                  <MaterialCommunityIcons name={icon.name as any} size={22} color={icon.color} />
+                  {!isRead && <View style={styles.iconDot} />}
                 </View>
 
                 <View style={styles.textContainer}>
                   <View style={styles.titleContainer}>
-                    <Text style={[styles.title, !isRead && styles.unreadTitle]}>{item.title}</Text>
-                    {!isRead && (
-                      <View style={styles.unreadBadge}>
-                        <Text style={styles.unreadBadgeText}>NEW</Text>
-                      </View>
-                    )}
-                  </View>
-                  <Text style={styles.message} numberOfLines={2}>
-                    {item.message}
-                  </Text>
-                  <View style={styles.metaContainer}>
-                    <Ionicons name="time-outline" size={12} color="#999" />
+                    <Text style={[styles.title, !isRead && styles.unreadTitle]} numberOfLines={1}>
+                      {item.title}
+                    </Text>
                     <Text style={styles.date}>{notificationService.formatNotificationDate(item.createdAt)}</Text>
                   </View>
+                  <Text style={styles.message} numberOfLines={expanded ? undefined : 2}>
+                    {item.message}
+                  </Text>
+                  {item.message && item.message.length > 80 && (
+                    <Text style={styles.expandHint}>
+                      {expanded ? 'Show less ▲' : 'Show more ▼'}
+                    </Text>
+                  )}
                 </View>
               </View>
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
         </Swipeable>
       </Animated.View>
     );
   };
 
-  const renderHeader = () => (
-    <View style={styles.stickyHeader}>
-      <BlurView intensity={80} tint="light" style={styles.blurContainer}>
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{notifications.length}</Text>
-            <Text style={styles.statLabel}>Total</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{unreadCount}</Text>
-            <Text style={styles.statLabel}>Unread</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{notifications.length - unreadCount}</Text>
-            <Text style={styles.statLabel}>Read</Text>
-          </View>
-        </View>
-      </BlurView>
-
-      {notifications.length > 0 && (
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            style={[styles.actionBtn, unreadCount === 0 && styles.disabledBtn]}
-            onPress={handleMarkAllAsRead}
-            disabled={unreadCount === 0}
-            activeOpacity={0.7}
-          >
-            <LinearGradient
-              colors={unreadCount === 0 ? ['#E0E0E0', '#BDBDBD'] : ['#4CAF50', '#45A049']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.actionGradient}
-            >
-              <Ionicons name="checkmark-done-outline" size={18} color="#fff" />
-              <Text style={styles.actionBtnText}>Mark All Read</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionBtn} onPress={handleDeleteAll} activeOpacity={0.7}>
-            <LinearGradient colors={['#FF5252', '#FF1744']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.actionGradient}>
-              <Ionicons name="trash-outline" size={18} color="#fff" />
-              <Text style={styles.actionBtnText}>Delete All</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
+  const renderSectionHeader = ({ section }: any) => (
+    <Text style={styles.sectionTitle}>{section.title}</Text>
   );
 
   if (loading && notifications.length === 0) {
@@ -211,32 +189,50 @@ const NotificationScreen = () => {
       <View style={styles.container}>
         <CommonHeader title="Notifications" />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#6200ee" />
+          <ActivityIndicator size="large" color={COLORS.primary} />
           <Text style={styles.loadingText}>Loading notifications...</Text>
         </View>
       </View>
     );
   }
 
+  const headerRight = notifications.length > 0 ? (
+    <View style={styles.headerActions}>
+      <TouchableOpacity
+        onPress={handleMarkAllAsRead}
+        disabled={unreadCount === 0}
+        activeOpacity={0.7}
+        style={[styles.headerIconBtn, unreadCount === 0 && styles.disabledBtn]}
+      >
+        <View style={styles.headerIconCircle}>
+          <Ionicons name="checkmark-done-outline" size={20} color={COLORS.white} />
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={handleDeleteAll} activeOpacity={0.7} style={styles.headerIconBtn}>
+        <View style={styles.headerIconCircle}>
+          <Ionicons name="trash-outline" size={20} color={COLORS.white} />
+        </View>
+      </TouchableOpacity>
+    </View>
+  ) : undefined;
+
   return (
     <View style={styles.container}>
-      <CommonHeader title="Notifications" />
+      <CommonHeader title="Notifications" rightComponent={headerRight} />
 
-      {renderHeader()}
-
-      <FlatList
-        data={notifications}
+      <SectionList
+        sections={sections}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <NotificationItem item={item} swipeableRefs={swipeableRefs} handleDeleteSingle={handleDeleteSingle} handleMarkAsRead={handleMarkAsRead} />
-        )}
+        renderItem={({ item, index }) => <NotificationItem item={item} index={index} />}
+        renderSectionHeader={renderSectionHeader}
+        stickySectionHeadersEnabled={false}
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={refresh} colors={['#6200ee']} tintColor="#6200ee" progressBackgroundColor="#fff" />
+          <RefreshControl refreshing={loading} onRefresh={refresh} colors={[COLORS.primary]} tintColor={COLORS.primary} progressBackgroundColor="#fff" />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <LinearGradient colors={['#F3E5F5', '#EDE7F6']} style={styles.emptyIconContainer}>
-              <MaterialCommunityIcons name="bell-off-outline" size={64} color="#6200ee" />
+            <LinearGradient colors={[COLORS.primaryPale, COLORS.blueLight]} style={styles.emptyIconContainer}>
+              <MaterialCommunityIcons name="bell-off-outline" size={64} color={COLORS.primary} />
             </LinearGradient>
             <Text style={styles.emptyText}>All Caught Up!</Text>
             <Text style={styles.emptySubText}>You have no notifications at the moment</Text>
@@ -244,12 +240,13 @@ const NotificationScreen = () => {
         }
         contentContainerStyle={[styles.listContent, notifications.length === 0 && styles.emptyListContent]}
         showsVerticalScrollIndicator={false}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
         initialNumToRender={10}
         maxToRenderPerBatch={10}
         windowSize={10}
         removeClippedSubviews={Platform.OS === 'android'}
       />
+
+      <BottomTab activeScreen="ALERTS" />
     </View>
   );
 };
@@ -257,286 +254,81 @@ const NotificationScreen = () => {
 export default NotificationScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
+  container: { flex: 1, backgroundColor: COLORS.backgroundSecondary },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  loadingText: { marginTop: 12, fontSize: 14, color: COLORS.textSecondary, fontWeight: '500' },
 
-  loadingContainer: {
-    flex: 1,
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  headerIconBtn: { padding: 2 },
+  headerIconCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  disabledBtn: { opacity: 0.4 },
 
-  loadingText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-  },
-
-  stickyHeader: {
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.05)',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-
-  blurContainer: {
-    overflow: 'hidden',
-    borderTopWidth: 0,
-  },
-
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingVertical: 16,
-    backgroundColor: 'rgba(255,255,255,0.9)',
-  },
-
-  statItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-
-  statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#6200ee',
-    marginBottom: 4,
-  },
-
-  statLabel: {
+  sectionTitle: {
     fontSize: 13,
-    color: '#666',
-    fontWeight: '500',
-  },
-
-  statDivider: {
-    width: 1,
-    height: 30,
-    backgroundColor: '#e0e0e0',
-  },
-
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 12,
-    backgroundColor: '#fff',
-    gap: 10,
-  },
-
-  actionBtn: {
-    flex: 1,
-    borderRadius: 12,
-    overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-
-  actionGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    gap: 8,
-  },
-
-  actionBtnText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-
-  disabledBtn: {
-    opacity: 0.6,
-  },
-
-  cardWrapper: {
-    marginHorizontal: 16,
-    marginVertical: 6,
-  },
-
-  card: {
-    borderRadius: 16,
-    padding: 16,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-
-  unreadCard: {
-    borderWidth: 1,
-    borderColor: '#6200ee',
-  },
-
-  cardContent: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-
-  iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  textContainer: {
-    flex: 1,
-  },
-
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    fontWeight: '700',
+    color: COLORS.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginHorizontal: 20,
+    marginTop: 18,
     marginBottom: 6,
   },
 
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    flex: 1,
-  },
-
-  unreadTitle: {
-    fontWeight: '700',
-    color: '#000',
-  },
-
-  unreadBadge: {
-    backgroundColor: '#6200ee',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginLeft: 8,
-  },
-
-  unreadBadgeText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-
-  message: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-
-  metaContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-
-  date: {
-    fontSize: 12,
-    color: '#999',
-    fontWeight: '500',
-  },
-
-  deleteSwipe: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 90,
-    height: '90%',
-    marginVertical: 6,
-    marginRight: 16,
+  cardWrapper: { marginHorizontal: 16, marginVertical: 5 },
+  card: {
     borderRadius: 16,
+    padding: 14,
+    backgroundColor: COLORS.white,
+    flexDirection: 'row',
+    overflow: 'hidden',
     ...Platform.select({
-      ios: {
-        shadowColor: '#ff6b6b',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6 },
+      android: { elevation: 2 },
     }),
   },
+  accentBar: { width: 4, borderRadius: 2, backgroundColor: COLORS.primary, marginRight: 10 },
+  cardContent: { flex: 1, flexDirection: 'row', gap: 12 },
 
-  deleteText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 4,
-  },
-
-  separator: {
-    height: 1,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    marginHorizontal: 16,
-  },
-
-  listContent: {
-    paddingVertical: 12,
-  },
-
-  emptyListContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
-
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-  },
-
-  emptyIconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+  iconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
+  },
+  iconDot: {
+    position: 'absolute',
+    top: -1,
+    right: -1,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: COLORS.error,
+    borderWidth: 1.5,
+    borderColor: '#fff',
   },
 
-  emptyText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
-  },
+  textContainer: { flex: 1 },
+  titleContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  title: { fontSize: 15, fontWeight: '600', color: COLORS.textPrimary, flex: 1, marginRight: 8 },
+  unreadTitle: { fontWeight: '700' },
+  message: { fontSize: 13, color: COLORS.textSecondary, lineHeight: 18 },
+  date: { fontSize: 11, color: COLORS.textTertiary, fontWeight: '500' },
+  expandHint: { fontSize: 11, color: COLORS.primary, fontWeight: '600', marginTop: 4 },
 
-  emptySubText: {
-    fontSize: 16,
-    color: '#999',
-    textAlign: 'center',
-    lineHeight: 24,
-  },
+  deleteSwipe: { width: 84 },
+
+  listContent: { paddingVertical: 8, paddingBottom: 20 },
+  emptyListContent: { flexGrow: 1, justifyContent: 'center' },
+  emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
+  emptyIconContainer: { width: 120, height: 120, borderRadius: 60, justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
+  emptyText: { fontSize: 24, fontWeight: 'bold', color: COLORS.textPrimary, marginBottom: 12 },
+  emptySubText: { fontSize: 16, color: COLORS.textTertiary, textAlign: 'center', lineHeight: 24 },
 });

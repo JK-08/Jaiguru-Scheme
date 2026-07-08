@@ -49,7 +49,6 @@
       "@react-native-google-signin/google-signin",
       "expo-font",
       "expo-secure-store",
-      "expo-notifications",
       "expo-asset",
       [
         "expo-build-properties",

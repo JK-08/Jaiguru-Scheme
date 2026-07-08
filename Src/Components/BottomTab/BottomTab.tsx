@@ -1,105 +1,149 @@
-import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
-import { COLORS, SIZES } from "../../Utills/AppTheme";
-import styles from "./styles";
+// Src/Components/BottomTab/BottomTab.tsx
+//
+// App-wide bottom navigation bar. This is NOT a react-navigation
+// Tab.Navigator — each screen mounts <BottomTab activeScreen="..." /> itself
+// at the bottom of its own layout (matching the pattern already used by
+// HomeScreen/SchemeDetailScreen/HelpCenter before this change). That keeps
+// every tab's screen as a normal Stack.Screen (so existing navigation.push
+// calls, headers, etc. keep working) while still giving the persistent
+// 5-tab bar the user asked for: My Schemes, Support, Home (center,
+// elevated), Profile, Alerts — each tab icon/label animates between its
+// active and inactive state instead of just swapping color instantly.
+import React, { useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, Animated } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { MaterialCommunityIcons, MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { COLORS, SIZES } from '../../Utills/AppTheme';
+import styles from './styles';
+
+type ScreenTarget = string | { name: string; params?: Record<string, any> };
 
 interface TabDef {
   key: string;
   label: string;
-  screen: string | { name: string; params?: Record<string, any> };
-  icon: React.ReactElement<any>;
-  isSpecial?: boolean;
+  screen: ScreenTarget;
+  iconLib: 'MaterialCommunityIcons' | 'MaterialIcons' | 'Ionicons';
+  iconName: string;
+  activeIconName?: string;
+  isCenter?: boolean;
 }
 
 interface BottomTabProps {
   activeScreen: string;
 }
 
+const TABS: TabDef[] = [
+  {
+    key: 'SCHEMES',
+    label: 'My Schemes',
+    screen: 'AllSchemes',
+    iconLib: 'MaterialIcons',
+    iconName: 'savings',
+  },
+  {
+    key: 'SUPPORT',
+    label: 'Support',
+    screen: 'HelpCenter',
+    iconLib: 'MaterialCommunityIcons',
+    iconName: 'headset',
+  },
+  {
+    key: 'HOME',
+    label: 'Home',
+    screen: { name: 'MainDrawer', params: { screen: 'Home' } },
+    iconLib: 'MaterialCommunityIcons',
+    iconName: 'home',
+    isCenter: true,
+  },
+  {
+    key: 'PROFILE',
+    label: 'Profile',
+    screen: 'Profile',
+    iconLib: 'Ionicons',
+    iconName: 'person-outline',
+    activeIconName: 'person',
+  },
+  {
+    key: 'ALERTS',
+    label: 'Alerts',
+    screen: 'NotificationScreen',
+    iconLib: 'Ionicons',
+    iconName: 'notifications-outline',
+    activeIconName: 'notifications',
+  },
+];
+
+const ICON_LIBS = { MaterialCommunityIcons, MaterialIcons, Ionicons };
+
+interface AnimatedTabProps {
+  tab: TabDef;
+  isActive: boolean;
+  onPress: () => void;
+}
+
+// Each tab animates its own scale/lift/color on activation instead of
+// snapping — this is the "diesin animated to active and not active" the
+// user asked for.
+const AnimatedTab = ({ tab, isActive, onPress }: AnimatedTabProps) => {
+  const progress = useRef(new Animated.Value(isActive ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.spring(progress, {
+      toValue: isActive ? 1 : 0,
+      useNativeDriver: true,
+      speed: 18,
+      bounciness: 8,
+    }).start();
+  }, [isActive, progress]);
+
+  const IconComponent = ICON_LIBS[tab.iconLib];
+  const iconName = isActive && tab.activeIconName ? tab.activeIconName : tab.iconName;
+
+  if (tab.isCenter) {
+    const lift = progress.interpolate({ inputRange: [0, 1], outputRange: [0, -4] });
+    const scale = progress.interpolate({ inputRange: [0, 1], outputRange: [1, 1.08] });
+
+    return (
+      <TouchableOpacity style={styles.centerContainer} onPress={onPress} activeOpacity={0.8}>
+        <Animated.View style={[styles.centerIconWrap, { transform: [{ translateY: lift }, { scale }] }]}>
+          <IconComponent name={iconName} size={SIZES.icon.lg} color={COLORS.white} />
+        </Animated.View>
+        <Text style={isActive ? styles.centerActiveText : styles.centerInactiveText}>{tab.label}</Text>
+      </TouchableOpacity>
+    );
+  }
+
+  const scale = progress.interpolate({ inputRange: [0, 1], outputRange: [1, 1.12] });
+  const lift = progress.interpolate({ inputRange: [0, 1], outputRange: [0, -2] });
+  const color = isActive ? COLORS.primary : COLORS.textSecondary;
+
+  return (
+    <TouchableOpacity style={styles.footerBtnContainer} onPress={onPress} activeOpacity={0.7}>
+      <Animated.View style={{ transform: [{ scale }, { translateY: lift }] }}>
+        <IconComponent name={iconName} size={SIZES.icon.md} color={color} />
+      </Animated.View>
+      <Text style={isActive ? styles.activeText : styles.inactiveText}>{tab.label}</Text>
+      {isActive && <View style={styles.activeDot} />}
+    </TouchableOpacity>
+  );
+};
+
 function BottomTab({ activeScreen }: BottomTabProps) {
   const navigation = useNavigation<any>();
 
-  const tabs: TabDef[] = [
-    {
-      key: "HOME",
-      label: "Home",
-      screen: { name: "MainDrawer", params: { screen: "Home" } },
-      icon: <MaterialCommunityIcons name="home" size={SIZES.icon.md} />,
-    },
-    {
-      key: "SCHEMES",
-      label: "My Schemes",
-      screen: "AllSchemes",
-      icon: <MaterialIcons name="savings" size={SIZES.icon.md} />,
-    },
-
-
-    {
-      key: "SUPPORT",
-      label: "Support",
-      screen: "HelpCenter",
-      icon: <MaterialCommunityIcons name="headset" size={SIZES.icon.md} />,
-    },
-  ];
+  const handlePress = (screen: ScreenTarget) => {
+    if (typeof screen === 'string') {
+      navigation.navigate(screen as never);
+    } else {
+      navigation.navigate(screen.name as never, screen.params as never);
+    }
+  };
 
   return (
     <View style={styles.footerContainer}>
-      {tabs.map((tab) => {
-        const isActive = activeScreen === tab.key;
-
-        // Special rendering for "Pay Now" button
-        if (tab.isSpecial) {
-          return (
-            <TouchableOpacity
-              key={tab.key}
-              style={styles.payNowContainer}
-              onPress={() => navigation.navigate(tab.screen as never)}
-              activeOpacity={0.7}
-            >
-              <View style={[
-                styles.payNowIconContainer,
-                isActive && styles.payNowActiveIconContainer
-              ]}>
-                {React.cloneElement(tab.icon, {
-                  color: isActive ? COLORS.primary : COLORS.white,
-                  size: SIZES.icon.lg,
-                })}
-              </View>
-              <Text
-                style={[
-                  styles.payNowText,
-                  isActive && styles.payNowActiveText
-                ]}
-              >
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        }
-
-        // Regular rendering for other tabs
-        return (
-          <TouchableOpacity
-            key={tab.key}
-            style={styles.footerBtnContainer}
-            onPress={() => navigation.navigate(tab.screen as never)}
-            activeOpacity={0.7}
-          >
-            {React.cloneElement(tab.icon, {
-              color: isActive ? COLORS.primary : COLORS.textSecondary,
-            })}
-
-            <Text
-              style={
-                isActive ? styles.activeText : styles.inactiveText
-              }
-            >
-              {tab.label}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+      {TABS.map((tab) => (
+        <AnimatedTab key={tab.key} tab={tab} isActive={activeScreen === tab.key} onPress={() => handlePress(tab.screen)} />
+      ))}
     </View>
   );
 }
