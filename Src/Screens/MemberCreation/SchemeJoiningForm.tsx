@@ -1,9 +1,13 @@
 // Src/Screens/MemberCreation/SchemeJoiningForm.tsx
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import { View, StyleSheet, ActivityIndicator, ScrollView, Modal, TouchableOpacity, FlatList } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { useSchemeGroupOptions } from '../../api/hooks/Schemes/useSchemeGroupOptions';
 import { Scheme } from '../../types/Scheme/Scheme';
+import { AppText, AppCard, AppBadge, AppSectionHeader } from '../../Components/ui/appcomponents';
+import theme from '../../Utills/AppTheme';
+
+const { COLORS, SIZES, SHADOWS } = theme;
 
 // NOTE: All payments in this flow are collected online via Razorpay
 // (see MemberCreation.tsx's startPayment/schemeCollectInsert payload, which
@@ -14,6 +18,13 @@ import { Scheme } from '../../types/Scheme/Scheme';
 // favor of the accurate read-only "Online" indicator below. If offline
 // payment modes are ever wired up end-to-end, reintroduce a real picker
 // backed by useTransactionTypes here.
+//
+// The scheme-amount selector was previously a native @react-native-picker/
+// picker, then briefly an AppChip grid. Now it's a custom dropdown: a
+// closed, input-styled field that opens a modal list on tap (like the
+// dropdown UX requested), while still avoiding @react-native-picker/picker's
+// known Android crash risk under memory pressure / on some OEM ROMs (the
+// same class of issue fixed for the Razorpay WebView via onRenderProcessGone).
 
 export interface SchemeJoiningFormData {
   schemeId?: number;
@@ -30,10 +41,22 @@ export interface SchemeJoiningFormRef {
   getFormData: () => SchemeJoiningFormData;
 }
 
+export interface SchemeJoiningUserSummary {
+  userName?: string;
+  lastName?: string;
+  mobileNumber?: string;
+  emailAddress?: string;
+}
+
 export interface SchemeJoiningFormProps {
   scheme?: Scheme;
   onSubmit?: (data: SchemeJoiningFormData) => void;
   initialData?: { selectedScheme?: string } | null;
+  // Registration data collected in Step 1 — shown here so the member can
+  // confirm who they're registering/paying for before submitting payment.
+  // Previously this screen only showed scheme/payment info with no trace
+  // of the just-filled-in registration form.
+  userData?: SchemeJoiningUserSummary;
 }
 
 const METAL_TYPE_NAMES: Record<string, string> = {
@@ -44,13 +67,14 @@ const METAL_TYPE_NAMES: Record<string, string> = {
 };
 
 const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProps>(
-  ({ scheme, initialData = null }, ref) => {
+  ({ scheme, initialData = null, userData }, ref) => {
     const { schemes, loading: loadingSchemes, error: errorSchemes, getAmount } = useSchemeGroupOptions(
       scheme?.SchemeId
     );
 
     const [selectedScheme, setSelectedScheme] = useState('');
     const [selectedPayment] = useState('00001');
+    const [dropdownVisible, setDropdownVisible] = useState(false);
 
     useEffect(() => {
       if (initialData) {
@@ -96,8 +120,10 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
     if (loadingSchemes) {
       return (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4CAF50" />
-          <Text style={{ marginTop: 10, color: '#666' }}>Loading schemes...</Text>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+          <AppText variant="bodySmall" color={COLORS.textSecondary} style={{ marginTop: SIZES.sm }}>
+            Loading schemes...
+          </AppText>
         </View>
       );
     }
@@ -105,112 +131,203 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
     if (errorSchemes) {
       return (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Error loading schemes: {errorSchemes}</Text>
+          <AppText variant="bodyBold" color={COLORS.error} align="center">
+            Error loading schemes: {errorSchemes}
+          </AppText>
         </View>
       );
     }
 
     return (
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Scheme Joining</Text>
-          <Text style={styles.headerSubtitle}>Step 2: Select scheme and payment details</Text>
-        </View>
+
+        {/* Member Details (from Step 1 registration) */}
+        {userData && (userData.userName || userData.mobileNumber || userData.emailAddress) && (
+          <AppCard style={styles.card}>
+            <AppSectionHeader title="Member Details" />
+            <View style={styles.detailRow}>
+              <AppText variant="bodySmall" color={COLORS.textSecondary}>
+                Name
+              </AppText>
+              <AppText variant="bodyBold">
+                {[userData.userName, userData.lastName].filter(Boolean).join(' ') || 'N/A'}
+              </AppText>
+            </View>
+            <View style={styles.detailRow}>
+              <AppText variant="bodySmall" color={COLORS.textSecondary}>
+                Mobile
+              </AppText>
+              <AppText variant="bodyBold">{userData.mobileNumber || 'N/A'}</AppText>
+            </View>
+            <View style={[styles.detailRow, { marginBottom: 0 }]}>
+              <AppText variant="bodySmall" color={COLORS.textSecondary}>
+                Email
+              </AppText>
+              <AppText variant="bodyBold">{userData.emailAddress || 'N/A'}</AppText>
+            </View>
+          </AppCard>
+        )}
 
         {/* Scheme Details Card */}
-        <View style={styles.detailsCard}>
-          <Text style={styles.cardTitle}>Selected Scheme Details</Text>
-
+        <AppCard style={styles.card}>
+          <AppSectionHeader title="Selected Scheme Details" />
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Scheme Name:</Text>
-            <Text style={styles.detailValue}>{scheme?.schemeName || 'N/A'}</Text>
+            <AppText variant="bodySmall" color={COLORS.textSecondary}>
+              Scheme Name
+            </AppText>
+            <AppText variant="bodyBold">{scheme?.schemeName || 'N/A'}</AppText>
           </View>
-
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Scheme Code:</Text>
-            <Text style={styles.detailValue}>{scheme?.SchemeSName || 'N/A'}</Text>
+            <AppText variant="bodySmall" color={COLORS.textSecondary}>
+              Scheme Code
+            </AppText>
+            <AppText variant="bodyBold">{scheme?.SchemeSName || 'N/A'}</AppText>
           </View>
-
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Metal Type:</Text>
-            <Text style={styles.detailValue}>
-              {getMetalTypeName(scheme?.MetalType)} ({scheme?.MetalType || 'N/A'})
-            </Text>
+            <AppText variant="bodySmall" color={COLORS.textSecondary}>
+              Metal Type
+            </AppText>
+            <AppBadge label={`${getMetalTypeName(scheme?.MetalType)} (${scheme?.MetalType || 'N/A'})`} variant="gold" />
           </View>
-        </View>
+        </AppCard>
 
         {/* Scheme Amount Selection */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Select Scheme Amount</Text>
-          <Text style={styles.label}>Available Schemes:</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={selectedScheme}
-              onValueChange={(itemValue: string) => setSelectedScheme(itemValue)}
-              style={styles.picker}
+        <AppCard style={styles.card}>
+          <AppSectionHeader title="Select Scheme Amount" />
+          {schemes.length === 0 ? (
+            <AppText variant="bodySmall" color={COLORS.textSecondary}>
+              No schemes available
+            </AppText>
+          ) : (
+            <TouchableOpacity
+              style={styles.dropdownField}
+              activeOpacity={0.7}
+              onPress={() => setDropdownVisible(true)}
             >
-              {schemes.length === 0 ? (
-                <Picker.Item label="No schemes available" value="" />
-              ) : (
-                schemes.map((schemeItem) => (
-                  <Picker.Item
-                    key={schemeItem.GROUPCODE}
-                    label={`${schemeItem.GROUPCODE} - ₹${schemeItem.AMOUNT}`}
-                    value={schemeItem.GROUPCODE}
-                  />
-                ))
-              )}
-            </Picker>
-          </View>
+              <AppText variant="body" color={selectedScheme ? COLORS.textPrimary : COLORS.inputPlaceholder}>
+                {selectedScheme
+                  ? `${selectedScheme} · ₹${getAmount(selectedScheme)}`
+                  : 'Select an amount'}
+              </AppText>
+              <Icon name="chevron-down" size={20} color={COLORS.textSecondary} />
+            </TouchableOpacity>
+          )}
 
           {selectedScheme && (
             <View style={styles.amountContainer}>
-              <Text style={styles.amountLabel}>Selected Amount:</Text>
-              <Text style={styles.amountValue}>₹{getAmount(selectedScheme)}</Text>
+              <View>
+                <AppText variant="bodySmall" color={COLORS.successDark}>
+                  Selected Amount
+                </AppText>
+                <AppText variant="caption" color={COLORS.successDark}>
+                  Code: {selectedScheme}
+                </AppText>
+              </View>
+              <AppText variant="h4" color={COLORS.successDark}>
+                ₹{getAmount(selectedScheme)}
+              </AppText>
             </View>
           )}
-        </View>
+        </AppCard>
+
+        {/* Scheme Amount Dropdown Modal */}
+        <Modal visible={dropdownVisible} transparent animationType="fade" onRequestClose={() => setDropdownVisible(false)}>
+          <TouchableOpacity
+            style={styles.dropdownOverlay}
+            activeOpacity={1}
+            onPress={() => setDropdownVisible(false)}
+          >
+            <View style={styles.dropdownSheet} onStartShouldSetResponder={() => true}>
+              <AppText variant="h5" style={{ marginBottom: SIZES.md }}>
+                Select Scheme Amount
+              </AppText>
+              <FlatList
+                data={schemes}
+                keyExtractor={(item) => item.GROUPCODE}
+                style={styles.dropdownList}
+                renderItem={({ item }) => {
+                  const isSelected = selectedScheme === item.GROUPCODE;
+                  return (
+                    <TouchableOpacity
+                      style={[styles.dropdownRow, isSelected && styles.dropdownRowSelected]}
+                      onPress={() => {
+                        setSelectedScheme(item.GROUPCODE);
+                        setDropdownVisible(false);
+                      }}
+                    >
+                      <AppText variant={isSelected ? 'bodyBold' : 'body'} color={isSelected ? COLORS.primary : COLORS.textPrimary}>
+                        {item.GROUPCODE} · ₹{item.AMOUNT}
+                      </AppText>
+                      {isSelected && <Icon name="checkmark-circle" size={20} color={COLORS.primary} />}
+                    </TouchableOpacity>
+                  );
+                }}
+              />
+            </View>
+          </TouchableOpacity>
+        </Modal>
 
         {/* Payment Method (see note above the component: always Online via Razorpay) */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Payment Method</Text>
+        <AppCard style={styles.card}>
+          <AppSectionHeader title="Payment Method" />
           <View style={styles.paymentDetails}>
-            <Text style={styles.paymentLabel}>Payment Type:</Text>
-            <Text style={styles.paymentValue}>Online (00001)</Text>
+            <AppText variant="bodySmall" color={COLORS.primary}>
+              Payment Type
+            </AppText>
+            <AppText variant="h6" color={COLORS.primaryDark}>
+              Online (00001)
+            </AppText>
           </View>
-        </View>
+        </AppCard>
 
         {/* Summary Card */}
         {selectedScheme && selectedPayment && (
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Order Summary</Text>
+          <AppCard variant="premium" style={styles.card}>
+            <AppText variant="h5" align="center" color={COLORS.accentDark} style={{ marginBottom: SIZES.md }}>
+              Order Summary
+            </AppText>
 
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Scheme:</Text>
-              <Text style={styles.summaryValue}>{scheme?.schemeName}</Text>
+              <AppText variant="bodySmall" color={COLORS.accentDark}>
+                Scheme
+              </AppText>
+              <AppText variant="bodyBold" color={COLORS.accentDark}>
+                {scheme?.schemeName}
+              </AppText>
             </View>
-
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Scheme Code:</Text>
-              <Text style={styles.summaryValue}>{selectedScheme}</Text>
+              <AppText variant="bodySmall" color={COLORS.accentDark}>
+                Scheme Code
+              </AppText>
+              <AppText variant="bodyBold" color={COLORS.accentDark}>
+                {selectedScheme}
+              </AppText>
             </View>
-
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Amount:</Text>
-              <Text style={styles.summaryValue}>₹{getAmount(selectedScheme)}</Text>
+              <AppText variant="bodySmall" color={COLORS.accentDark}>
+                Amount
+              </AppText>
+              <AppText variant="bodyBold" color={COLORS.accentDark}>
+                ₹{getAmount(selectedScheme)}
+              </AppText>
             </View>
-
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Payment Type:</Text>
-              <Text style={styles.summaryValue}>Online (00001)</Text>
+              <AppText variant="bodySmall" color={COLORS.accentDark}>
+                Payment Type
+              </AppText>
+              <AppText variant="bodyBold" color={COLORS.accentDark}>
+                Online (00001)
+              </AppText>
             </View>
-
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Metal Type:</Text>
-              <Text style={styles.summaryValue}>{getMetalTypeName(scheme?.MetalType)}</Text>
+            <View style={[styles.summaryRow, { borderBottomWidth: 0 }]}>
+              <AppText variant="bodySmall" color={COLORS.accentDark}>
+                Metal Type
+              </AppText>
+              <AppText variant="bodyBold" color={COLORS.accentDark}>
+                {getMetalTypeName(scheme?.MetalType)}
+              </AppText>
             </View>
-          </View>
+          </AppCard>
         )}
 
         {/* Bottom Spacing */}
@@ -226,188 +343,108 @@ export default SchemeJoiningForm;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: COLORS.backgroundSecondary,
   },
   contentContainer: {
-    padding: 16,
+    padding: SIZES.padding.lg,
     paddingBottom: 100,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#F5F5F5',
+    padding: SIZES.padding.xl,
+    backgroundColor: COLORS.backgroundSecondary,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#F5F5F5',
-  },
-  errorText: {
-    color: '#D32F2F',
-    fontWeight: '500',
-    fontSize: 16,
-    textAlign: 'center',
+    padding: SIZES.padding.xl,
+    backgroundColor: COLORS.backgroundSecondary,
   },
   header: {
-    marginBottom: 20,
-    paddingBottom: 16,
+    marginBottom: SIZES.margin.lg,
+    paddingBottom: SIZES.padding.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: COLORS.border,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2C3E50',
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#7F8C8D',
-  },
-  detailsCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: '#E8E8E8',
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#2C3E50',
-    marginBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-    paddingBottom: 8,
+  card: {
+    marginBottom: SIZES.margin.lg,
   },
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    alignItems: 'center',
+    marginBottom: SIZES.margin.sm,
   },
-  detailLabel: {
-    fontSize: 14,
-    color: '#7F8C8D',
+  dropdownField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: COLORS.inputBorder,
+    borderRadius: SIZES.radius.input,
+    paddingHorizontal: SIZES.padding.md,
+    paddingVertical: SIZES.padding.md,
+    backgroundColor: COLORS.inputBackground,
+    marginBottom: SIZES.md,
+  },
+  dropdownOverlay: {
     flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SIZES.padding.xl,
   },
-  detailValue: {
-    fontSize: 14,
-    color: '#2C3E50',
-    fontWeight: '500',
-    flex: 2,
-    textAlign: 'right',
+  dropdownSheet: {
+    width: '100%',
+    maxWidth: 400,
+    backgroundColor: COLORS.white,
+    borderRadius: SIZES.radius.xl,
+    padding: SIZES.padding.lg,
+    maxHeight: '70%',
+    ...SHADOWS.lg,
   },
-  section: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: '#E8E8E8',
+  dropdownList: {
+    flexGrow: 0,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#2C3E50',
-    marginBottom: 16,
+  dropdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: SIZES.padding.md,
+    paddingHorizontal: SIZES.padding.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.borderLight,
   },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#34495E',
-    marginBottom: 8,
-  },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#D5D8DC',
-    borderRadius: 8,
-    marginBottom: 16,
-    overflow: 'hidden',
-    backgroundColor: '#FAFAFA',
-  },
-  picker: {
-    height: 50,
+  dropdownRowSelected: {
+    backgroundColor: COLORS.primaryPale,
+    borderRadius: SIZES.radius.sm,
   },
   amountContainer: {
-    backgroundColor: '#E8F5E9',
-    padding: 12,
-    borderRadius: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: COLORS.backgroundSecondary,
+    padding: SIZES.padding.md,
+    borderRadius: SIZES.radius.md,
     borderWidth: 1,
-    borderColor: '#C8E6C9',
-  },
-  amountLabel: {
-    fontSize: 14,
-    color: '#388E3C',
-    marginBottom: 4,
-  },
-  amountValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#2E7D32',
+    borderColor: COLORS.success + '40',
   },
   paymentDetails: {
-    backgroundColor: '#E3F2FD',
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#BBDEFB',
-  },
-  paymentLabel: {
-    fontSize: 14,
-    color: '#1976D2',
-    marginBottom: 4,
-  },
-  paymentValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#0D47A1',
-  },
-  summaryCard: {
-    backgroundColor: '#FFF8E1',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#FFECB3',
-  },
-  summaryTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FF8F00',
-    marginBottom: 16,
-    textAlign: 'center',
+    backgroundColor: COLORS.primaryPale,
+    padding: SIZES.padding.md,
+    borderRadius: SIZES.radius.md,
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
-    paddingBottom: 8,
+    alignItems: 'center',
+    marginBottom: SIZES.margin.sm,
+    paddingBottom: SIZES.padding.sm,
     borderBottomWidth: 1,
-    borderBottomColor: '#FFECB3',
-  },
-  summaryLabel: {
-    fontSize: 14,
-    color: '#FF8F00',
-  },
-  summaryValue: {
-    fontSize: 14,
-    color: '#FF6F00',
-    fontWeight: '500',
+    borderBottomColor: COLORS.goldOpacity20,
   },
   bottomSpacing: {
     height: 30,

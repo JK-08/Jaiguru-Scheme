@@ -1,13 +1,14 @@
 // Src/Screens/PayNow/PayNow.tsx
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform, StatusBar } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { useRazorpayPayment } from '../../api/hooks/Razorpay/useRazorpay';
 import RazorpayWebView from '../../Components/RazorpayWebView';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
+import { AppCard, AppText, AppButton, AppBadge, AppDivider, ScreenWrapper } from '../../Components/ui/appcomponents';
 import theme from '../../Utills/AppTheme';
 
-const { COLORS, SIZES, FONTS, SHADOWS } = theme;
+const { COLORS, SIZES } = theme;
 
 const STATUS = { IDLE: 'idle', SUCCESS: 'success', FAILED: 'failed' } as const;
 type Status = (typeof STATUS)[keyof typeof STATUS];
@@ -155,167 +156,166 @@ const PayNow = () => {
 
   if (status === STATUS.SUCCESS) {
     return (
-      <View style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-        <CommonHeader title="Payment" />
+      <ScreenWrapper header={<CommonHeader title="Payment" />}>
         <View style={styles.statusContainer}>
-          <Text style={styles.statusIcon}>✅</Text>
-          <Text style={styles.statusTitle}>Payment Successful!</Text>
-          <Text style={styles.statusSub}>{formatCurrency(paymentAmount)} paid successfully</Text>
-          <Text style={styles.statusDetail}>
+          <AppText style={styles.statusIcon}>✅</AppText>
+          <AppText variant="h2" align="center" style={styles.statusSpacing}>
+            Payment Successful!
+          </AppText>
+          <AppText variant="body" color={COLORS.textSecondary} align="center" style={styles.statusSpacing}>
+            {formatCurrency(paymentAmount)} paid successfully
+          </AppText>
+          <AppText variant="bodyBold" color={COLORS.primary} style={styles.statusDetail}>
             Installment {nextInstallment}/{totalInstallments}
-          </Text>
-          {paymentId ? <Text style={styles.paymentIdText}>ID: {paymentId}</Text> : null}
-          <TouchableOpacity
-            style={styles.primaryBtn}
-            onPress={() =>
-              navigation.navigate('AllSchemes', {
-                schemeData: accountData,
-                fromScreen: 'PayNow',
-              })
-            }
-          >
-            <Text style={styles.primaryBtnText}>View Scheme</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.secondaryBtn} onPress={() => navigation.goBack()}>
-            <Text style={styles.secondaryBtnText}>Go Back</Text>
-          </TouchableOpacity>
+          </AppText>
+          {paymentId ? (
+            <AppText variant="caption" style={styles.paymentIdText}>
+              ID: {paymentId}
+            </AppText>
+          ) : null}
+          <AppButton
+            label="View Scheme"
+            size="lg"
+            style={styles.actionBtn}
+            onPress={() => navigation.navigate('AllSchemes', { schemeData: accountData, fromScreen: 'PayNow' })}
+          />
+          <AppButton label="Go Back" variant="outline" size="lg" onPress={() => navigation.goBack()} />
         </View>
-      </View>
+      </ScreenWrapper>
     );
   }
 
   if (status === STATUS.FAILED) {
     return (
-      <View style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-        <CommonHeader title="Payment" />
+      <ScreenWrapper header={<CommonHeader title="Payment" />}>
         <View style={styles.statusContainer}>
-          <Text style={styles.statusIcon}>❌</Text>
-          <Text style={styles.statusTitle}>Payment Failed</Text>
-          <Text style={styles.statusSub}>{statusMsg || 'Something went wrong. Please try again.'}</Text>
-          <TouchableOpacity style={styles.primaryBtn} onPress={() => setStatus(STATUS.IDLE)}>
-            <Text style={styles.primaryBtnText}>Try Again</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.secondaryBtn} onPress={() => navigation.goBack()}>
-            <Text style={styles.secondaryBtnText}>Go Back</Text>
-          </TouchableOpacity>
+          <AppText style={styles.statusIcon}>❌</AppText>
+          <AppText variant="h2" align="center" style={styles.statusSpacing}>
+            Payment Failed
+          </AppText>
+          <AppText variant="body" color={COLORS.textSecondary} align="center" style={styles.statusSpacing}>
+            {statusMsg || 'Something went wrong. Please try again.'}
+          </AppText>
+          <AppButton label="Try Again" size="lg" style={styles.actionBtn} onPress={() => setStatus(STATUS.IDLE)} />
+          <AppButton label="Go Back" variant="outline" size="lg" onPress={() => navigation.goBack()} />
         </View>
-      </View>
+      </ScreenWrapper>
     );
   }
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       <CommonHeader title="Pay Now" />
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScreenWrapper scroll contentStyle={styles.scrollContent}>
         {/* Scheme Card */}
-        <View style={styles.card}>
+        <AppCard style={styles.card}>
           <View style={styles.badgeRow}>
-            <View style={styles.schemeBadge}>
-              <Text style={styles.schemeBadgeText}>{schemeShortName || 'SCHEME'}</Text>
-            </View>
-            <View style={styles.regBadge}>
-              <Text style={styles.regBadgeText}>REG: {regNo}</Text>
-            </View>
+            <AppBadge label={schemeShortName || 'SCHEME'} variant="primary" />
+            <AppBadge label={`REG: ${regNo}`} variant="neutral" />
           </View>
-          <Text style={styles.memberName}>{memberName}</Text>
-          <Text style={styles.schemeName} numberOfLines={2}>
+          <AppText variant="h3" style={styles.memberName}>
+            {memberName}
+          </AppText>
+          <AppText variant="body" color={COLORS.textSecondary} numberOfLines={2} style={styles.schemeName}>
             {schemeName}
-          </Text>
+          </AppText>
 
-          <View style={styles.divider} />
+          <AppDivider />
 
           <View style={styles.progressBarContainer}>
             <View style={[styles.progressFill, { width: `${progress}%` }]} />
           </View>
-          <Text style={styles.progressText}>
+          <AppText variant="bodySmall" color={COLORS.textSecondary} style={styles.progressText}>
             {installmentsPaid}/{totalInstallments} Installments Paid
-          </Text>
+          </AppText>
 
           <View style={styles.nextBadge}>
-            <Text style={styles.nextBadgeText}>Next Installment: #{nextInstallment}</Text>
+            <AppText variant="bodyMedium" color={COLORS.primaryDark}>
+              Next Installment: #{nextInstallment}
+            </AppText>
           </View>
 
           <View style={styles.dateRow}>
             <View>
-              <Text style={styles.dateLabel}>Join Date</Text>
-              <Text style={styles.dateValue}>{formatDate(joinDate)}</Text>
+              <AppText variant="caption">Join Date</AppText>
+              <AppText variant="bodyBold">{formatDate(joinDate)}</AppText>
             </View>
             <View>
-              <Text style={styles.dateLabel}>Maturity Date</Text>
-              <Text style={styles.dateValue}>{formatDate(maturityDate)}</Text>
+              <AppText variant="caption">Maturity Date</AppText>
+              <AppText variant="bodyBold">{formatDate(maturityDate)}</AppText>
             </View>
           </View>
 
           {nextDueDate && (
             <View style={styles.dueBadge}>
-              <Text style={styles.dueText}>Next Due: {formatDate(nextDueDate)}</Text>
+              <AppText variant="bodyMedium" color={COLORS.accentDark}>
+                Next Due: {formatDate(nextDueDate)}
+              </AppText>
             </View>
           )}
-        </View>
+        </AppCard>
 
         {/* Summary Card */}
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Payment Summary</Text>
+        <AppCard style={styles.card}>
+          <AppText variant="h5" style={styles.sectionTitle}>
+            Payment Summary
+          </AppText>
           <View style={styles.row}>
-            <Text style={styles.rowLabel}>Installment Amount</Text>
-            <Text style={styles.rowValue}>{formatCurrency(amount)}</Text>
+            <AppText color={COLORS.textSecondary}>Installment Amount</AppText>
+            <AppText variant="bodyBold">{formatCurrency(amount)}</AppText>
           </View>
           <View style={styles.row}>
-            <Text style={styles.rowLabel}>Total Paid Till Date</Text>
-            <Text style={styles.rowValue}>{formatCurrency(totalAmount)}</Text>
+            <AppText color={COLORS.textSecondary}>Total Paid Till Date</AppText>
+            <AppText variant="bodyBold">{formatCurrency(totalAmount)}</AppText>
           </View>
-          <View style={styles.divider} />
+          <AppDivider />
           <View style={styles.row}>
-            <Text style={styles.totalLabel}>Due Amount</Text>
-            <Text style={styles.totalValue}>{formatCurrency(paymentAmount)}</Text>
+            <AppText variant="h6">Due Amount</AppText>
+            <AppText variant="h4" color={COLORS.primary}>
+              {formatCurrency(paymentAmount)}
+            </AppText>
           </View>
-        </View>
+        </AppCard>
 
         {/* Payment Method Card */}
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Payment Method</Text>
+        <AppCard style={styles.card}>
+          <AppText variant="h5" style={styles.sectionTitle}>
+            Payment Method
+          </AppText>
           <View style={styles.methodRow}>
-            <Text style={styles.methodIcon}>💰</Text>
+            <AppText style={styles.methodIcon}>💰</AppText>
             <View style={styles.methodInfo}>
-              <Text style={styles.methodTitle}>Razorpay</Text>
-              <Text style={styles.methodDesc}>UPI, Card, NetBanking, Wallet</Text>
+              <AppText variant="h6">Razorpay</AppText>
+              <AppText variant="bodySmall" color={COLORS.textSecondary}>
+                UPI, Card, NetBanking, Wallet
+              </AppText>
             </View>
-            <View style={styles.selectedBadge}>
-              <Text style={styles.selectedText}>Selected</Text>
-            </View>
+            <AppBadge label="Selected" variant="primary" />
           </View>
           <View style={styles.secureRow}>
-            <Text>🔒 </Text>
-            <Text style={styles.secureText}>Secure payment powered by Razorpay</Text>
+            <AppText>🔒 </AppText>
+            <AppText variant="bodySmall" color={COLORS.textSecondary} style={styles.secureText}>
+              Secure payment powered by Razorpay
+            </AppText>
           </View>
-        </View>
+        </AppCard>
 
         <View style={{ height: 100 }} />
-      </ScrollView>
+      </ScreenWrapper>
 
       <RazorpayWebView visible={webViewVisible} options={razorpayOptions} onSuccess={handlePaymentSuccess} onDismiss={handlePaymentDismiss} />
 
       <View style={styles.bottomBar}>
-        <TouchableOpacity
-          style={[styles.payBtn, isLoading && styles.payBtnDisabled]}
+        <AppButton
+          label={`${formatCurrency(paymentAmount)}  ·  Pay Now`}
+          size="lg"
+          loading={isLoading}
           onPress={handlePayment}
-          disabled={isLoading}
-          activeOpacity={0.8}
-        >
-          {isLoading ? (
-            <ActivityIndicator color={COLORS.white} size="small" />
-          ) : (
-            <View style={styles.payBtnContent}>
-              <Text style={styles.payBtnAmount}>{formatCurrency(paymentAmount)}</Text>
-              <Text style={styles.payBtnText}>Pay Now</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-        <Text style={styles.payNote}>You'll be redirected to Razorpay secure checkout</Text>
+        />
+        <AppText variant="caption" align="center" style={styles.payNote}>
+          You'll be redirected to Razorpay secure checkout
+        </AppText>
       </View>
     </View>
   );
@@ -323,61 +323,22 @@ const PayNow = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.backgroundSecondary },
-  scrollView: { flex: 1 },
-  scrollContent: { padding: SIZES.padding.lg },
+  scrollContent: { paddingBottom: 0 },
 
-  // Scheme card
   badgeRow: {
     flexDirection: 'row',
     gap: SIZES.sm,
     marginBottom: SIZES.margin.sm,
   },
   card: {
-    backgroundColor: COLORS.white,
-    borderRadius: SIZES.radius.card,
-    padding: SIZES.card.paddingLg,
     marginBottom: SIZES.margin.md,
-    ...SHADOWS.sm,
-  },
-  schemeBadge: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SIZES.padding.sm,
-    paddingVertical: SIZES.padding.xs,
-    borderRadius: SIZES.radius.full,
-  },
-  schemeBadgeText: {
-    color: COLORS.white,
-    fontSize: SIZES.font.sm,
-    fontFamily: FONTS.family.semiBold,
-  },
-  regBadge: {
-    backgroundColor: COLORS.gray100,
-    paddingHorizontal: SIZES.padding.sm,
-    paddingVertical: SIZES.padding.xs,
-    borderRadius: SIZES.radius.full,
-  },
-  regBadgeText: {
-    color: COLORS.gray500,
-    fontSize: SIZES.font.sm,
-    fontFamily: FONTS.family.medium,
   },
   memberName: {
-    fontSize: SIZES.font.xxl,
-    fontFamily: FONTS.family.bold,
-    color: COLORS.gray800,
     marginBottom: SIZES.xs,
     textTransform: 'uppercase',
   },
   schemeName: {
-    fontSize: SIZES.font.md,
-    color: COLORS.gray500,
     marginBottom: SIZES.md,
-    lineHeight: SIZES.font.md * 1.5,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: COLORS.divider,
-    marginVertical: SIZES.md,
   },
   progressBarContainer: {
     height: 8,
@@ -392,8 +353,6 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.radius.full,
   },
   progressText: {
-    fontSize: SIZES.font.sm,
-    color: COLORS.gray500,
     marginBottom: SIZES.sm,
   },
   nextBadge: {
@@ -403,25 +362,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SIZES.sm,
   },
-  nextBadgeText: {
-    color: COLORS.primaryDark,
-    fontSize: SIZES.font.md,
-    fontFamily: FONTS.family.semiBold,
-  },
   dateRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: SIZES.sm,
-  },
-  dateLabel: {
-    fontSize: SIZES.font.sm,
-    color: COLORS.gray400,
-    marginBottom: SIZES.xs,
-  },
-  dateValue: {
-    fontSize: SIZES.font.md,
-    fontFamily: FONTS.family.semiBold,
-    color: COLORS.gray800,
   },
   dueBadge: {
     backgroundColor: COLORS.secondaryLighter,
@@ -429,46 +373,17 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.radius.sm,
     alignItems: 'center',
   },
-  dueText: {
-    color: COLORS.accentDark,
-    fontSize: SIZES.font.sm,
-    fontFamily: FONTS.family.semiBold,
-  },
 
-  // Summary card
   sectionTitle: {
-    fontSize: SIZES.font.lg,
-    fontFamily: FONTS.family.semiBold,
-    color: COLORS.gray800,
     marginBottom: SIZES.md,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: SIZES.sm,
   },
-  rowLabel: {
-    fontSize: SIZES.font.md,
-    color: COLORS.gray500,
-    fontFamily: FONTS.family.regular,
-  },
-  rowValue: {
-    fontSize: SIZES.font.md,
-    fontFamily: FONTS.family.semiBold,
-    color: COLORS.gray800,
-  },
-  totalLabel: {
-    fontSize: SIZES.font.lg,
-    fontFamily: FONTS.family.semiBold,
-    color: COLORS.gray800,
-  },
-  totalValue: {
-    fontSize: SIZES.font.xxl,
-    fontFamily: FONTS.family.bold,
-    color: COLORS.primary,
-  },
 
-  // Payment method card
   methodRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -479,27 +394,6 @@ const styles = StyleSheet.create({
   },
   methodIcon: { fontSize: SIZES.icon.lg, marginRight: SIZES.sm },
   methodInfo: { flex: 1 },
-  methodTitle: {
-    fontSize: SIZES.font.lg,
-    fontFamily: FONTS.family.semiBold,
-    color: COLORS.gray800,
-  },
-  methodDesc: {
-    fontSize: SIZES.font.sm,
-    color: COLORS.gray500,
-    fontFamily: FONTS.family.regular,
-  },
-  selectedBadge: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SIZES.padding.sm,
-    paddingVertical: SIZES.padding.xs,
-    borderRadius: SIZES.radius.full,
-  },
-  selectedText: {
-    color: COLORS.white,
-    fontSize: SIZES.font.xs,
-    fontFamily: FONTS.family.semiBold,
-  },
   secureRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -507,14 +401,8 @@ const styles = StyleSheet.create({
     padding: SIZES.padding.md,
     borderRadius: SIZES.radius.sm,
   },
-  secureText: {
-    fontSize: SIZES.font.sm,
-    color: COLORS.gray500,
-    flex: 1,
-    fontFamily: FONTS.family.regular,
-  },
+  secureText: { flex: 1 },
 
-  // Bottom bar
   bottomBar: {
     position: 'absolute',
     bottom: 0,
@@ -526,35 +414,10 @@ const styles = StyleSheet.create({
     padding: SIZES.padding.lg,
     paddingBottom: Platform.OS === 'ios' ? 34 : SIZES.padding.lg,
   },
-  payBtn: {
-    backgroundColor: COLORS.primary,
-    borderRadius: SIZES.radius.button,
-    paddingVertical: SIZES.padding.lg,
-    alignItems: 'center',
-    ...SHADOWS.blue,
-  },
-  payBtnDisabled: { backgroundColor: COLORS.gray400, ...SHADOWS.none },
-  payBtnContent: { flexDirection: 'row', alignItems: 'center' },
-  payBtnAmount: {
-    color: COLORS.white,
-    fontSize: SIZES.font.xl,
-    fontFamily: FONTS.family.bold,
-    marginRight: SIZES.sm,
-  },
-  payBtnText: {
-    color: COLORS.white,
-    fontSize: SIZES.font.lg,
-    fontFamily: FONTS.family.semiBold,
-  },
   payNote: {
-    textAlign: 'center',
-    fontSize: SIZES.font.xs,
-    color: COLORS.gray400,
     marginTop: SIZES.sm,
-    fontFamily: FONTS.family.regular,
   },
 
-  // Status screens
   statusContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -562,61 +425,10 @@ const styles = StyleSheet.create({
     padding: SIZES.padding.xxxl,
   },
   statusIcon: { fontSize: 64, marginBottom: SIZES.md },
-  statusTitle: {
-    fontSize: SIZES.font.xxxl,
-    fontFamily: FONTS.family.bold,
-    color: COLORS.gray800,
-    marginBottom: SIZES.sm,
-  },
-  statusSub: {
-    fontSize: SIZES.font.md,
-    color: COLORS.gray500,
-    textAlign: 'center',
-    marginBottom: SIZES.sm,
-    lineHeight: SIZES.font.md * 1.6,
-    fontFamily: FONTS.family.regular,
-  },
-  statusDetail: {
-    fontSize: SIZES.font.md,
-    color: COLORS.primary,
-    fontFamily: FONTS.family.semiBold,
-    marginBottom: SIZES.xs,
-  },
-  paymentIdText: {
-    fontSize: SIZES.font.sm,
-    color: COLORS.gray400,
-    marginBottom: SIZES.xl,
-    fontFamily: FONTS.family.regular,
-  },
-  primaryBtn: {
-    backgroundColor: COLORS.primary,
-    borderRadius: SIZES.radius.button,
-    paddingVertical: SIZES.padding.lg,
-    paddingHorizontal: SIZES.padding.xxxl,
-    marginBottom: SIZES.sm,
-    width: '100%',
-    alignItems: 'center',
-    ...SHADOWS.blue,
-  },
-  primaryBtnText: {
-    color: COLORS.white,
-    fontSize: SIZES.font.lg,
-    fontFamily: FONTS.family.semiBold,
-  },
-  secondaryBtn: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: SIZES.radius.button,
-    paddingVertical: SIZES.padding.lg,
-    paddingHorizontal: SIZES.padding.xxxl,
-    width: '100%',
-    alignItems: 'center',
-  },
-  secondaryBtnText: {
-    color: COLORS.gray500,
-    fontSize: SIZES.font.lg,
-    fontFamily: FONTS.family.medium,
-  },
+  statusSpacing: { marginBottom: SIZES.sm },
+  statusDetail: { marginBottom: SIZES.xs },
+  paymentIdText: { marginBottom: SIZES.xl },
+  actionBtn: { marginBottom: SIZES.sm },
 });
 
 export default PayNow;

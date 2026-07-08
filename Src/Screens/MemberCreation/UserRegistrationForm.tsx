@@ -17,6 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import theme from '../../Utills/AppTheme';
 import authStorage from '../../Utills/AsynchStorageHelper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { AppButton } from '../../Components/ui/appcomponents';
 
 const { COLORS, SIZES, FONTS, SHADOWS } = theme;
 
@@ -51,7 +52,7 @@ export interface UserRegistrationFormData {
   [key: string]: string;
 }
 
-type FormErrors = Partial<Record<keyof UserRegistrationFormData, string | null>>;
+type FormErrors = Partial<Record<string, string | null>>;
 
 export interface UserRegistrationFormRef {
   validateAndSubmit: () => boolean;
@@ -134,7 +135,11 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
     // Initialize with initialData if provided
     useEffect(() => {
       if (initialData && Object.keys(initialData).length > 0) {
-        setFormData({ ...EMPTY_FORM, ...initialData });
+        const merged: UserRegistrationFormData = { ...EMPTY_FORM };
+        (Object.keys(initialData) as (keyof UserRegistrationFormData)[]).forEach((key) => {
+          if (initialData[key] !== undefined) merged[key] = initialData[key] as string;
+        });
+        setFormData(merged);
         setHasPreviousData(true);
 
         if (initialData.dob) {
@@ -521,10 +526,10 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
       } else if (!/^\d{10}$/.test(formData.nomineeMobile)) {
         newErrors.nomineeMobile = 'Nominee mobile must be 10 digits';
       }
-      if (!formData.nomineeRelationship) newErrors.nomineeRelationship = 'Relationship with nominee is required';
+    
 
       setErrors(newErrors);
-      const errorFields = Object.keys(newErrors) as (keyof UserRegistrationFormData)[];
+      const errorFields = Object.keys(newErrors) as string[];
       if (errorFields.length > 0) {
         scrollViewRef.current?.scrollToPosition(0, 0, true);
         const errorList = errorFields.map((f) => `• ${newErrors[f]}`).join('\n');
@@ -549,7 +554,7 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
       return `${day}/${month}/${year}`;
     };
 
-    const openDatePicker = (type: string) => {
+    const openDatePicker = (type: any) => {
       if (type === 'dob' && formData.dob) {
         const [year, month, day] = formData.dob.split('-');
         setSelectedDate({ day, month, year });
@@ -587,7 +592,7 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
     const monthScrollRef = useRef<ScrollView>(null);
     const yearScrollRef = useRef<ScrollView>(null);
 
-    const scrollToIndex = (scrollRef: React.RefObject<ScrollView>, index: number) => {
+    const scrollToIndex = (scrollRef: React.RefObject<ScrollView | null>, index: number) => {
       scrollRef.current?.scrollTo({ y: index * ITEM_HEIGHT, animated: true });
     };
 
@@ -619,7 +624,7 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
       items: string[],
       selectedValue: string,
       onSelect: (item: string) => void,
-      scrollRef: React.RefObject<ScrollView>,
+      scrollRef: React.RefObject<ScrollView | null>,
       displayFn: ((item: string, index: number) => string) | null
     ) => (
       <View style={styles.pickerColumn}>
@@ -686,12 +691,20 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
             </View>
 
             <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.cancelButton} onPress={() => setShowDatePicker(null)}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.confirmButton} onPress={handleDateConfirm}>
-                <Text style={styles.confirmButtonText}>Confirm</Text>
-              </TouchableOpacity>
+              <AppButton
+                label="Cancel"
+                variant="outline"
+                onPress={() => setShowDatePicker(null)}
+                fullWidth={false}
+                style={styles.navButtonFlex}
+              />
+              <AppButton
+                label="Confirm"
+                variant="primary"
+                onPress={handleDateConfirm}
+                fullWidth={false}
+                style={styles.navButtonFlex}
+              />
             </View>
           </View>
         </View>
@@ -809,58 +822,18 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
       );
     };
 
-    const renderRelationshipPicker = () => {
-      return (
-        <View style={styles.inputContainer}>
-          <View style={styles.labelRow}>
-            <Text style={styles.label}>
-              Relationship with Nominee<Text style={styles.mandatory}> *</Text>
-            </Text>
-            {formData.nomineeRelationship && (
-              <TouchableOpacity onPress={() => clearField('nomineeRelationship')} style={styles.clearFieldButton}>
-                <Text style={styles.clearFieldText}>Clear</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-          <View style={styles.maritalStatusContainer}>
-            {relationshipOptions.map((relation) => (
-              <TouchableOpacity
-                key={relation}
-                style={[
-                  styles.maritalStatusButton,
-                  formData.nomineeRelationship === relation && styles.maritalStatusButtonActive,
-                ]}
-                onPress={() => handleInputChange('nomineeRelationship', relation)}
-              >
-                <Text
-                  style={[
-                    styles.maritalStatusText,
-                    formData.nomineeRelationship === relation && styles.maritalStatusTextActive,
-                  ]}
-                >
-                  {relation}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          {errors.nomineeRelationship && <Text style={styles.errorText}>{errors.nomineeRelationship}</Text>}
-        </View>
-      );
-    };
 
     return (
       <View style={styles.container}>
-        <View style={styles.customHeader}>
+        {/* <View style={styles.customHeader}>
           <View style={styles.headerLeft}>
             <Text style={styles.headerTitle}>User Registration</Text>
             <Text style={styles.headerSubtitle}>Step 1: Fill in your personal details</Text>
           </View>
           {hasPreviousData && (
-            <TouchableOpacity style={styles.clearFormButton} onPress={clearFormData}>
-              <Text style={styles.clearFormButtonText}>Clear Form</Text>
-            </TouchableOpacity>
+            <AppButton label="Clear Form" variant="danger" size="sm" onPress={clearFormData} />
           )}
-        </View>
+        </View> */}
 
         <KeyboardAwareScrollView
           ref={scrollViewRef}
@@ -1001,14 +974,12 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
               maxLength: 10,
             })}
 
-            {renderRelationshipPicker()}
+            {/* {renderRelationshipPicker()} */}
           </View>
 
           {/* Action Buttons */}
           <View style={styles.actionButtonsContainer}>
-            <TouchableOpacity style={styles.clearAllButton} onPress={clearAllErrors}>
-              <Text style={styles.clearAllButtonText}>Clear Errors</Text>
-            </TouchableOpacity>
+            <AppButton label="Clear Errors" variant="ghost" size="sm" onPress={clearAllErrors} />
           </View>
 
           {/* Bottom Spacing */}
@@ -1205,6 +1176,9 @@ const styles = StyleSheet.create({
   actionButtonsContainer: {
     marginTop: SIZES.padding.lg,
     gap: SIZES.padding.sm,
+  },
+  navButtonFlex: {
+    flex: 1,
   },
   clearAllButton: {
     alignItems: 'center',

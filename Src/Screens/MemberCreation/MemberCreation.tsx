@@ -1,6 +1,6 @@
 // Src/Screens/MemberCreation/MemberCreation.tsx
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useRoute, useNavigation, useFocusEffect, RouteProp } from '@react-navigation/native';
 import UserRegistrationForm, { UserRegistrationFormData, UserRegistrationFormRef } from './UserRegistrationForm';
 import SchemeJoiningForm, { SchemeJoiningFormRef } from './SchemeJoiningForm';
@@ -11,6 +11,10 @@ import CommonHeader from '../../Components/CommonHeader/CommonHeader';
 import { getUserId, getUserField } from '../../Utills/AsynchStorageHelper';
 import { Scheme } from '../../types/Scheme/Scheme';
 import { CreateMemberPayload } from '../../types/Member/Member';
+import { AppButton, AppText } from '../../Components/ui/appcomponents';
+import theme from '../../Utills/AppTheme';
+
+const { COLORS, SIZES, FONTS, SHADOWS } = theme;
 
 // Constants
 const STEPS = {
@@ -298,13 +302,18 @@ const MemberCreation = () => {
       <CommonHeader title="Member Creation" showBack onBackPress={handleBack} />
 
       {/* Step Indicator */}
-      <StepIndicator currentStep={currentStep} />
+      {/* <StepIndicator currentStep={currentStep} /> */}
 
       <View style={styles.scrollView}>
         {currentStep === STEPS.REGISTRATION ? (
           <UserRegistrationForm ref={registrationFormRef} onSubmit={handleRegistrationSubmit} initialData={userRegistrationData} />
         ) : (
-          <SchemeJoiningForm ref={schemeFormRef} scheme={scheme} initialData={schemeJoiningData} />
+          <SchemeJoiningForm
+            ref={schemeFormRef}
+            scheme={scheme}
+            initialData={schemeJoiningData}
+            userData={userRegistrationData}
+          />
         )}
       </View>
 
@@ -336,23 +345,31 @@ const StepIndicator = ({ currentStep }: { currentStep: Step }) => (
       {[1, 2].map((step) => (
         <React.Fragment key={step}>
           <View style={[styles.stepCircle, currentStep >= step && styles.activeStep]}>
-            <Text style={[styles.stepNumber, currentStep >= step && styles.activeStepText]}>{step}</Text>
+            <AppText variant="bodyBold" color={currentStep >= step ? COLORS.white : COLORS.textSecondary}>
+              {step}
+            </AppText>
           </View>
           {step === 1 && <View style={[styles.stepLine, currentStep >= 2 && styles.activeStepLine]} />}
         </React.Fragment>
       ))}
     </View>
     <View style={styles.stepLabels}>
-      <Text style={[styles.stepLabel, currentStep >= 1 && styles.activeStepLabel]}>Registration</Text>
-      <Text style={[styles.stepLabel, currentStep >= 2 && styles.activeStepLabel]}>Scheme Joining</Text>
+      <AppText variant="caption" color={currentStep >= 1 ? COLORS.primary : COLORS.textSecondary} align="center" style={styles.stepLabelFlex}>
+        Registration
+      </AppText>
+      <AppText variant="caption" color={currentStep >= 2 ? COLORS.primary : COLORS.textSecondary} align="center" style={styles.stepLabelFlex}>
+        Scheme Joining
+      </AppText>
     </View>
   </View>
 );
 
 const LoadingOverlay = ({ message }: { message: string }) => (
   <View style={styles.loadingOverlay}>
-    <ActivityIndicator size="large" color="#4CAF50" />
-    <Text style={styles.loadingText}>{message}</Text>
+    <ActivityIndicator size="large" color={COLORS.primary} />
+    <AppText variant="bodyBold" color={COLORS.white} style={{ marginTop: SIZES.sm }}>
+      {message}
+    </AppText>
   </View>
 );
 
@@ -366,18 +383,34 @@ interface NavigationButtonsProps {
 
 const NavigationButtons = ({ currentStep, onBack, onNext, onSubmit, isLoading }: NavigationButtonsProps) => (
   <View style={styles.navigationContainer}>
-    <TouchableOpacity style={[styles.navButton, styles.backButton]} onPress={onBack} disabled={isLoading}>
-      <Text style={styles.backButtonText}>{currentStep === 1 ? 'Cancel' : 'Back'}</Text>
-    </TouchableOpacity>
+    <AppButton
+      label={currentStep === 1 ? 'Cancel' : 'Back'}
+      variant="outline"
+      onPress={onBack}
+      disabled={isLoading}
+      fullWidth={false}
+      style={styles.navButtonFlex}
+    />
 
     {currentStep === 1 ? (
-      <TouchableOpacity style={[styles.navButton, styles.nextButton]} onPress={onNext} disabled={isLoading}>
-        <Text style={styles.nextButtonText}>Next</Text>
-      </TouchableOpacity>
+      <AppButton
+        label="Next"
+        variant="primary"
+        onPress={onNext}
+        disabled={isLoading}
+        fullWidth={false}
+        style={styles.navButtonFlex}
+      />
     ) : (
-      <TouchableOpacity style={[styles.navButton, styles.submitButton]} onPress={onSubmit} disabled={isLoading}>
-        {isLoading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.submitButtonText}>Pay & Continue</Text>}
-      </TouchableOpacity>
+      <AppButton
+        label="Pay & Continue"
+        variant="primary"
+        onPress={onSubmit}
+        loading={isLoading}
+        disabled={isLoading}
+        fullWidth={false}
+        style={styles.navButtonFlex}
+      />
     )}
   </View>
 );
@@ -385,111 +418,67 @@ const NavigationButtons = ({ currentStep, onBack, onNext, onSubmit, isLoading }:
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: COLORS.backgroundSecondary,
   },
   scrollView: {
     flex: 1,
   },
   stepIndicator: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 20,
-    paddingHorizontal: 20,
+    backgroundColor: COLORS.white,
+    paddingVertical: SIZES.padding.lg,
+    paddingHorizontal: SIZES.padding.lg,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: COLORS.border,
+    ...SHADOWS.xs,
   },
   stepRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: SIZES.sm,
   },
   stepCircle: {
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: COLORS.border,
     justifyContent: 'center',
     alignItems: 'center',
   },
   activeStep: {
-    backgroundColor: '#4CAF50',
-  },
-  stepNumber: {
-    color: '#757575',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  activeStepText: {
-    color: '#FFFFFF',
+    backgroundColor: COLORS.primary,
   },
   stepLine: {
     flex: 1,
     height: 2,
-    backgroundColor: '#E0E0E0',
-    marginHorizontal: 10,
+    backgroundColor: COLORS.border,
+    marginHorizontal: SIZES.sm,
   },
   activeStepLine: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: COLORS.primary,
   },
   stepLabels: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 10,
+    paddingHorizontal: SIZES.sm,
   },
-  stepLabel: {
-    fontSize: 12,
-    color: '#9E9E9E',
-    textAlign: 'center',
+  stepLabelFlex: {
     flex: 1,
-  },
-  activeStepLabel: {
-    color: '#4CAF50',
-    fontWeight: '500',
   },
   navigationContainer: {
     flexDirection: 'row',
-    padding: 16,
-    backgroundColor: '#FFFFFF',
+    padding: SIZES.padding.md,
+    backgroundColor: COLORS.white,
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: COLORS.border,
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
+    gap: SIZES.sm,
   },
-  navButton: {
+  navButtonFlex: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 4,
-  },
-  backButton: {
-    backgroundColor: '#F5F5F5',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  backButtonText: {
-    color: '#757575',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  nextButton: {
-    backgroundColor: '#2196F3',
-  },
-  nextButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  submitButton: {
-    backgroundColor: '#4CAF50',
-  },
-  submitButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 16,
   },
   loadingOverlay: {
     position: 'absolute',
@@ -501,12 +490,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
-  },
-  loadingText: {
-    color: '#FFFFFF',
-    marginTop: 10,
-    fontSize: 16,
-    fontWeight: '500',
   },
 });
 

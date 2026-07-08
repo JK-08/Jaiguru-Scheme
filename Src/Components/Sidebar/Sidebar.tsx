@@ -42,13 +42,7 @@ interface MenuItem {
 // from end-user navigation. Re-add it only behind real, server-verified
 // admin authentication.
 const MENU_ITEMS: MenuItem[] = [
-  {
-    key: "home",
-    label: "Home",
-    icon: "home",
-    route: "Home",
-    badge: 0,
-  },
+
   {
     key: "resetmpin",
     label: "Reset MPIN",

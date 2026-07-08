@@ -1,6 +1,6 @@
 // Src/Screens/AccountDelete/AccountDelete.tsx
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, Alert, View, TouchableOpacity, ActivityIndicator, Text, ScrollView, StyleSheet } from 'react-native';
+import { SafeAreaView, Alert, View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,6 +8,7 @@ import CommonHeader from '../../Components/CommonHeader/CommonHeader';
 import theme from '../../Utills/AppTheme';
 import { getUserId } from '../../Utills/AsynchStorageHelper';
 import { useDeleteAccount } from '../../api/hooks/User/useDeleteAccount';
+import { AppButton } from '../../Components/ui/appcomponents';
 
 const { COLORS, SIZES, FONTS, SHADOWS, verticalScale, moderateScale } = theme;
 
@@ -120,20 +121,17 @@ function DeleteAccount() {
         </View>
 
         {/* Buttons */}
-        <TouchableOpacity style={[styles.deleteBtn, loading && styles.btnDisabled]} onPress={confirmDelete} disabled={loading} activeOpacity={0.8}>
-          {loading ? (
-            <ActivityIndicator color={COLORS.white} size="small" />
-          ) : (
-            <>
-              <Icon name="delete-forever" size={SIZES.icon.md} color={COLORS.white} />
-              <Text style={styles.deleteBtnText}>Delete My Account</Text>
-            </>
-          )}
-        </TouchableOpacity>
+        <AppButton
+          label="Delete My Account"
+          variant="danger"
+          size="lg"
+          loading={loading}
+          onPress={confirmDelete}
+          leftIcon="trash"
+          style={{ marginBottom: SIZES.margin.sm }}
+        />
 
-        <TouchableOpacity style={styles.cancelBtn} onPress={() => navigation.goBack()} disabled={loading} activeOpacity={0.8}>
-          <Text style={styles.cancelBtnText}>Cancel</Text>
-        </TouchableOpacity>
+        <AppButton label="Cancel" variant="outline" size="lg" onPress={() => navigation.goBack()} disabled={loading} />
       </ScrollView>
     </SafeAreaView>
   );

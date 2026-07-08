@@ -6,6 +6,7 @@ import CommonHeader from '../../Components/CommonHeader/CommonHeader';
 import PaymentReceiptPDF from '../../Utills/PaymentReceiptPDF';
 import { useCompany } from '../../api/hooks/Company/useCompany';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { AppButton, AppText } from '../../Components/ui/appcomponents';
 
 const moderateScale = (size: number) => size;
 
@@ -38,10 +39,10 @@ export default function PaymentReceiptPage() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>No receipt data available</Text>
-          <TouchableOpacity style={styles.goBackButton} onPress={() => navigation.goBack()}>
-            <Text style={styles.goBackButtonText}>Go Back</Text>
-          </TouchableOpacity>
+          <AppText variant="h6" color="#D32F2F" style={{ marginBottom: 20 }}>
+            No receipt data available
+          </AppText>
+          <AppButton label="Go Back" onPress={() => navigation.goBack()} fullWidth={false} style={{ paddingHorizontal: 32 }} />
         </View>
       </SafeAreaView>
     );

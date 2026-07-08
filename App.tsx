@@ -12,6 +12,7 @@ import { checkForAppUpdate } from './Src/Utills/VersionChecker';
 import appLogo from './Src/Assets/Company/logo.png';
 import { COLORS } from './Src/Utills/AppTheme';
 import ErrorBoundary from './Src/Components/ErrorBoundary';
+import { AppToastProvider } from './Src/Components/ui/appcomponents';
 
 export default function App() {
   const [appReady, setAppReady] = useState(false);
@@ -53,7 +54,9 @@ export default function App() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
           <ErrorBoundary>
-            <StackNavigator />
+            <AppToastProvider>
+              <StackNavigator />
+            </AppToastProvider>
           </ErrorBoundary>
           <StatusBar style="auto" />
         </View>

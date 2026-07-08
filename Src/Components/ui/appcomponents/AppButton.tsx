@@ -81,7 +81,14 @@ export default function AppButton({
       onPressOut={onOut}
       activeOpacity={1}
       disabled={isDisabled}
-      style={fullWidth ? { width: '100%' } : undefined}
+      // The passed-in `style` (e.g. `{ flex: 1 }` for side-by-side buttons in
+      // a row) has to land on THIS outer wrapper, since it's the actual flex
+      // child laid out by the parent row. Previously `style` only reached the
+      // inner Animated.View below, so with fullWidth's default `width: '100%'`
+      // still on this outer view, two buttons in a row would each claim the
+      // full row width and overlap/clip each other — the "Confirm/Cancel
+      // buttons not showing" bug.
+      style={[fullWidth && { width: '100%' }, style]}
     >
       <Animated.View
         style={[
@@ -95,7 +102,6 @@ export default function AppButton({
             ...(variant === 'primary' || variant === 'danger' ? SHADOWS.md : {}),
             ...(variant === 'gold' ? SHADOWS.gold : {}),
           },
-          style,
         ]}
       >
         {loading ? (

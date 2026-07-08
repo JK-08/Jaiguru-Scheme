@@ -30,12 +30,12 @@ const fontScale = (size: number): number => {
 // 🎨 COLOR PALETTE - BLUE & GOLD THEME
 // ============================================
 export const COLORS = {
-  // ===== PRIMARY BRAND COLORS (NAVY BLUE & GOLD) =====
-  primary: "#1c467cff", // Navy Blue (Your Brand Color)
-  primaryLight: "#2A5A9E", // Light Navy
-  primaryDark: "#152F5C", // Deep Navy
-  primaryLighter: "#3D6DB8", // Lighter Navy
-  primaryPale: "#E8EEF7", // Very Light Blue
+  // ===== PRIMARY BRAND COLORS (INDIGO BLUE & GOLD) =====
+  primary: "#2E3192", // Indigo Blue (Your Brand Color)
+  primaryLight: "#4C4FB0", // Light Indigo
+  primaryDark: "#101374", // Deep Indigo
+  primaryLighter: "#6A6DCE", // Lighter Indigo
+  primaryPale: "#EEEEF6", // Very Light Indigo
 
   secondary: "#FFD700", // Pure Gold
   secondaryLight: "#FFE44D", // Light Gold
@@ -53,14 +53,14 @@ export const COLORS = {
   backgroundSecondary: "#F8F9FB",
   backgroundTertiary: "#F5F7FA",
   backgroundDark: "#0F1419",
-  backgroundBlue: "#F0F4F9", // Light blue tint background
+  backgroundBlue: "#EFEFF7", // Light indigo tint background
   backgroundGold: "#FFFBF0", // Light gold tint background
   surface: "#FAFBFC",
   card: "#FFFFFF",
-  overlay: "rgba(28, 70, 124, 0.7)", // Navy overlay
+  overlay: "rgba(46, 49, 146, 0.7)", // Indigo overlay
   overlayDark: "rgba(0, 0, 0, 0.7)",
   overlayGold: "rgba(255, 215, 0, 0.1)",
-  overlayBlue: "rgba(28, 70, 124, 0.1)",
+  overlayBlue: "rgba(46, 49, 146, 0.1)",
 
   // ===== TEXT COLORS =====
   textPrimary: "#1A1D23", // Almost black
@@ -68,8 +68,8 @@ export const COLORS = {
   textTertiary: "#9AA0A8", // Light gray text
   textDisabled: "#D1D5DB", // Disabled text
   textInverse: "#FFFFFF", // White text on dark
-  textBlue: "#1c467cff", // Navy blue text
-  textBlueDark: "#152F5C", // Dark blue text
+  textBlue: "#2E3192", // Indigo text
+  textBlueDark: "#101374", // Dark indigo text
   textGold: "#FFD700", // Gold text
   textGoldDark: "#CCA900", // Dark gold text
 
@@ -86,20 +86,20 @@ export const COLORS = {
   gray900: "#111827",
 
   // ===== BLUE VARIATIONS =====
-  blueLight: "#E8EEF7",
-  blueMedium: "#6A92D4",
-  blueDark: "#0D2847",
-  blueVivid: "#2563EB",
-  blueIce: "#D0E3FF",
-  blueSky: "#7CA9F7",
-  blueMidnight: "#1A2C4D",
+  blueLight: "#EEEEF6",
+  blueMedium: "#6A6DCE",
+  blueDark: "#101374",
+  blueVivid: "#4C4FB0",
+  blueIce: "#D8D9F2",
+  blueSky: "#8A8DDB",
+  blueMidnight: "#0A0C4A",
 
   // ===== BORDER & DIVIDER =====
   border: "#E5E7EB",
   borderLight: "#F3F4F6",
   borderMedium: "#D1D5DB",
   borderDark: "#4B5563",
-  borderBlue: "#1c467cff",
+  borderBlue: "#2E3192",
   borderGold: "#FFD700",
   divider: "#E5E7EB",
 
@@ -107,7 +107,7 @@ export const COLORS = {
   inputBackground: "#F9FAFB",
   inputBorder: "#E5E7EB",
   inputPlaceholder: "rgba(107, 114, 128, 0.6)",
-  inputFocused: "#1c467cff", // Navy blue for focus
+  inputFocused: "#2E3192", // Indigo blue for focus
   inputFocusedAlt: "#FFD700", // Gold alternative
 
   // ===== STATUS COLORS =====
@@ -138,15 +138,15 @@ export const COLORS = {
   // ===== TRANSPARENT COLORS =====
   transparent: "transparent",
   // Blue opacity
-  blueOpacity10: "rgba(28, 70, 124, 0.1)",
-  blueOpacity20: "rgba(28, 70, 124, 0.2)",
-  blueOpacity30: "rgba(28, 70, 124, 0.3)",
-  blueOpacity40: "rgba(28, 70, 124, 0.4)",
-  blueOpacity50: "rgba(28, 70, 124, 0.5)",
-  blueOpacity60: "rgba(28, 70, 124, 0.6)",
-  blueOpacity70: "rgba(28, 70, 124, 0.7)",
-  blueOpacity80: "rgba(28, 70, 124, 0.8)",
-  blueOpacity90: "rgba(28, 70, 124, 0.9)",
+  blueOpacity10: "rgba(46, 49, 146, 0.1)",
+  blueOpacity20: "rgba(46, 49, 146, 0.2)",
+  blueOpacity30: "rgba(46, 49, 146, 0.3)",
+  blueOpacity40: "rgba(46, 49, 146, 0.4)",
+  blueOpacity50: "rgba(46, 49, 146, 0.5)",
+  blueOpacity60: "rgba(46, 49, 146, 0.6)",
+  blueOpacity70: "rgba(46, 49, 146, 0.7)",
+  blueOpacity80: "rgba(46, 49, 146, 0.8)",
+  blueOpacity90: "rgba(46, 49, 146, 0.9)",
   // Black opacity
   blackOpacity10: "rgba(0, 0, 0, 0.1)",
   blackOpacity20: "rgba(0, 0, 0, 0.2)",
@@ -175,17 +175,17 @@ export const COLORS = {
   shadow: "rgba(0, 0, 0, 0.1)",
   shadowMedium: "rgba(0, 0, 0, 0.2)",
   shadowStrong: "rgba(0, 0, 0, 0.3)",
-  shadowBlue: "rgba(28, 70, 124, 0.25)",
+  shadowBlue: "rgba(46, 49, 146, 0.25)",
   shadowGold: "rgba(255, 215, 0, 0.3)",
 
   // ===== GRADIENT COLORS =====
   gradient: {
     // Blue gradients
-    bluePrimary: ["#1c467cff", "#2A5A9E"], // Navy to light navy
-    blueDeep: ["#0D2847", "#1c467cff"], // Deep to navy
-    blueLight: ["#3D6DB8", "#6A92D4"], // Light blue gradient
-    blueSky: ["#2563EB", "#7CA9F7"], // Vivid to sky blue
-    blueToWhite: ["#1c467cff", "#FFFFFF"], // Navy to white
+    bluePrimary: ["#2E3192", "#4C4FB0"], // Indigo to light indigo
+    blueDeep: ["#101374", "#2E3192"], // Deep to indigo
+    blueLight: ["#6A6DCE", "#8A8DDB"], // Light indigo gradient
+    blueSky: ["#4C4FB0", "#8A8DDB"], // Vivid to sky indigo
+    blueToWhite: ["#2E3192", "#FFFFFF"], // Indigo to white
 
     // Gold gradients
     goldLight: ["#FFD700", "#FFE44D"], // Gold gradient
@@ -194,16 +194,16 @@ export const COLORS = {
     shimmer: ["#FFD700", "#FFF4CC", "#FFD700"], // Gold shimmer
 
     // Blue & Gold combinations
-    blueToGold: ["#1c467cff", "#FFD700"], // Navy to Gold
-    goldToBlue: ["#FFD700", "#1c467cff"], // Gold to Navy
-    elegance: ["#152F5C", "#D4AF37"], // Deep blue to rich gold
-    luxury: ["#1c467cff", "#FFD700", "#2A5A9E"], // Navy-Gold-Light Navy
-    premium: ["#0D2847", "#1c467cff", "#D4AF37"], // Deep navy to gold
+    blueToGold: ["#2E3192", "#FFD700"], // Indigo to Gold
+    goldToBlue: ["#FFD700", "#2E3192"], // Gold to Indigo
+    elegance: ["#101374", "#D4AF37"], // Deep indigo to rich gold
+    luxury: ["#2E3192", "#FFD700", "#4C4FB0"], // Indigo-Gold-Light Indigo
+    premium: ["#101374", "#2E3192", "#D4AF37"], // Deep indigo to gold
 
     // Neutral surfaces
     surface: ["#FAFBFC", "#FFFFFF"], // Neutral surface
-    surfaceBlue: ["#F0F4F9", "#FFFFFF"], // Blue tint surface
-    darkSurface: ["#1A2C4D", "#0D2847"], // Dark blue surface
+    surfaceBlue: ["#EEEEF6", "#FFFFFF"], // Indigo tint surface
+    darkSurface: ["#0A0C4A", "#101374"], // Dark indigo surface
   } as Record<string, string[]>,
 };
 

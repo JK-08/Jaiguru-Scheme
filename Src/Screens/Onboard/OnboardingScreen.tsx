@@ -164,7 +164,6 @@ const OnboardingScreen = ({ navigation }: OnboardingScreenProps) => {
       {/* Gradient overlay */}
       <LinearGradient
         colors={['rgba(0,0,0,0.7)', 'transparent', 'rgba(0,0,0,0.7)']}
-        style={styles.gradientOverlay}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
       />
@@ -282,9 +281,9 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  gradientOverlay: {
-    ...StyleSheet.absoluteFillObject,
-  },
+  // gradientOverlay: {
+  //   ...StyleSheet.absoluteFillObject,
+  // },
   contentContainer: {
     ...StyleSheet.absoluteFillObject,
     paddingTop: Platform.OS === 'ios' ? theme.SIZES.xxxl : theme.SIZES.md,
