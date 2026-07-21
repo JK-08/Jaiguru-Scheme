@@ -1,17 +1,20 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Alert, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Alert, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useMpin } from '../../../api/hooks/Mpin/useMpin';
 import { useRegisterLoginCheckUser } from '../../../api/hooks/LoginCheck/useLoginCheck';
 import { useToast, ToastTypes, ToastPositions } from '../../../Components/Toast/Toast';
 import theme from '../../../Utills/AppTheme';
-import { AppPinInput, AppPinInputRef, AppButton } from '../../../Components/ui/appcomponents';
+import { AppPinInput, AppPinInputRef } from '../../../Components/ui/appcomponents';
+import MpinScaffold from '../Mpin/MpinScaffold';
+import LoginButton from '../Login/components/LoginButton';
 
-const { COLORS, SIZES, FONTS, SHADOWS, COMMON_STYLES } = theme;
+const { COLORS, SIZES, FONTS } = theme;
+const MAX_ATTEMPTS = 5;
+const LOCK_DURATION = 60;
 
 const MpinVerifyScreen = () => {
   const navigation = useNavigation<any>();
@@ -28,13 +31,9 @@ const MpinVerifyScreen = () => {
 
   const pinRef = useRef<AppPinInputRef>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const MAX_ATTEMPTS = 5;
-  const LOCK_DURATION = 60;
 
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
+  useEffect(() => () => {
+    if (timerRef.current) clearInterval(timerRef.current);
   }, []);
 
   const resetMpin = useCallback(() => {
@@ -58,10 +57,7 @@ const MpinVerifyScreen = () => {
         });
       }, 1000);
     }
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [locked, lockTime, resetMpin]);
 
   const formatTime = useCallback((seconds: number) => {
@@ -73,13 +69,11 @@ const MpinVerifyScreen = () => {
   const handleSubmit = useCallback(
     async (mpinArg: string | null = null) => {
       if (locked || loading) return;
-
       const mpinString = mpinArg || mpinValue;
       if (mpinString.length !== 4) return;
 
       try {
         await verifyMpin(mpinString);
-
         resetMpin();
         setAttempts(0);
         setBlockAutoSubmit(false);
@@ -117,14 +111,12 @@ const MpinVerifyScreen = () => {
           resetMpin();
           setAttempts(0);
           setBlockAutoSubmit(false);
-
           Alert.alert(
             'MPIN Not Created',
             "You don't have an MPIN for this account. Please create one to continue.",
             [{ text: 'Create MPIN', onPress: () => navigation.navigate('MpinCreate') }],
-            { cancelable: false }
+            { cancelable: false },
           );
-
           return;
         }
 
@@ -153,7 +145,7 @@ const MpinVerifyScreen = () => {
         pinRef.current?.focus();
       }
     },
-    [locked, loading, mpinValue, attempts, verifyMpin, navigation, showToast, register, resetMpin]
+    [locked, loading, mpinValue, attempts, verifyMpin, navigation, showToast, register, resetMpin],
   );
 
   const handleMpinChange = useCallback(
@@ -161,7 +153,7 @@ const MpinVerifyScreen = () => {
       if (locked || blockAutoSubmit) return;
       setMpinValue(value);
     },
-    [locked, blockAutoSubmit]
+    [locked, blockAutoSubmit],
   );
 
   const handleMpinComplete = useCallback(
@@ -169,38 +161,25 @@ const MpinVerifyScreen = () => {
       if (locked || blockAutoSubmit) return;
       setTimeout(() => handleSubmit(value), 150);
     },
-    [locked, blockAutoSubmit, handleSubmit]
+    [locked, blockAutoSubmit, handleSubmit],
   );
 
   const handleForgotMpin = useCallback(() => {
     if (locked) return;
-
     Alert.alert('Forgot MPIN?', 'Do you want to reset your MPIN?', [
       {
         text: 'Cancel',
         style: 'cancel',
-        onPress: () => {
-          resetMpin();
-          pinRef.current?.focus();
-        },
+        onPress: () => { resetMpin(); pinRef.current?.focus(); },
       },
       {
         text: 'Reset MPIN',
         style: 'destructive',
         onPress: () => {
-          showToast({
-            message: 'Redirecting to MPIN reset...',
-            type: ToastTypes.INFO,
-            duration: 2000,
-            position: ToastPositions.TOP,
-          });
-
+          showToast({ message: 'Redirecting to MPIN reset...', type: ToastTypes.INFO, duration: 2000, position: ToastPositions.TOP });
           resetMpin();
           setAttempts(0);
-
-          setTimeout(() => {
-            navigation.navigate('ForgotMpin');
-          }, 500);
+          setTimeout(() => navigation.navigate('ForgotMpin'), 500);
         },
       },
     ]);
@@ -209,196 +188,169 @@ const MpinVerifyScreen = () => {
   const isSubmitDisabled = loading || locked || blockAutoSubmit || mpinValue.length !== 4;
 
   return (
-    <SafeAreaView style={COMMON_STYLES.containerBlue}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
+    <View style={styles.root}>
+      <MpinScaffold
+        headerTitle="Verify MPIN"
+        icon="shield-key-outline"
+        heading="Verify MPIN"
+        subtitle="Enter your 4-digit security PIN to access your account"
+        showBack={false}
       >
-        <Toast />
-
-        <View style={styles.contentContainer}>
-          <View style={styles.headerSection}>
-            <View style={styles.logoContainer}>
-              <Icon name="shield-check-outline" size={SIZES.icon.xxxl} color={COLORS.primary} />
-            </View>
-            <Text style={styles.title}>Verify MPIN</Text>
-            <Text style={styles.subtitle}>Enter your 4-digit security PIN to access your account</Text>
-          </View>
-
-          {locked && (
-            <View style={styles.lockContainer}>
-              <Icon name="lock-alert-outline" size={SIZES.icon.xl} color={COLORS.error} />
-              <Text style={styles.lockTitle}>Account Temporarily Locked</Text>
-              <Text style={styles.lockText}>Please wait {formatTime(lockTime)} before trying again</Text>
-              <View style={styles.timerContainer}>
-                <View
-                  style={[
-                    styles.timerProgress,
-                    { width: `${(1 - lockTime / LOCK_DURATION) * 100}%` as any, backgroundColor: COLORS.error },
-                  ]}
-                />
-              </View>
-            </View>
-          )}
-
-          <View style={styles.securityStatus}>
-            <View style={styles.statusItem}>
-              <Icon name="shield-check" size={SIZES.icon.sm} color={COLORS.success} />
-              <Text style={styles.statusText}>Secure Connection</Text>
-            </View>
-            <View style={styles.statusItem}>
-              <Icon name="lock-outline" size={SIZES.icon.sm} color={COLORS.info} />
-              <Text style={styles.statusText}>End-to-End Encrypted</Text>
+        {locked && (
+          <View style={styles.lockBox}>
+            <MaterialCommunityIcons name="lock-alert-outline" size={SIZES.icon.xl} color={COLORS.error} />
+            <Text style={styles.lockTitle}>Account Temporarily Locked</Text>
+            <Text style={styles.lockText}>Please wait {formatTime(lockTime)} before trying again</Text>
+            <View style={styles.timerTrack}>
+              <View style={[styles.timerFill, { width: `${(1 - lockTime / LOCK_DURATION) * 100}%` }]} />
             </View>
           </View>
+        )}
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Enter 4-digit MPIN</Text>
-            <Text style={styles.sectionSubtitle}>
-              {locked ? 'Please wait for the timer to complete' : blockAutoSubmit ? 'Please select an option from the alert' : 'Enter the MPIN you created earlier'}
-            </Text>
-
-            <View style={styles.pinRow}>
-              <AppPinInput
-                ref={pinRef}
-                variant="boxes"
-                length={4}
-                secureTextEntry={!showMpin}
-                onChangeText={handleMpinChange}
-                onComplete={handleMpinComplete}
-                disabled={locked || blockAutoSubmit}
-                autoFocus
-              />
-              <TouchableOpacity
-                style={styles.visibilityButton}
-                onPress={() => setShowMpin(!showMpin)}
-                activeOpacity={0.7}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <Icon name={showMpin ? 'eye-off' : 'eye'} size={20} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {attempts > 0 && !locked && (
-            <View style={styles.attemptsContainer}>
-              <Icon name="alert-circle-outline" size={SIZES.icon.md} color={COLORS.warning} />
-              <Text style={styles.attemptsText}>
-                {attempts} failed attempt{attempts !== 1 ? 's' : ''}
-              </Text>
-              <View style={styles.attemptsDots}>
-                {[1, 2, 3, 4, 5].map((dot) => (
-                  <View key={dot} style={[styles.attemptDot, dot <= attempts && styles.attemptDotFilled]} />
-                ))}
-              </View>
-            </View>
-          )}
-
-          <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={[styles.forgotButton, (locked || blockAutoSubmit) && styles.buttonDisabled]}
-              onPress={handleForgotMpin}
-              disabled={locked || blockAutoSubmit}
-              activeOpacity={0.7}
-            >
-              <Icon name="key-outline" size={SIZES.icon.sm} color={COLORS.primary} />
-              <Text style={styles.forgotButtonText}>Forgot MPIN?</Text>
-            </TouchableOpacity>
-          </View>
-
-          <AppButton
-            label={locked ? 'Account Locked' : blockAutoSubmit ? 'Please Wait...' : 'Verify & Continue'}
-            onPress={() => handleSubmit()}
-            disabled={isSubmitDisabled}
-            loading={loading}
-            variant="primary"
-            size="lg"
-            rightIcon={!locked && !loading && !blockAutoSubmit ? 'arrow-forward' : undefined}
-            style={styles.submitButton}
+        <View style={styles.pinRow}>
+          <AppPinInput
+            ref={pinRef}
+            variant="boxes"
+            length={4}
+            secureTextEntry={!showMpin}
+            onChangeText={handleMpinChange}
+            onComplete={handleMpinComplete}
+            disabled={locked || blockAutoSubmit}
+            autoFocus
           />
-
-          <View style={styles.securityContainer}>
-            <Icon name="shield-check" size={SIZES.icon.sm} color={COLORS.success} />
-            <Text style={styles.securityText}>Your MPIN is stored securely on your device</Text>
-          </View>
+          <Pressable style={styles.eyeBtn} onPress={() => setShowMpin(!showMpin)} hitSlop={10}>
+            <MaterialCommunityIcons name={showMpin ? 'eye-off' : 'eye'} size={SIZES.icon.md} color={COLORS.accentDark} />
+          </Pressable>
         </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+        {attempts > 0 && !locked && (
+          <View style={styles.attemptsRow}>
+            <MaterialCommunityIcons name="alert-circle-outline" size={SIZES.icon.sm} color={COLORS.warning} />
+            <Text style={styles.attemptsText}>
+              {attempts} failed attempt{attempts !== 1 ? 's' : ''}
+            </Text>
+            <View style={styles.attemptsDots}>
+              {[1, 2, 3, 4, 5].map((dot) => (
+                <View key={dot} style={[styles.attemptDot, dot <= attempts && styles.attemptDotFilled]} />
+              ))}
+            </View>
+          </View>
+        )}
+
+        <Pressable
+          onPress={handleForgotMpin}
+          disabled={locked || blockAutoSubmit}
+          style={[styles.forgotBtn, (locked || blockAutoSubmit) && styles.disabled]}
+          hitSlop={8}
+        >
+          <MaterialCommunityIcons name="key-outline" size={SIZES.icon.sm} color={COLORS.accentDark} />
+          <Text style={styles.forgotText}>Forgot MPIN?</Text>
+        </Pressable>
+
+        <View style={styles.footer}>
+          <LoginButton
+            label={locked ? 'Account Locked' : blockAutoSubmit ? 'Please Wait…' : 'Verify & Continue'}
+            onPress={() => handleSubmit()}
+            loading={loading}
+            disabled={isSubmitDisabled}
+            icon="shield-check"
+          />
+        </View>
+
+        <View style={styles.secureRow}>
+          <MaterialCommunityIcons name="shield-check" size={SIZES.icon.xs} color={COLORS.success} />
+          <Text style={styles.secureText}>Your MPIN is stored securely on your device</Text>
+        </View>
+      </MpinScaffold>
+
+      {/* Toast rendered at root level — outside ScrollView — so it always shows at top */}
+      <Toast />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  keyboardView: { flex: 1, backgroundColor: COLORS.backgroundBlue },
-  contentContainer: { flex: 1, paddingHorizontal: SIZES.padding.container, paddingTop: 20, backgroundColor: COLORS.backgroundBlue },
-  headerSection: { alignItems: 'center', marginBottom: 24, marginTop: 8 },
-  logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: SIZES.radius.full,
+  root: { flex: 1 },
+  lockBox: {
+    alignItems: 'center',
     backgroundColor: COLORS.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    ...SHADOWS.lg,
-    borderWidth: 3,
-    borderColor: COLORS.blueOpacity20,
-  },
-  title: { ...FONTS.h4, fontSize: 24, color: COLORS.textBlueDark, textAlign: 'center', marginBottom: 4 },
-  subtitle: { ...FONTS.bodySmall, color: COLORS.textSecondary, textAlign: 'center', lineHeight: 18, maxWidth: '90%' },
-  lockContainer: {
-    ...COMMON_STYLES.card.blueBorder,
-    alignItems: 'center',
-    marginBottom: 20,
-    borderColor: COLORS.error,
-    backgroundColor: `${COLORS.errorLight}10`,
-    paddingVertical: 16,
-  },
-  lockTitle: { ...FONTS.h6, fontSize: 16, color: COLORS.error, marginTop: 8, marginBottom: 2, textAlign: 'center' },
-  lockText: { ...FONTS.caption, color: COLORS.errorDark, textAlign: 'center', marginBottom: 12 },
-  timerContainer: { ...COMMON_STYLES.progressBar.container, width: '70%', height: 6 },
-  timerProgress: { ...COMMON_STYLES.progressBar.fill, backgroundColor: COLORS.error },
-  securityStatus: { ...COMMON_STYLES.rowCenter, gap: 12, marginBottom: 20 },
-  statusItem: { ...COMMON_STYLES.chip.blue, paddingHorizontal: 10, paddingVertical: 6 },
-  statusText: { ...FONTS.caption, color: COLORS.infoDark, marginLeft: 4 },
-  section: { alignItems: 'center', marginBottom: 20 },
-  sectionTitle: { ...FONTS.h6, color: COLORS.textBlueDark, marginBottom: 4 },
-  sectionSubtitle: { ...FONTS.caption, color: COLORS.textTertiary, marginBottom: 16, textAlign: 'center' },
-  pinRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-  visibilityButton: {
-    marginLeft: 16,
-    padding: 8,
-    backgroundColor: COLORS.white,
-    borderRadius: SIZES.radius.sm,
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...SHADOWS.sm,
+    borderRadius: SIZES.radius.lg,
+    padding: SIZES.padding.lg,
+    marginBottom: SIZES.lg,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: `${COLORS.error}30`,
   },
-  attemptsContainer: { alignItems: 'center', marginBottom: 16 },
-  attemptsText: { ...FONTS.captionBold, color: COLORS.warning, marginTop: 6, marginBottom: 8 },
-  attemptsDots: { ...COMMON_STYLES.rowCenter, gap: 6 },
-  attemptDot: { width: 6, height: 6, borderRadius: SIZES.radius.full, backgroundColor: COLORS.gray300 },
-  attemptDotFilled: { backgroundColor: COLORS.warning, transform: [{ scale: 1.2 }] },
-  actionButtons: { ...COMMON_STYLES.rowCenter, marginBottom: 20 },
-  forgotButton: { ...COMMON_STYLES.button.outline, paddingVertical: 8, paddingHorizontal: 12, borderWidth: 1.5 },
-  forgotButtonText: { ...FONTS.label, color: COLORS.primary, marginLeft: 4 },
-  buttonDisabled: { opacity: 0.5 },
-  submitButton: { marginBottom: 16 },
-  securityContainer: {
-    ...COMMON_STYLES.rowCenter,
-    backgroundColor: `${COLORS.successLight}20`,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: SIZES.radius.md,
-    borderWidth: 1,
-    borderColor: COLORS.success,
-    marginTop: 4,
+  lockTitle: {
+    fontFamily: FONTS.family.semiBold,
+    fontSize: SIZES.font.lg,
+    color: COLORS.error,
+    marginTop: SIZES.sm,
   },
-  securityText: { ...FONTS.caption, color: COLORS.successDark, marginLeft: 6 },
+  lockText: {
+    fontFamily: FONTS.family.regular,
+    fontSize: SIZES.font.sm,
+    color: COLORS.textSecondary,
+    marginTop: SIZES.xs,
+  },
+  timerTrack: {
+    width: '100%',
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: COLORS.gray200,
+    marginTop: SIZES.md,
+    overflow: 'hidden',
+  },
+  timerFill: { height: '100%', borderRadius: 2, backgroundColor: COLORS.error },
+  pinRow: { alignItems: 'center' },
+  eyeBtn: { marginTop: SIZES.md, padding: SIZES.xs },
+  attemptsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: SIZES.md,
+  },
+  attemptsText: {
+    fontFamily: FONTS.family.medium,
+    fontSize: SIZES.font.sm,
+    color: COLORS.warning,
+    marginLeft: SIZES.xs,
+    marginRight: SIZES.sm,
+  },
+  attemptsDots: { flexDirection: 'row' },
+  attemptDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: COLORS.gray300,
+    marginHorizontal: 2,
+  },
+  attemptDotFilled: { backgroundColor: COLORS.error },
+  forgotBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: SIZES.lg,
+  },
+  forgotText: {
+    fontFamily: FONTS.family.semiBold,
+    fontSize: SIZES.font.md,
+    color: COLORS.accentDark,
+    marginLeft: SIZES.xs,
+  },
+  disabled: { opacity: 0.5 },
+  footer: { marginTop: SIZES.xl },
+  secureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: SIZES.lg,
+  },
+  secureText: {
+    fontFamily: FONTS.family.regular,
+    fontSize: SIZES.font.xs,
+    color: COLORS.textSecondary,
+    marginLeft: SIZES.xs,
+  },
 });
 
 export default MpinVerifyScreen;

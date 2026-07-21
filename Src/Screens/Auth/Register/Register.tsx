@@ -141,6 +141,8 @@ const RegisterScreen: React.FC = () => {
                   onGuest={() => {}}
                   googleLoading={reg.googleLoading}
                   disabled={reg.loading || reg.success}
+                  accountLabel="Already have an account? "
+                  accountLinkLabel="Login"
                 />
               </Animated.View>
             </ScrollView>

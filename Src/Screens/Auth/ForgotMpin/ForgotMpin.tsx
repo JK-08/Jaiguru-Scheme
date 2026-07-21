@@ -1,13 +1,21 @@
+// Src/Screens/Auth/ForgotMpin/ForgotMpin.tsx
+// -----------------------------------------------------------------------------
+// Premium Forgot-MPIN screen (champagne theme). Shows the masked registered
+// mobile and sends a reset OTP. Logic preserved; UI via MpinScaffold + gold CTA.
+// -----------------------------------------------------------------------------
+
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+
 import { useMpin } from '../../../api/hooks/Mpin/useMpin';
-import CommonHeader from '../../../Components/CommonHeader/CommonHeader';
 import theme from '../../../Utills/AppTheme';
 import { getUserData } from '../../../Utills/AsynchStorageHelper';
-import { AppButton } from '../../../Components/ui/appcomponents';
+import MpinScaffold from '../Mpin/MpinScaffold';
+import LoginButton from '../Login/components/LoginButton';
 
-const { COLORS, SIZES, FONTS, SHADOWS } = theme;
+const { COLORS, SIZES, FONTS } = theme;
 
 const ForgotMpinScreen = () => {
   const navigation = useNavigation<any>();
@@ -24,7 +32,6 @@ const ForgotMpinScreen = () => {
     try {
       setIsLoadingUser(true);
       const userData: any = await getUserData();
-
       if (userData) {
         const mobile = userData.contactNumber || userData.mobileNumber || userData.phone || userData.mobile;
         setUserMobile(mobile || '');
@@ -39,13 +46,8 @@ const ForgotMpinScreen = () => {
   const formatMobileNumber = (number: string) => {
     if (!number) return '';
     const strNumber = String(number);
-    if (strNumber.length >= 10) {
-      const last4 = strNumber.slice(-4);
-      return `•••• •••• ${last4}`;
-    } else if (strNumber.length >= 4) {
-      const last4 = strNumber.slice(-4);
-      return `••••${last4}`;
-    }
+    if (strNumber.length >= 10) return `•••• •••• ${strNumber.slice(-4)}`;
+    if (strNumber.length >= 4) return `••••${strNumber.slice(-4)}`;
     return 'registered number';
   };
 
@@ -60,142 +62,135 @@ const ForgotMpinScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}>
-        <CommonHeader title="Forgot MPIN" />
-
-        <View style={styles.content}>
-          <View style={styles.iconContainer}>
-            <View style={styles.iconWrapper}>
-              <Text style={styles.iconText}>🔐</Text>
-            </View>
+    <MpinScaffold
+      headerTitle="Forgot MPIN"
+      icon="shield-key-outline"
+      heading="Forgot MPIN?"
+      subtitle="We'll send a verification code to your registered mobile number to reset your MPIN."
+    >
+      {isLoadingUser ? (
+        <View style={styles.loadingCard}>
+          <ActivityIndicator size="small" color={COLORS.accentDark} />
+          <Text style={styles.loadingText}>Loading your details…</Text>
+        </View>
+      ) : userMobile ? (
+        <View style={styles.infoCard}>
+          <View style={styles.infoHeader}>
+            <MaterialCommunityIcons name="cellphone" size={SIZES.icon.sm} color={COLORS.accentDark} />
+            <Text style={styles.infoTitle}>Registered Mobile Number</Text>
           </View>
-
-          <Text style={styles.title}>Forgot MPIN?</Text>
-          <Text style={styles.subtitle}>
-            Don't worry! We'll send a verification code to your registered mobile number to reset your MPIN.
+          <Text style={styles.mobileNumber}>{formatMobileNumber(userMobile)}</Text>
+          <View style={styles.divider} />
+          <Text style={styles.infoText}>
+            We'll send a 6-digit verification code to this number. It expires in 10 minutes.
           </Text>
-
-          {isLoadingUser ? (
-            <View style={styles.loadingCard}>
-              <ActivityIndicator size="small" color={COLORS.primary} />
-              <Text style={styles.loadingText}>Loading your details...</Text>
-            </View>
-          ) : userMobile ? (
-            <View style={styles.infoCard}>
-              <View style={styles.infoHeader}>
-                <Text style={styles.infoIcon}>📱</Text>
-                <Text style={styles.infoTitle}>Registered Mobile Number</Text>
-              </View>
-
-              <View style={styles.mobileContainer}>
-                <Text style={styles.mobileLabel}>Mobile:</Text>
-                <Text style={styles.mobileNumber}>{formatMobileNumber(userMobile)}</Text>
-              </View>
-
-              <View style={styles.infoDivider} />
-
-              <Text style={styles.infoText}>
-                We'll send a 6-digit verification code to this number. The code will expire in 10 minutes.
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.warningCard}>
-              <Text style={styles.warningIcon}>⚠️</Text>
-              <Text style={styles.warningTitle}>Mobile Number Not Found</Text>
-              <Text style={styles.warningText}>
-                We couldn't find your registered mobile number. Please contact support for assistance.
-              </Text>
-            </View>
-          )}
-
-          <AppButton
-            label={userMobile ? 'Send OTP' : 'Contact Support'}
-            onPress={handleSendOtp}
-            disabled={loading || !userMobile}
-            loading={loading}
-            variant="primary"
-            size="lg"
-            style={styles.button}
-          />
         </View>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>By continuing, you agree to receive an OTP via SMS. Standard message and data rates may apply.</Text>
+      ) : (
+        <View style={styles.warningCard}>
+          <MaterialCommunityIcons name="alert-circle-outline" size={SIZES.icon.lg} color={COLORS.warning} />
+          <Text style={styles.warningTitle}>Mobile Number Not Found</Text>
+          <Text style={styles.warningText}>
+            We couldn't find your registered mobile number. Please contact support for assistance.
+          </Text>
         </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      )}
+
+      <View style={styles.footer}>
+        <LoginButton
+          label={userMobile ? 'Send OTP' : 'Contact Support'}
+          onPress={handleSendOtp}
+          loading={loading}
+          disabled={loading || !userMobile}
+          icon="message-badge-outline"
+        />
+      </View>
+
+      <Text style={styles.disclaimer}>
+        By continuing, you agree to receive an OTP via SMS. Standard message and data rates may apply.
+      </Text>
+    </MpinScaffold>
   );
 };
 
 export default ForgotMpinScreen;
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: COLORS.background },
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: { flex: 1, paddingHorizontal: SIZES.padding.container, paddingTop: SIZES.padding.xl },
-  iconContainer: { alignItems: 'center', marginBottom: SIZES.margin.xl },
-  iconWrapper: {
-    width: SIZES.icon.xxxl,
-    height: SIZES.icon.xxxl,
-    borderRadius: SIZES.radius.xxxl,
-    backgroundColor: COLORS.blueOpacity10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...SHADOWS.sm,
-  },
-  iconText: { fontSize: SIZES.icon.xxl },
-  title: { ...FONTS.h2, color: COLORS.primary, textAlign: 'center', marginBottom: SIZES.margin.sm },
-  subtitle: { ...FONTS.body, color: COLORS.textSecondary, textAlign: 'center', marginBottom: SIZES.margin.xl, paddingHorizontal: SIZES.padding.md },
   loadingCard: {
-    backgroundColor: COLORS.backgroundSecondary,
-    borderRadius: SIZES.radius.lg,
-    padding: SIZES.padding.xl,
-    marginBottom: SIZES.margin.xl,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    ...SHADOWS.xs,
-  },
-  loadingText: { ...FONTS.bodySmall, color: COLORS.textSecondary, marginTop: SIZES.margin.sm },
-  infoCard: {
-    backgroundColor: COLORS.primaryPale,
-    borderRadius: SIZES.radius.lg,
-    padding: SIZES.padding.lg,
-    marginBottom: SIZES.margin.xl,
-    borderWidth: 1,
-    borderColor: COLORS.primaryLighter,
-    ...SHADOWS.xs,
-  },
-  infoHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: SIZES.margin.md },
-  infoIcon: { fontSize: SIZES.font.lg, marginRight: SIZES.margin.xs },
-  infoTitle: { ...FONTS.label, color: COLORS.primary },
-  mobileContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
-    padding: SIZES.padding.md,
-    borderRadius: SIZES.radius.md,
-    marginBottom: SIZES.margin.md,
+    justifyContent: 'center',
+    paddingVertical: SIZES.padding.lg,
   },
-  mobileLabel: { ...FONTS.bodySmall, color: COLORS.textSecondary, marginRight: SIZES.margin.xs },
-  mobileNumber: { ...FONTS.bodyBold, color: COLORS.primary, fontSize: SIZES.font.lg },
-  infoDivider: { height: 1, backgroundColor: COLORS.primaryLighter, marginVertical: SIZES.margin.md },
-  infoText: { ...FONTS.bodySmall, color: COLORS.textSecondary, lineHeight: SIZES.font.lg * 1.5 },
-  warningCard: {
-    backgroundColor: `${COLORS.warningLight}20`,
-    borderRadius: SIZES.radius.lg,
+  loadingText: {
+    fontFamily: FONTS.family.medium,
+    fontSize: SIZES.font.sm,
+    color: COLORS.textSecondary,
+    marginLeft: SIZES.sm,
+  },
+  infoCard: {
+    backgroundColor: COLORS.whiteOpacity80,
+    borderRadius: SIZES.radius.xl,
     padding: SIZES.padding.lg,
-    marginBottom: SIZES.margin.xl,
     borderWidth: 1,
-    borderColor: COLORS.warning,
-    alignItems: 'center',
-    ...SHADOWS.xs,
+    borderColor: COLORS.accentOpacity30,
   },
-  warningIcon: { fontSize: SIZES.icon.lg, marginBottom: SIZES.margin.sm },
-  warningTitle: { ...FONTS.label, color: COLORS.warningDark, marginBottom: SIZES.margin.xs },
-  warningText: { ...FONTS.bodySmall, color: COLORS.textSecondary, textAlign: 'center' },
-  button: { marginBottom: SIZES.margin.md },
-  footer: { padding: SIZES.padding.lg, alignItems: 'center' },
-  footerText: { ...FONTS.caption, color: COLORS.textTertiary, textAlign: 'center' },
+  infoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SIZES.sm,
+  },
+  infoTitle: {
+    fontFamily: FONTS.family.semiBold,
+    fontSize: SIZES.font.md,
+    color: COLORS.textPrimary,
+    marginLeft: SIZES.sm,
+  },
+  mobileNumber: {
+    fontFamily: FONTS.family.bold,
+    fontSize: SIZES.heading.h4,
+    color: COLORS.accentDark,
+    letterSpacing: 2,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: COLORS.borderChampagne,
+    marginVertical: SIZES.md,
+  },
+  infoText: {
+    fontFamily: FONTS.family.regular,
+    fontSize: SIZES.font.sm,
+    lineHeight: SIZES.font.sm * 1.5,
+    color: COLORS.textSecondary,
+  },
+  warningCard: {
+    alignItems: 'center',
+    backgroundColor: COLORS.whiteOpacity80,
+    borderRadius: SIZES.radius.xl,
+    padding: SIZES.padding.lg,
+    borderWidth: 1,
+    borderColor: `${COLORS.warning}40`,
+  },
+  warningTitle: {
+    fontFamily: FONTS.family.semiBold,
+    fontSize: SIZES.font.lg,
+    color: COLORS.textPrimary,
+    marginTop: SIZES.sm,
+  },
+  warningText: {
+    fontFamily: FONTS.family.regular,
+    fontSize: SIZES.font.sm,
+    lineHeight: SIZES.font.sm * 1.5,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginTop: SIZES.xs,
+  },
+  footer: { marginTop: SIZES.xl },
+  disclaimer: {
+    fontFamily: FONTS.family.regular,
+    fontSize: SIZES.font.xs,
+    lineHeight: SIZES.font.xs * 1.5,
+    color: COLORS.textTertiary,
+    textAlign: 'center',
+    marginTop: SIZES.lg,
+  },
 });

@@ -18,6 +18,8 @@ export interface SocialActionsProps {
   onGuest: () => void;
   googleLoading: boolean;
   disabled: boolean;
+  accountLabel?: string;
+  accountLinkLabel?: string;
 }
 
 const SocialActions: React.FC<SocialActionsProps> = ({
@@ -26,12 +28,14 @@ const SocialActions: React.FC<SocialActionsProps> = ({
   onGuest,
   googleLoading,
   disabled,
+  accountLabel = "Don't have an account? ",
+  accountLinkLabel = 'Create Account',
 }) => (
   <View style={styles.wrap}>
     <View style={COMMON_STYLES.rowCenter}>
-      <Text style={styles.muted}>Don&apos;t have an account? </Text>
+      <Text style={styles.muted}>{accountLabel}</Text>
       <Pressable onPress={onCreateAccount} disabled={disabled} hitSlop={6} accessibilityRole="button">
-        <Text style={styles.link}>Create Account</Text>
+        <Text style={styles.link}>{accountLinkLabel}</Text>
       </Pressable>
     </View>
 
@@ -58,7 +62,7 @@ const SocialActions: React.FC<SocialActionsProps> = ({
       )}
     </Pressable>
 
-    <Pressable
+    {/* <Pressable
       onPress={onGuest}
       disabled={disabled}
       accessibilityRole="button"
@@ -67,7 +71,7 @@ const SocialActions: React.FC<SocialActionsProps> = ({
     >
       <MaterialCommunityIcons name="account-outline" size={SIZES.icon.sm} color={COLORS.textSecondary} />
       <Text style={styles.guestText}>Continue as Guest</Text>
-    </Pressable>
+    </Pressable> */}
   </View>
 );
 
