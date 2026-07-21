@@ -39,7 +39,7 @@ export const checkForAppUpdate = async (): Promise<void> => {
        2️⃣ PLAY STORE VERSION CHECK
     ----------------------------------- */
     const response = await fetch(
-      "https://raw.githubusercontent.com/JK-08/Jaiguru-Scheme/Dev/app-version.json?ts=" +
+      "https://raw.githubusercontent.com/JK-08/Jaiguru-Scheme/Dev-Kiruba/app-version.json?ts=" +
         Date.now()
     );
 
