@@ -664,7 +664,7 @@ export const COMMON_STYLES: Record<string, any> = {
     },
     // Gold button
     gold: {
-      backgroundColor: COLORS.goldPrimary,
+      backgroundColor: COLORS.goldDark,
       borderRadius: SIZES.radius.button,
       paddingVertical: SIZES.padding.md,
       paddingHorizontal: SIZES.padding.xl,
@@ -1261,7 +1261,7 @@ export const COMMON_STYLES: Record<string, any> = {
       width: SIZES.button.lg,
       height: SIZES.button.lg,
       borderRadius: SIZES.radius.full,
-      backgroundColor: COLORS.goldPrimary,
+      backgroundColor: COLORS.goldDark,
       alignItems: "center",
       justifyContent: "center",
       position: "absolute",

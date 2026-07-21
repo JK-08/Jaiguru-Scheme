@@ -286,7 +286,7 @@ export default function SchemeDetailsCard({ layout = 'horizontal', filter = 'all
       <View style={styles.container}>
         {renderHeader()}
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <ActivityIndicator size="large" color={COLORS.accentDark} />
           <Text style={styles.loadingText}>Loading your schemes...</Text>
         </View>
       </View>
@@ -342,7 +342,7 @@ export default function SchemeDetailsCard({ layout = 'horizontal', filter = 'all
       <FlatList
         data={filteredAccounts}
         renderItem={renderAccountCard}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.primary]} tintColor={COLORS.primary} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.accentDark]} tintColor={COLORS.accentDark} />}
         ListFooterComponent={layout === 'horizontal' ? <View style={styles.footer} /> : null}
         initialNumToRender={layout === 'vertical' ? 5 : 2}
         maxToRenderPerBatch={layout === 'vertical' ? 10 : 3}
@@ -378,19 +378,19 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...FONTS.h3,
-    color: COLORS.primary,
+    color: COLORS.accentDark,
   },
   countBadge: {
-    backgroundColor: COLORS.primary + '20',
+    backgroundColor: COLORS.accentDark + '20',
     paddingHorizontal: SIZES.padding.sm,
     paddingVertical: 2,
     borderRadius: SIZES.radius.sm,
     borderWidth: 1,
-    borderColor: COLORS.primary + '40',
+    borderColor: COLORS.accentDark + '40',
   },
   countText: {
     ...FONTS.captionBold,
-    color: COLORS.primary,
+    color: COLORS.accentDark,
     fontSize: SIZES.font.sm,
   },
   viewAllButton: {
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
   },
   viewAllText: {
     ...FONTS.h5,
-    color: COLORS.primary,
+    color: COLORS.accentDark,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.radius.md,
     ...SHADOWS.xs,
     borderWidth: 1,
-    borderColor: COLORS.blueOpacity10,
+    borderColor: COLORS.accentOpacity20,
   },
   statCard: {
     flex: 1,
@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
   },
   statValue: {
     ...FONTS.h3,
-    color: COLORS.primary,
+    color: COLORS.accentDark,
     fontSize: SIZES.font.xl,
     marginBottom: 2,
   },
@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
     ...SHADOWS.md,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: COLORS.blueOpacity10,
+    borderColor: COLORS.accentOpacity20,
   },
   cardVertical: {
     marginHorizontal: 0,
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     padding: SIZES.padding.md,
-    backgroundColor: COLORS.backgroundBlue,
+    backgroundColor: COLORS.champagneSoft,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
     gap: SIZES.margin.xs,
   },
   regBadge: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accentDark,
     paddingHorizontal: SIZES.padding.md,
     paddingVertical: SIZES.padding.xs,
     borderRadius: SIZES.radius.sm,
@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
   },
   nameText: {
     ...FONTS.h3,
-    color: COLORS.primary,
+    color: COLORS.accentDark,
     marginBottom: SIZES.margin.xs,
   },
   schemeText: {
@@ -541,7 +541,7 @@ const styles = StyleSheet.create({
     padding: SIZES.padding.sm,
     borderRadius: SIZES.radius.md,
     borderWidth: 1,
-    borderColor: COLORS.blueOpacity10,
+    borderColor: COLORS.accentOpacity20,
   },
   amtCard: {
     backgroundColor: COLORS.goldLight,
@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
   },
   amountValue: {
     ...FONTS.h4,
-    color: COLORS.primary,
+    color: COLORS.accentDark,
     fontSize: SIZES.font.md,
     fontWeight: '700',
   },
@@ -575,18 +575,18 @@ const styles = StyleSheet.create({
   },
   progressCount: {
     ...FONTS.captionBold,
-    color: COLORS.primary,
+    color: COLORS.accentDark,
     fontSize: SIZES.font.sm,
   },
   progressBar: {
     height: 8,
-    backgroundColor: COLORS.blueOpacity10,
+    backgroundColor: COLORS.accentOpacity20,
     borderRadius: SIZES.radius.sm,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accentDark,
     borderRadius: SIZES.radius.sm,
   },
   dateSection: {
@@ -629,22 +629,22 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.radius.md,
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: COLORS.primary,
+    borderColor: COLORS.accentDark,
     ...SHADOWS.xs,
   },
   viewButtonText: {
     ...FONTS.bodyBold,
-    color: COLORS.primary,
+    color: COLORS.accentDark,
     fontSize: SIZES.font.md,
   },
   payButton: {
     flex: 1,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accentDark,
     paddingVertical: SIZES.padding.md,
     borderRadius: SIZES.radius.md,
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: COLORS.primary,
+    borderColor: COLORS.accentDark,
     ...SHADOWS.xs,
   },
   payButtonDue: {},
@@ -669,7 +669,7 @@ const styles = StyleSheet.create({
   },
   bottomBorder: {
     height: 3,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accentDark,
   },
   center: {
     flex: 1,
@@ -688,7 +688,7 @@ const styles = StyleSheet.create({
     marginBottom: SIZES.margin.md,
   },
   retryButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accentDark,
     paddingHorizontal: SIZES.padding.xl,
     paddingVertical: SIZES.padding.md,
     borderRadius: SIZES.radius.md,
@@ -709,7 +709,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   createButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accentDark,
     paddingHorizontal: SIZES.padding.xl,
     paddingVertical: SIZES.padding.md,
     borderRadius: SIZES.radius.md,
