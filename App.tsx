@@ -61,7 +61,7 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView style={styles.safeArea}>
+      {/* <SafeAreaView style={styles.safeArea}> */}
         <View style={styles.container}>
           <ErrorBoundary>
             <AppToastProvider>
@@ -70,7 +70,7 @@ export default function App() {
           </ErrorBoundary>
           <StatusBar style="auto" />
         </View>
-      </SafeAreaView>
+      {/* </SafeAreaView> */}
       <NotificationBanner />
     </GestureHandlerRootView>
   );

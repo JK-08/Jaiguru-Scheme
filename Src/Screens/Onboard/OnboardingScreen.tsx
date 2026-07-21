@@ -1,359 +1,335 @@
 // Src/Screens/Onboard/OnboardingScreen.tsx
-import React, { useState, useRef, useEffect } from 'react';
-import { View, ActivityIndicator, Image, FlatList, StyleSheet, Dimensions, TouchableOpacity, Text, Platform, StatusBar, Animated } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useOnboardBanners } from '../../api/hooks/Onboard/useOnboardingBanners';
-import { OnboardBanner } from '../../types/HomeBanner/HomeBanner';
-import theme from '../../Utills/AppTheme';
-import { IMAGE_BASE_URL } from '../../Config/BaseUrl';
+// -----------------------------------------------------------------------------
+// Jaiguru Jewellers — premium 4-screen onboarding.
+// Horizontal swipe (Reanimated-driven), animated luxury background, glass cards,
+// gold-gradient CTA, smooth page indicator and parallax hero illustrations.
+//
+// Composed from:
+//   • data.ts                     – typed slide content
+//   • components/OnboardingItem    – single parallax page
+//   • components/Illustrations     – animated vector jewellery art
+//   • components/Pagination        – scroll-linked dots
+//   • components/NextButton        – gold gradient CTA
+//   • components/FloatingElement   – floating ornament primitive
+// -----------------------------------------------------------------------------
+
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Dimensions,
+  FlatList,
+  Platform,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  type ViewToken,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Animated, {
+  Easing,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 
-const { width, height } = Dimensions.get('window');
+import theme from '../../Utills/AppTheme';
+import { CHAMPAGNE, GOLD_DEEP, INK_SOFT, ONBOARDING_DATA, type OnboardingSlide } from './data';
+import OnboardingItem from './components/OnboardingItem';
+import Pagination from './components/Pagination';
+import NextButton from './components/NextButton';
 
-export interface OnboardingScreenProps {
-  navigation: { replace: (route: string) => void };
-}
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList<OnboardingSlide>);
 
-const OnboardingScreen = ({ navigation }: OnboardingScreenProps) => {
-  const { banners, loading, error: bannerError, refresh } = useOnboardBanners();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [showGetStarted, setShowGetStarted] = useState(false);
-  const [isRetrying, setIsRetrying] = useState(false);
-  const flatListRef = useRef<FlatList<OnboardBanner>>(null);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+const OnboardingScreen: React.FC = () => {
+  const navigation = useNavigation<any>();
+  // App.tsx renders full-bleed (no app-level SafeAreaView), so this screen owns
+  // its own safe-area spacing: the background fills edge-to-edge (incl. behind
+  // the status bar) while content is padded by the insets below.
+  const insets = useSafeAreaInsets();
 
+  const listRef = useRef<FlatList<OnboardingSlide>>(null);
+  const scrollX = useSharedValue(0);
+  const drift = useSharedValue(0);
+  const [index, setIndex] = useState(0);
+
+  const isLast = index === ONBOARDING_DATA.length - 1;
+
+  // ---- Slow, looping background gradient drift -----------------------------
   useEffect(() => {
-    // Check if user is already logged in
-    const checkAuth = async () => {
+    drift.value = withRepeat(
+      withTiming(1, { duration: 9000, easing: Easing.inOut(Easing.quad) }),
+      -1,
+      true,
+    );
+  }, [drift]);
+
+  const blobA = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: -40 + 30 * drift.value },
+      { translateY: -30 + 25 * drift.value },
+      { scale: 1 + 0.08 * drift.value },
+    ],
+  }));
+  const blobB = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: 30 - 30 * drift.value },
+      { translateY: 20 - 20 * drift.value },
+      { scale: 1.1 - 0.08 * drift.value },
+    ],
+  }));
+
+  // ---- Scroll tracking ------------------------------------------------------
+  const scrollHandler = useAnimatedScrollHandler((e) => {
+    scrollX.value = e.contentOffset.x;
+  });
+
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      if (viewableItems[0]?.index != null) setIndex(viewableItems[0].index);
+    },
+  ).current;
+
+  const viewabilityConfig = useMemo(() => ({ viewAreaCoveragePercentThreshold: 55 }), []);
+
+  // Fallback index tracking for platforms/timings where viewability lags.
+  const onMomentumEnd = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    setIndex(Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH));
+  }, []);
+
+  // ---- Skip on mount if already authenticated ------------------------------
+  useEffect(() => {
+    (async () => {
       try {
-        const userToken = await AsyncStorage.getItem('authToken');
+        const token = await AsyncStorage.getItem('authToken');
         const userDataStr = await AsyncStorage.getItem('userData');
-
-        if (userToken && userDataStr) {
+        if (token && userDataStr) {
           const userData = JSON.parse(userDataStr);
-          if (userData && userData.id) {
-            // User is already logged in, skip onboarding and go to home
-            navigation.replace('MainDrawer');
-            return;
-          }
+          if (userData?.id) navigation.replace('MainDrawer');
         }
-      } catch (error) {
-        console.error('Error checking auth:', error);
+      } catch (err) {
+        // Non-fatal: just continue showing onboarding.
+        console.log('Onboarding auth check failed', err);
       }
-    };
-
-    checkAuth();
+    })();
   }, [navigation]);
 
-  useEffect(() => {
-    // Show get started button with fade animation
-    Animated.timing(fadeAnim, {
-      toValue: showGetStarted ? 1 : 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, [showGetStarted, fadeAnim]);
-
-  const completeOnboarding = async () => {
-    try {
-      // Mark onboarding as completed
-      await AsyncStorage.setItem('hasSeenOnboarding', 'true');
-
-      // Navigate to Login screen
-      navigation.replace('Login');
-    } catch (error) {
-      console.error('Error completing onboarding:', error);
-      // Fallback navigation
-      navigation.replace('Login');
-    }
-  };
-
-  const handleSkip = completeOnboarding;
-  const handleGetStarted = completeOnboarding;
-
-  const handleRetry = async () => {
-    setIsRetrying(true);
-    try {
-      await refresh();
-    } catch (error) {
-      console.error('Retry error:', error);
-    } finally {
-      setIsRetrying(false);
-    }
-  };
-
-  const onScrollEnd = (e: any) => {
-    const contentOffset = e.nativeEvent.contentOffset.x;
-    const index = Math.round(contentOffset / width);
-    setCurrentIndex(index);
-
-    // Show get started button only on last slide
-    setShowGetStarted(index === banners.length - 1);
-  };
-
-  const renderDots = () => {
-    if (banners.length <= 1) return null;
-
-    return (
-      <View style={styles.dotsContainer}>
-        {banners.map((_, index) => (
-          <TouchableOpacity
-            key={index}
-            onPress={() => {
-              flatListRef.current?.scrollToIndex({
-                index,
-                animated: true,
-              });
-              setCurrentIndex(index);
-              setShowGetStarted(index === banners.length - 1);
-            }}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.dot, currentIndex === index && styles.activeDot]} />
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
-  };
-
-  // Show loading indicator during retry
-  if (isRetrying || loading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color={theme.COLORS.goldPrimary} />
-        <Text style={styles.loadingText}>{isRetrying ? 'Retrying...' : 'Loading...'}</Text>
-      </View>
-    );
-  }
-
-  if (bannerError) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorTitle}>Connection Error</Text>
-        <Text style={styles.errorText}>{bannerError}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={handleRetry} activeOpacity={0.8} disabled={isRetrying}>
-          {isRetrying ? <ActivityIndicator size="small" color={theme.COLORS.primary} /> : <Text style={styles.retryText}>Retry</Text>}
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  if (!banners || banners.length === 0) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorTitle}>No Content Available</Text>
-        <Text style={styles.errorText}>Please try again later</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={handleRetry} activeOpacity={0.8} disabled={isRetrying}>
-          {isRetrying ? <ActivityIndicator size="small" color={theme.COLORS.primary} /> : <Text style={styles.retryText}>Retry</Text>}
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  const renderItem = ({ item, index }: { item: OnboardBanner; index: number }) => (
-    <View style={styles.slideContainer}>
-      <Image
-        source={{ uri: `${IMAGE_BASE_URL}${item.image_path}` }}
-        style={styles.image}
-        resizeMode="cover"
-        onError={(error) => {
-          console.log('Image loading error:', error.nativeEvent.error);
-        }}
-      />
-
-      {/* Gradient overlay */}
-      <LinearGradient
-        colors={['rgba(0,0,0,0.7)', 'transparent', 'rgba(0,0,0,0.7)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-      />
-
-      {/* Content container */}
-      <View style={styles.contentContainer}>
-        {/* Top skip button */}
-        {index !== banners.length - 1 && (
-          <View style={styles.topContainer}>
-            <TouchableOpacity style={styles.skipButton} onPress={handleSkip} activeOpacity={0.7}>
-              <Text style={styles.skipText}>SKIP</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Bottom content */}
-        <View style={styles.bottomContainer}>
-          {/* Get Started Button with fade animation */}
-          <Animated.View style={[styles.getStartedContainer, { opacity: fadeAnim }]}>
-            {showGetStarted && (
-              <TouchableOpacity style={styles.getStartedButton} onPress={handleGetStarted} activeOpacity={0.8}>
-                <Text style={styles.getStartedText}>GET STARTED</Text>
-              </TouchableOpacity>
-            )}
-          </Animated.View>
-          {/* Navigation dots */}
-          {renderDots()}
-        </View>
-      </View>
-    </View>
+  // ---- Completion + navigation ---------------------------------------------
+  const finish = useCallback(
+    async (route: 'Login') => {
+      try {
+        await AsyncStorage.setItem('hasSeenOnboarding', 'true');
+      } catch (err) {
+        console.log('Failed to persist onboarding flag', err);
+      } finally {
+        navigation.replace(route);
+      }
+    },
+    [navigation],
   );
 
-  return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+  const goNext = useCallback(() => {
+    if (isLast) {
+      finish('Login');
+      return;
+    }
+    listRef.current?.scrollToOffset({ offset: (index + 1) * SCREEN_WIDTH, animated: true });
+  }, [finish, index, isLast]);
 
-      <FlatList
-        ref={flatListRef}
-        data={banners}
-        keyExtractor={(item) => item.BannerId?.toString() || `banner-${Math.random()}`}
+  const skip = useCallback(() => finish('Login'), [finish]);
+
+  const renderItem = useCallback(
+    ({ item, index: i }: { item: OnboardingSlide; index: number }) => (
+      <OnboardingItem slide={item} index={i} scrollX={scrollX} width={SCREEN_WIDTH} />
+    ),
+    [scrollX],
+  );
+
+  const lastSlide = ONBOARDING_DATA[ONBOARDING_DATA.length - 1];
+
+  return (
+    <SafeAreaView style={styles.root}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+
+      {/* Animated luxury background — fills edge-to-edge, including behind the
+          status bar, so there is no white band above the app content. */}
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <LinearGradient colors={['#FFFFFF', '#FFFDF7', '#FBF4E6']} style={StyleSheet.absoluteFill} />
+        <Animated.View style={[styles.blob, styles.blobTop, blobA]}>
+          <LinearGradient
+            colors={[CHAMPAGNE, 'rgba(255,255,255,0)']}
+            style={styles.blobFill}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+          />
+        </Animated.View>
+        <Animated.View style={[styles.blob, styles.blobBottom, blobB]}>
+          <LinearGradient
+            colors={['rgba(212,175,55,0.16)', 'rgba(255,255,255,0)']}
+            style={styles.blobFill}
+            start={{ x: 0.5, y: 1 }}
+            end={{ x: 0.5, y: 0 }}
+          />
+        </Animated.View>
+      </View>
+
+      {/* Top bar: brand + skip */}
+      <View style={[styles.topBar, { paddingTop: insets.top + 10 }]}>
+        <Text style={styles.brand}>
+          Jaiguru <Text style={styles.brandAccent}>Jewellers</Text>
+        </Text>
+        {!isLast && (
+          <Pressable
+            onPress={skip}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Skip onboarding"
+            style={({ pressed }) => [styles.skipBtn, pressed && styles.skipPressed]}
+          >
+            <Text style={styles.skipText}>Skip</Text>
+          </Pressable>
+        )}
+      </View>
+
+      {/* Pages */}
+      <AnimatedFlatList
+        ref={listRef}
+        data={ONBOARDING_DATA}
+        keyExtractor={(item) => (item as OnboardingSlide).id}
+        renderItem={renderItem as any}
         horizontal
         pagingEnabled
+        bounces={false}
         showsHorizontalScrollIndicator={false}
-        renderItem={renderItem}
-        onMomentumScrollEnd={onScrollEnd}
-        onScrollBeginDrag={() => setShowGetStarted(false)}
+        onScroll={scrollHandler}
         scrollEventThrottle={16}
-        initialNumToRender={1}
-        maxToRenderPerBatch={3}
-        windowSize={3}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        onMomentumScrollEnd={onMomentumEnd}
         decelerationRate="fast"
+        style={styles.list}
       />
-    </View>
+
+      {/* Bottom controls */}
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 18 }]}>
+        <Pagination count={ONBOARDING_DATA.length} scrollX={scrollX} width={SCREEN_WIDTH} />
+
+        <View style={styles.ctaWrap}>
+          <NextButton
+            label={ONBOARDING_DATA[index]?.primaryLabel ?? 'Continue'}
+            onPress={goNext}
+            showArrow={!isLast}
+            accessibilityHint={isLast ? 'Completes onboarding' : 'Goes to the next screen'}
+          />
+
+          {isLast && lastSlide.secondaryLabel && (
+            <Pressable
+              onPress={() => finish('Login')}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel={lastSlide.secondaryLabel}
+              style={({ pressed }) => [styles.loginBtn, pressed && styles.loginPressed]}
+            >
+              <Text style={styles.loginText}>
+                Already a member? <Text style={styles.loginLink}>{lastSlide.secondaryLabel}</Text>
+              </Text>
+            </Pressable>
+          )}
+        </View>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    backgroundColor: theme.COLORS.backgroundDark,
+    backgroundColor: theme.COLORS.white,
+
   },
-  loaderContainer: {
-    flex: 1,
-    backgroundColor: theme.COLORS.backgroundDark,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    ...theme.FONTS.body,
-    color: theme.COLORS.white,
-    marginTop: theme.SIZES.md,
-    opacity: 0.8,
-  },
-  errorContainer: {
-    flex: 1,
-    backgroundColor: theme.COLORS.backgroundDark,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: theme.SIZES.padding.xl,
-  },
-  errorTitle: {
-    ...theme.FONTS.h2,
-    color: theme.COLORS.white,
-    textAlign: 'center',
-    marginBottom: theme.SIZES.sm,
-  },
-  errorText: {
-    ...theme.FONTS.body,
-    color: theme.COLORS.gray400,
-    textAlign: 'center',
-    marginBottom: theme.SIZES.xl,
-    lineHeight: theme.SIZES.font.md * 1.6,
-  },
-  retryButton: {
-    backgroundColor: theme.COLORS.goldPrimary,
-    paddingHorizontal: theme.SIZES.padding.xxl,
-    paddingVertical: theme.SIZES.padding.lg,
-    borderRadius: theme.SIZES.radius.lg,
-    minWidth: 120,
-    minHeight: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...theme.SHADOWS.md,
-  },
-  retryText: {
-    ...theme.FONTS.button,
-    color: theme.COLORS.primary,
-    fontWeight: '600',
-  },
-  slideContainer: {
-    width: width,
-    height: height,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  // gradientOverlay: {
-  //   ...StyleSheet.absoluteFillObject,
-  // },
-  contentContainer: {
-    ...StyleSheet.absoluteFillObject,
-    paddingTop: Platform.OS === 'ios' ? theme.SIZES.xxxl : theme.SIZES.md,
-  },
-  topContainer: {
-    paddingHorizontal: theme.SIZES.padding.md,
-    alignItems: 'flex-end',
-  },
-  skipButton: {
-    backgroundColor: 'rgba(0, 174, 255, 0.99)',
-    paddingHorizontal: theme.SIZES.padding.md,
-    paddingVertical: theme.SIZES.padding.sm,
-    borderRadius: theme.SIZES.radius.lg,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  skipText: {
-    ...theme.FONTS.labelUppercase,
-    color: theme.COLORS.white,
-    fontSize: theme.SIZES.font.md,
-    letterSpacing: 1.5,
-  },
-  bottomContainer: {
+  blob: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 60 : 40,
-    width: '100%',
-    alignItems: 'center',
-    paddingHorizontal: theme.SIZES.padding.lg,
-    marginBottom: theme.SIZES.lg,
+    width: SCREEN_WIDTH * 1.3,
+    height: SCREEN_WIDTH * 1.3,
+    borderRadius: SCREEN_WIDTH * 0.65,
+    overflow: 'hidden',
   },
-  getStartedContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: theme.SIZES.lg,
+  blobFill: { flex: 1 },
+  blobTop: {
+    top: -SCREEN_WIDTH * 0.45,
+    left: -SCREEN_WIDTH * 0.2,
   },
-  getStartedButton: {
-    backgroundColor: theme.COLORS.goldPrimary,
-    paddingHorizontal: theme.SIZES.padding.xxl,
-    paddingVertical: theme.SIZES.padding.lg,
-    borderRadius: theme.SIZES.radius.xl,
-    minWidth: 200,
-    ...theme.SHADOWS.goldStrong,
+  blobBottom: {
+    bottom: -SCREEN_WIDTH * 0.5,
+    right: -SCREEN_WIDTH * 0.25,
   },
-  getStartedText: {
-    ...theme.FONTS.buttonLarge,
-    color: theme.COLORS.primary,
-    letterSpacing: 1,
-    textAlign: 'center',
-  },
-  dotsContainer: {
+  topBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    paddingHorizontal: theme.SIZES.padding.md,
-    paddingVertical: theme.SIZES.padding.xs,
-    borderRadius: theme.SIZES.radius.lg,
-    marginBottom: theme.SIZES.xxl,
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingBottom: 6,
+    zIndex: 5,
   },
-  dot: {
-    width: theme.SIZES.sm,
-    height: theme.SIZES.sm,
-    borderRadius: theme.SIZES.sm / 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    marginHorizontal: theme.SIZES.xs,
+  brand: {
+    fontFamily: theme.FONTS.family.bold,
+    fontSize: 16,
+    letterSpacing: 0.5,
+    color: theme.COLORS.textPrimary,
   },
-  activeDot: {
-    width: theme.SIZES.lg,
-    backgroundColor: theme.COLORS.goldPrimary,
-    ...theme.SHADOWS.gold,
+  brandAccent: {
+    color: GOLD_DEEP,
+  },
+  skipBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    backgroundColor: 'rgba(212,175,55,0.12)',
+  },
+  skipPressed: {
+    opacity: 0.6,
+  },
+  skipText: {
+    fontFamily: theme.FONTS.family.semiBold,
+    fontSize: 13,
+    color: GOLD_DEEP,
+    letterSpacing: 0.3,
+  },
+  list: {
+    flex: 1,
+  },
+  footer: {
+    paddingHorizontal: 28,
+    paddingTop: 8,
+    paddingBottom: 44,
+  },
+  ctaWrap: {
+    marginTop: 22,
+    alignItems: 'center',
+  },
+  loginBtn: {
+    marginTop: 16,
+    paddingVertical: 6,
+  },
+  loginPressed: {
+    opacity: 0.6,
+  },
+  loginText: {
+    fontFamily: theme.FONTS.family.regular,
+    fontSize: 14,
+    color: INK_SOFT,
+  },
+  loginLink: {
+    fontFamily: theme.FONTS.family.bold,
+    color: GOLD_DEEP,
   },
 });
 
