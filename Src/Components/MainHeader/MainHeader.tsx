@@ -1,6 +1,7 @@
 // Src/Components/MainHeader/MainHeader.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, StatusBar, ActivityIndicator } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useCompany } from '../../api/hooks/Company/useCompany';
 import { useTodayRate } from '../../api/hooks/Rates/useTodayRate';
@@ -8,6 +9,8 @@ import useNotifications from '../../api/hooks/Notifications/useNotifications';
 import { notificationEmitter } from '../NotificationBanner/NotificationBanner';
 import { COLORS, SIZES, FONTS, SHADOWS, moderateScale } from '../../Utills/AppTheme';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
+
+const GOLD_HEADER_GRADIENT = COLORS.gradient.champagneGold as [string, string, string];
 
 export interface HomeHeaderRedesignedProps {
   onMenuPress?: () => void;
@@ -64,14 +67,14 @@ const HomeHeaderRedesigned = ({ onLogoPress }: HomeHeaderRedesignedProps) => {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar backgroundColor={COLORS.primary} barStyle="light-content" />
+    <LinearGradient colors={GOLD_HEADER_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.container}>
+      <StatusBar backgroundColor="transparent" barStyle="dark-content" translucent />
 
       {/* Top Row: Menu Icon, Logo & Company Name, Notification */}
       <View style={styles.topRow}>
         {/* Right: Notification Icon */}
         <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('NotificationScreen')} activeOpacity={0.7}>
-          <Icon name="notifications-none" size={SIZES.icon.lg} color={COLORS.white} />
+          <Icon name="notifications-none" size={SIZES.icon.lg} color={COLORS.textOnGold} />
 
           {unreadCount > 0 && (
             <View style={styles.notificationBadge}>
@@ -107,7 +110,7 @@ const HomeHeaderRedesigned = ({ onLogoPress }: HomeHeaderRedesignedProps) => {
         </TouchableOpacity>
         {/* Left: Menu Icon */}
         <TouchableOpacity style={styles.iconButton} onPress={handleMenuPress} activeOpacity={0.7}>
-          <Icon name="menu" size={SIZES.icon.lg} color={COLORS.white} />
+          <Icon name="menu" size={SIZES.icon.lg} color={COLORS.textOnGold} />
         </TouchableOpacity>
       </View>
 
@@ -116,11 +119,11 @@ const HomeHeaderRedesigned = ({ onLogoPress }: HomeHeaderRedesignedProps) => {
         {/* Gold Rate Card */}
         <View style={styles.rateCard}>
           <View style={styles.rateHeader}>
-            <Icon name="trending-up" size={SIZES.icon.md} color={COLORS.goldPrimary} />
+            <Icon name="trending-up" size={SIZES.icon.md} color={COLORS.accentDark} />
             <Text style={styles.rateLabel}>GOLD</Text>
           </View>
           {ratesLoading ? (
-            <ActivityIndicator size="small" color={COLORS.goldPrimary} />
+            <ActivityIndicator size="small" color={COLORS.accentDark} />
           ) : ratesError ? (
             <Text style={styles.rateError}>N/A</Text>
           ) : (
@@ -152,22 +155,22 @@ const HomeHeaderRedesigned = ({ onLogoPress }: HomeHeaderRedesignedProps) => {
       {/* Last Updated Time */}
       {rates && !ratesLoading && (
         <View style={styles.updateTimeContainer}>
-          <Icon name="schedule" size={moderateScale(12)} color={COLORS.whiteOpacity70} />
+          <Icon name="schedule" size={moderateScale(12)} color={COLORS.textOnGold} />
           <Text style={styles.updateTimeText}>Updated: Today {formatTime(currentTime)}</Text>
         </View>
       )}
-    </View>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.primary,
-    paddingTop: StatusBar.currentHeight || SIZES.padding.md,
+    paddingTop: (StatusBar.currentHeight || SIZES.padding.md) + SIZES.padding.sm,
     paddingBottom: SIZES.padding.lg,
-    borderBottomLeftRadius: SIZES.radius.xl,
-    borderBottomRightRadius: SIZES.radius.xl,
-    ...SHADOWS.blueStrong,
+    borderBottomLeftRadius: SIZES.radius.xxl,
+    borderBottomRightRadius: SIZES.radius.xxl,
+    ...SHADOWS.goldStrong,
+    shadowColor: COLORS.accent,
   },
   topRow: {
     flexDirection: 'row',
@@ -180,7 +183,7 @@ const styles = StyleSheet.create({
     width: moderateScale(44),
     height: moderateScale(44),
     borderRadius: 22,
-    backgroundColor: COLORS.whiteOpacity20,
+    backgroundColor: COLORS.whiteOpacity50,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -198,9 +201,9 @@ const styles = StyleSheet.create({
     width: moderateScale(50),
     height: moderateScale(50),
     borderRadius: SIZES.radius.md,
-    backgroundColor: COLORS.whiteOpacity20,
+    backgroundColor: COLORS.whiteOpacity70,
     borderWidth: 2,
-    borderColor: COLORS.goldOpacity30,
+    borderColor: COLORS.whiteOpacity80,
   },
   defaultLogo: {
     alignItems: 'center',
@@ -213,7 +216,7 @@ const styles = StyleSheet.create({
   },
   companyName: {
     ...FONTS.h5,
-    color: COLORS.white,
+    color: COLORS.textOnGold,
     marginBottom: moderateScale(2),
   },
   companyAddress: {
@@ -241,7 +244,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: COLORS.primary,
+    borderColor: COLORS.accentLight,
   },
   badgeText: {
     ...FONTS.caption,
@@ -254,10 +257,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginHorizontal: SIZES.margin.lg,
-    backgroundColor: COLORS.blueOpacity30,
+    backgroundColor: COLORS.whiteOpacity90,
     borderRadius: SIZES.radius.lg,
     paddingVertical: SIZES.padding.md,
     paddingHorizontal: SIZES.padding.lg,
+    borderWidth: 1,
+    borderColor: COLORS.whiteOpacity80,
   },
   rateCard: {
     flex: 1,
@@ -270,24 +275,24 @@ const styles = StyleSheet.create({
   },
   rateLabel: {
     ...FONTS.caption,
-    color: COLORS.whiteOpacity80,
+    color: COLORS.textSecondary,
     fontWeight: FONTS.weight.semiBold,
     marginLeft: SIZES.margin.xs,
     letterSpacing: 1,
   },
   rateValue: {
     ...FONTS.h4,
-    color: COLORS.goldPrimary,
+    color: COLORS.accentDark,
     fontWeight: FONTS.weight.bold,
     marginTop: moderateScale(2),
   },
   silverValue: {
-    color: COLORS.gray300,
+    color: COLORS.textSecondary,
   },
   rateUnit: {
     ...FONTS.caption,
     fontSize: SIZES.font.xxs,
-    color: COLORS.whiteOpacity50,
+    color: COLORS.textTertiary,
     marginTop: moderateScale(2),
   },
   rateError: {
@@ -298,7 +303,7 @@ const styles = StyleSheet.create({
   divider: {
     width: 1,
     height: moderateScale(50),
-    backgroundColor: COLORS.whiteOpacity30,
+    backgroundColor: COLORS.borderChampagne,
     marginHorizontal: SIZES.margin.md,
   },
   updateTimeContainer: {
@@ -311,7 +316,7 @@ const styles = StyleSheet.create({
   updateTimeText: {
     ...FONTS.caption,
     fontSize: SIZES.font.xxs,
-    color: COLORS.whiteOpacity70,
+    color: COLORS.textOnGold,
     marginLeft: SIZES.margin.xs,
   },
 });
