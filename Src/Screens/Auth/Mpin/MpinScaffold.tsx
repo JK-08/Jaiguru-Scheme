@@ -19,6 +19,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -65,6 +66,9 @@ const MpinScaffold: React.FC<MpinScaffoldProps> = ({
   contentStyle,
 }) => {
   const enter = useSharedValue(0);
+  const insets = useSafeAreaInsets();
+  // Header height: status bar + common header (~56dp)
+  const headerOffset = insets.top + 56;
   useEffect(() => {
     enter.value = withTiming(1, { duration: 650, easing: Easing.out(Easing.cubic) });
   }, [enter]);
@@ -93,7 +97,11 @@ const MpinScaffold: React.FC<MpinScaffoldProps> = ({
       />
 
       <SafeAreaView style={styles.safe} edges={['bottom']}>
-        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={headerOffset}
+        >
           <ScrollView
             contentContainerStyle={styles.scroll}
             showsVerticalScrollIndicator={false}

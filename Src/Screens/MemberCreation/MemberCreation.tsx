@@ -2,6 +2,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { View, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useRoute, useNavigation, useFocusEffect, RouteProp } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import UserRegistrationForm, { UserRegistrationFormData, UserRegistrationFormRef } from './UserRegistrationForm';
 import SchemeJoiningForm, { SchemeJoiningFormRef } from './SchemeJoiningForm';
 import { useRazorpayPayment } from '../../api/hooks/Razorpay/useRazorpay';
@@ -306,7 +307,7 @@ const MemberCreation = () => {
       {/* Step Indicator */}
       {/* <StepIndicator currentStep={currentStep} /> */}
 
-      <View style={styles.scrollView}>
+        <View style={styles.scrollView}>
         {currentStep === STEPS.REGISTRATION ? (
           <UserRegistrationForm ref={registrationFormRef} onSubmit={handleRegistrationSubmit} initialData={userRegistrationData} />
         ) : (
@@ -383,8 +384,10 @@ interface NavigationButtonsProps {
   isLoading: boolean;
 }
 
-const NavigationButtons = ({ currentStep, onBack, onNext, onSubmit, isLoading }: NavigationButtonsProps) => (
-  <View style={styles.navigationContainer}>
+const NavigationButtons = ({ currentStep, onBack, onNext, onSubmit, isLoading }: NavigationButtonsProps) => {
+  const insets = useSafeAreaInsets();
+  return (
+  <View style={[styles.navigationContainer, { paddingBottom: Math.max(insets.bottom, SIZES.padding.md) }]}>
     <AppButton
       label={currentStep === 1 ? 'Cancel' : 'Back'}
       variant="outline"
@@ -415,7 +418,8 @@ const NavigationButtons = ({ currentStep, onBack, onNext, onSubmit, isLoading }:
       />
     )}
   </View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -469,18 +473,16 @@ const styles = StyleSheet.create({
   },
   navigationContainer: {
     flexDirection: 'row',
-    padding: SIZES.padding.md,
+    paddingTop: SIZES.padding.xl,
+    paddingHorizontal: SIZES.padding.md,
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     gap: SIZES.sm,
   },
   navButtonFlex: {
     flex: 1,
+    paddingBottom:10,
   },
   loadingOverlay: {
     position: 'absolute',

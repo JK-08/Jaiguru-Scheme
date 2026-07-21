@@ -1,16 +1,15 @@
 // styles.ts
-import { StyleSheet, Platform } from "react-native";
+import { StyleSheet } from "react-native";
 import { COLORS, SIZES, FONTS, SHADOWS } from "../../Utills/AppTheme";
 
 const styles = StyleSheet.create({
   footerContainer: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     backgroundColor: COLORS.white,
-    height: SIZES.tabBar.height,
+    minHeight: SIZES.tabBar.height,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    paddingBottom: Platform.OS === "ios" ? SIZES.padding.md : SIZES.padding.xs,
+    borderTopColor: COLORS.borderChampagne,
     paddingTop: SIZES.padding.xs,
     ...SHADOWS.md,
   },
@@ -78,18 +77,22 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: -SIZES.margin.xl,
   },
   centerIconWrap: {
     width: SIZES.icon.xl * 1.3,
     height: SIZES.icon.xl * 1.3,
     borderRadius: SIZES.radius.full,
-    backgroundColor: COLORS.accentDark,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 3,
     borderColor: COLORS.white,
-    ...SHADOWS.blue,
+    ...SHADOWS.gold,
+  },
+  centerIconActive: {
+    backgroundColor: COLORS.accentDark,
+  },
+  centerIconInactive: {
+    backgroundColor: COLORS.textSecondary,
   },
   centerActiveText: {
     fontSize: SIZES.font.xs,

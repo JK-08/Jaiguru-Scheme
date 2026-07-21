@@ -20,21 +20,24 @@ const generateDeviceId = async (): Promise<string> => {
 };
 
 export const deviceService = {
-  /** POST /device/register — registers (or re-registers) this device's Expo push token. */
-  registerDevice: async (expoToken: string, userId: string | number): Promise<boolean> => {
+  /** POST /device/register — registers (or re-registers) this device's FCM push token. */
+  registerDevice: async (fcmToken: string, userId: string | number): Promise<boolean> => {
     try {
       const deviceId = await generateDeviceId();
+
+      const payload = {
+        deviceId,
+        deviceType: 'mobile',
+        expoToken: null,
+        fcmToken,
+        userId,
+      };
+      console.log('📲 Register device payload:', payload);
 
       await callApi<Record<string, unknown>, unknown>({
         method: 'post',
         url: DEVICE.REGISTER,
-        data: {
-          deviceId,
-          deviceType: 'mobile',
-          expoToken,
-          fcmToken: '',
-          userId,
-        },
+        data: payload,
       });
 
       return true;

@@ -156,7 +156,7 @@ const OnboardingScreen: React.FC = () => {
   const lastSlide = ONBOARDING_DATA[ONBOARDING_DATA.length - 1];
 
   return (
-    <SafeAreaView style={styles.root}>
+    <View style={styles.root}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       {/* Animated luxury background — fills edge-to-edge, including behind the
@@ -246,7 +246,7 @@ const OnboardingScreen: React.FC = () => {
           )}
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -316,6 +316,7 @@ const styles = StyleSheet.create({
   ctaWrap: {
     marginTop: 22,
     alignItems: 'center',
+    // marginBottom:75
   },
   loginBtn: {
     marginTop: 16,

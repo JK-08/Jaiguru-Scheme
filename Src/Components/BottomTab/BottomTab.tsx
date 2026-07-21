@@ -12,6 +12,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES } from '../../Utills/AppTheme';
 import useNotifications from '../../api/hooks/Notifications/useNotifications';
@@ -36,6 +37,14 @@ interface BottomTabProps {
 
 const TABS: TabDef[] = [
   {
+    key: 'HOME',
+    label: 'Home',
+    screen: { name: 'MainDrawer', params: { screen: 'Home' } },
+    iconLib: 'MaterialCommunityIcons',
+    iconName: 'home',
+    isCenter: true,
+  },
+  {
     key: 'SCHEMES',
     label: 'My Schemes',
     screen: 'AllSchemes',
@@ -48,14 +57,6 @@ const TABS: TabDef[] = [
     screen: 'HelpCenter',
     iconLib: 'MaterialCommunityIcons',
     iconName: 'headset',
-  },
-  {
-    key: 'HOME',
-    label: 'Home',
-    screen: { name: 'MainDrawer', params: { screen: 'Home' } },
-    iconLib: 'MaterialCommunityIcons',
-    iconName: 'home',
-    isCenter: true,
   },
   {
     key: 'PROFILE',
@@ -108,7 +109,7 @@ const AnimatedTab = ({ tab, isActive, onPress, badgeCount = 0 }: AnimatedTabProp
 
     return (
       <TouchableOpacity style={styles.centerContainer} onPress={onPress} activeOpacity={0.8}>
-        <Animated.View style={[styles.centerIconWrap, { transform: [{ translateY: lift }, { scale }] }]}>
+        <Animated.View style={[styles.centerIconWrap, isActive ? styles.centerIconActive : styles.centerIconInactive, { transform: [{ translateY: lift }, { scale }] }]}>
           <IconComponent name={iconName as any} size={SIZES.icon.lg} color={COLORS.white} />
         </Animated.View>
         <Text style={isActive ? styles.centerActiveText : styles.centerInactiveText}>{tab.label}</Text>
@@ -140,6 +141,7 @@ const AnimatedTab = ({ tab, isActive, onPress, badgeCount = 0 }: AnimatedTabProp
 
 function BottomTab({ activeScreen }: BottomTabProps) {
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   // Only used for the Alerts tab's badge — each BottomTab instance is
   // remounted per-screen (it's not a persistent Tab.Navigator), so this
   // fetches fresh on every screen that renders the bar, plus refreshes
@@ -163,7 +165,7 @@ function BottomTab({ activeScreen }: BottomTabProps) {
   };
 
   return (
-    <View style={styles.footerContainer}>
+    <View style={[styles.footerContainer, { paddingBottom: Math.max(insets.bottom, SIZES.padding.xs) }]}>
       {TABS.map((tab) => (
         <AnimatedTab
           key={tab.key}

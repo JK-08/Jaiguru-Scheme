@@ -35,15 +35,13 @@ const resolveLogoUrl = (c: Company): string => {
   return `${API_BASE_URL}/uploads/companyLogo/default-logo.png`;
 };
 
-const openUrl = (url?: string) => url?.trim() && Linking.openURL(url);
+const openUrl = (url?: string | null) => url?.trim() && Linking.openURL(url);
 const openPhone = (phone: string) => Linking.openURL(`tel:${phone}`);
 const openEmail = (email: string) => Linking.openURL(`mailto:${email}`);
 const openMaps = (addr: string) => Linking.openURL(`https://maps.google.com/?q=${encodeURIComponent(addr)}`);
 
 // ─── Entrance animation wrapper ─────────────────────────────────────────────
-// Small fade + slide-up used to stagger each section in on mount — this is
-// the "animated / elegant" treatment requested, applied consistently across
-// the hero, company card, and every section below it.
+// Small fade + slide-up used to stagger each section in on mount.
 const FadeInUp = ({ delay = 0, children, style }: { delay?: number; children: React.ReactNode; style?: any }) => {
   const anim = useRef(new Animated.Value(0)).current;
 
@@ -102,7 +100,7 @@ const InfoRow = ({ icon, label, value, onPress, isLink, multiline }: InfoRowProp
 
 interface SocialButtonProps {
   iconName: string;
-  link?: string;
+  link?: string | null;
   label: string;
 }
 
@@ -126,9 +124,24 @@ const AppStoreButton = ({ iconName, link, label }: SocialButtonProps) => {
   );
 };
 
-const SectionWrapper = ({ title, delay, children }: { title: string; delay: number; children: React.ReactNode }) => {
-  const hasContent = React.Children.toArray(children).some(Boolean);
-  if (!hasContent) return null;
+// NOTE: `visible` is now computed explicitly by the caller from the actual
+// data fields, instead of being inferred from `children`. Inspecting
+// `children` doesn't work here because a child like `<InfoRow value={null} />`
+// is still a truthy React element even though InfoRow renders `null` — so the
+// old check always thought every section "had content" and showed empty
+// section headers when a company had no data for that section.
+const SectionWrapper = ({
+  title,
+  delay,
+  visible,
+  children,
+}: {
+  title: string;
+  delay: number;
+  visible: boolean;
+  children: React.ReactNode;
+}) => {
+  if (!visible) return null;
   return (
     <FadeInUp delay={delay} style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -203,9 +216,28 @@ const HelpCentreScreen = () => {
   // ── Derived values ──
   const fullAddress = [company.ADDRESS1, company.ADDRESS2, company.ADDRESS3].filter(Boolean).join(', ');
   const cityStateZip = [company.ADDRESS4, company.AREACODE].filter(Boolean).join(' – ');
-  const addressDisplay = [fullAddress, cityStateZip].filter(Boolean).join('\n');
+  const addressDisplay = [fullAddress, cityStateZip].filter(Boolean).join('\n') || null;
 
   const isActive = company.ACTIVE === 'Y';
+
+  // ── Explicit section visibility (fixes the "empty section header" bug) ──
+  const hasContact = Boolean(company.PHONE || company.EMAIL || addressDisplay);
+
+  const hasTax = Boolean(
+    company.GSTNO ||
+      company.PANNO ||
+      company.TINNO ||
+      company.TANNO ||
+      company.TDSNO ||
+      company.CSTNO ||
+      company.LOCALTAXNO
+  );
+
+  const hasSocial = Boolean(
+    company.FACEBOOKLINK || company.TWITTERLINK || company.INSTALINK || company.YOUTUBELINK || company.WHATSAPPLINK
+  );
+  const hasApps = Boolean(company.ANDROIDLINK || company.APPSTORELINK);
+  const hasDigital = Boolean(company.BASEURL || hasSocial || hasApps || company.GOOGLEBUSINESSLINK);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -255,7 +287,7 @@ const HelpCentreScreen = () => {
         </FadeInUp>
 
         {/* ── Contact ── */}
-        <SectionWrapper title="📞 Contact Information" delay={110}>
+        <SectionWrapper title="📞 Contact Information" delay={110} visible={hasContact}>
           <InfoRow icon="phone" label="Phone" value={company.PHONE} onPress={company.PHONE ? () => openPhone(company.PHONE!) : undefined} isLink />
           <InfoRow icon="email" label="Email" value={company.EMAIL} onPress={company.EMAIL ? () => openEmail(company.EMAIL!) : undefined} isLink />
           <InfoRow
@@ -269,7 +301,7 @@ const HelpCentreScreen = () => {
         </SectionWrapper>
 
         {/* ── Tax ── */}
-        <SectionWrapper title="💰 Tax Information" delay={160}>
+        <SectionWrapper title="💰 Tax Information" delay={160} visible={hasTax}>
           <InfoRow icon="qr-code" label="GST No" value={company.GSTNO} />
           <InfoRow icon="assignment" label="PAN No" value={company.PANNO} />
           <InfoRow icon="local-offer" label="TIN No" value={company.TINNO} />
@@ -280,7 +312,7 @@ const HelpCentreScreen = () => {
         </SectionWrapper>
 
         {/* ── Digital Presence ── */}
-        <SectionWrapper title="🌐 Digital Presence" delay={210}>
+        <SectionWrapper title="🌐 Digital Presence" delay={210} visible={hasDigital}>
           <InfoRow
             icon="language"
             label="Website"
@@ -289,8 +321,8 @@ const HelpCentreScreen = () => {
             isLink
           />
 
-          {/* Social Media – only render row if at least one link exists */}
-          {(company.FACEBOOKLINK || company.TWITTERLINK || company.INSTALINK || company.YOUTUBELINK || company.WHATSAPPLINK) && (
+          {/* Social Media */}
+          {hasSocial && (
             <View style={styles.socialSection}>
               <Text style={styles.subSectionLabel}>Social Media</Text>
               <View style={styles.socialGrid}>
@@ -304,7 +336,7 @@ const HelpCentreScreen = () => {
           )}
 
           {/* App Store Links */}
-          {(company.ANDROIDLINK || company.APPSTORELINK) && (
+          {hasApps && (
             <View style={styles.appSection}>
               <Text style={styles.subSectionLabel}>Mobile Apps</Text>
               <View style={styles.appRow}>

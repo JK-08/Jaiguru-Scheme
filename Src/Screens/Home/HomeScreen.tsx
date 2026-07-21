@@ -193,8 +193,8 @@ const HomeScreen = () => {
         statusBarBg="transparent"
         paddingHorizontal={0}
         paddingTop={0}
-        paddingBottom={SIZES.tabBar.height}
-        edges={['bottom']}
+        paddingBottom={SIZES.padding.md}
+        edges={[]}
         footer={<BottomTab activeScreen="HOME" />}
       >
         {/* Premium curved gold header with greeting + summary cards */}
