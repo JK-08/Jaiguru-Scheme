@@ -124,7 +124,7 @@ const OnboardingScreen: React.FC = () => {
 
   // ---- Completion + navigation ---------------------------------------------
   const finish = useCallback(
-    async (route: 'Login') => {
+    async (route: 'Login' | 'Register') => {
       try {
         await AsyncStorage.setItem('hasSeenOnboarding', 'true');
       } catch (err) {
@@ -138,7 +138,7 @@ const OnboardingScreen: React.FC = () => {
 
   const goNext = useCallback(() => {
     if (isLast) {
-      finish('Login');
+      finish('Register');
       return;
     }
     listRef.current?.scrollToOffset({ offset: (index + 1) * SCREEN_WIDTH, animated: true });
@@ -239,7 +239,8 @@ const OnboardingScreen: React.FC = () => {
               style={({ pressed }) => [styles.loginBtn, pressed && styles.loginPressed]}
             >
               <Text style={styles.loginText}>
-                Already a member? <Text style={styles.loginLink}>{lastSlide.secondaryLabel}</Text>
+                Already a member?{' '}
+                <Text style={styles.loginLink}>{lastSlide.secondaryLabel}</Text>
               </Text>
             </Pressable>
           )}

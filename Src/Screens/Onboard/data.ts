@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------------
 
 import type { MaterialCommunityIcons } from '@expo/vector-icons';
+import { COLORS } from '../../Utills/AppTheme';
 
 /** Any valid MaterialCommunityIcons glyph name. */
 export type MCIconName = keyof typeof MaterialCommunityIcons.glyphMap;
@@ -63,13 +64,14 @@ export interface OnboardingSlide {
   readonly collections?: readonly CollectionTag[];
 }
 
-// Champagne-gold luxury palette (kept local so the flow is self-contained).
-export const GOLD = '#D4AF37';
-export const GOLD_LIGHT = '#F4E5B5';
-export const GOLD_DEEP = '#B8860B';
-export const CHAMPAGNE = '#F7ECD2';
-export const INK = '#1A1D23';
-export const INK_SOFT = '#5F6368';
+// Champagne-gold luxury palette — sourced entirely from the global AppTheme so
+// the onboarding shares one design system with the rest of the app.
+export const GOLD = COLORS.accent; // #D4AF37
+export const GOLD_LIGHT = COLORS.accentLight; // #F4E5B5
+export const GOLD_DEEP = COLORS.accentDark; // #B8860B
+export const CHAMPAGNE = COLORS.champagne; // #F7ECD2
+export const INK = COLORS.textPrimary;
+export const INK_SOFT = COLORS.textSecondary;
 
 export const ONBOARDING_DATA: readonly OnboardingSlide[] = [
   {

@@ -45,6 +45,14 @@ export const COLORS = {
   accent: "#D4AF37", // Rich Gold
   accentLight: "#F4E5B5", // Champagne Gold
   accentDark: "#B8860B", // Dark Golden Rod
+  accentOpacity20: "rgba(212, 175, 55, 0.2)", // Rich gold @20%
+  accentOpacity30: "rgba(212, 175, 55, 0.3)", // Rich gold @30%
+
+  // ===== CHAMPAGNE / LUXURY SURFACES =====
+  champagne: "#F7ECD2", // Soft champagne
+  champagneSoft: "#FBF4E4", // Lighter champagne wash
+  textOnGold: "#3A2E05", // Deep brown text for gold buttons
+  borderChampagne: "#EFE8DA", // Soft gold-tinted border
 
   // ===== NEUTRAL COLORS =====
   white: "#FFFFFF",
@@ -192,6 +200,9 @@ export const COLORS = {
     goldDark: ["#CCA900", "#FFD700"], // Dark to light gold
     luxuryGold: ["#D4AF37", "#FFD700", "#F4E5B5"], // Luxury gold
     shimmer: ["#FFD700", "#FFF4CC", "#FFD700"], // Gold shimmer
+    champagneGold: ["#F4E5B5", "#D4AF37", "#B8860B"], // Champagne → rich → deep gold (CTAs, medallions)
+    champagneSurface: ["#FFFFFF", "#FFFBF0", "#F7ECD2"], // Soft luxury page wash
+    shine: ["rgba(255,255,255,0)", "rgba(255,255,255,0.85)", "rgba(255,255,255,0)"], // Highlight sweep
 
     // Blue & Gold combinations
     blueToGold: ["#2E3192", "#FFD700"], // Indigo to Gold

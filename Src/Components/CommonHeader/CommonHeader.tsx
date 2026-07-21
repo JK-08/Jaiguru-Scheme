@@ -43,6 +43,8 @@ interface HeaderProps {
   transparent?: boolean;
   animated?: boolean;
   centerTitle?: boolean;
+  /** Status bar content style. Defaults to 'dark-content' for the light theme. */
+  barStyle?: 'light-content' | 'dark-content' | 'default';
 
   leftComponent?: React.ReactNode;
   rightComponent?: React.ReactNode;
@@ -68,7 +70,7 @@ const Header = ({
   /* ───────────── Right ───────────── */
   rightIconName = null,
   rightIconSize = moderateScale(24),
-  rightIconColor = COLORS.white,
+  rightIconColor = COLORS.accentDark,
   onRightPress = null,
 
   /* ───────────── UI ───────────── */
@@ -78,6 +80,7 @@ const Header = ({
   transparent = false,
   animated = true,
   centerTitle = true,
+  barStyle = 'dark-content',
 
   /* ───────────── Custom Slots ───────────── */
   leftComponent = null,
@@ -90,7 +93,7 @@ const Header = ({
   const navigation = useNavigation<any>();
 
   const resolvedLeftIconName = leftIconName || backIconName || 'arrow-back';
-  const resolvedLeftIconColor = leftIconColor || backIconColor || COLORS.white;
+  const resolvedLeftIconColor = leftIconColor || backIconColor || COLORS.accentDark;
 
   const slideAnim = useRef(new Animated.Value(animated ? -40 : 0)).current;
   const fadeAnim = useRef(new Animated.Value(animated ? 0 : 1)).current;
@@ -120,7 +123,7 @@ const Header = ({
   return (
     <>
       <StatusBar
-        barStyle="light-content"
+        barStyle={barStyle}
         backgroundColor={transparent ? 'transparent' : backgroundColor}
         translucent={transparent}
       />
@@ -235,7 +238,7 @@ const styles = StyleSheet.create({
   },
   borderBottom: {
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: COLORS.borderChampagne,
   },
   shadow: {
     ...SHADOWS.sm,
@@ -272,7 +275,7 @@ const styles = StyleSheet.create({
     width: moderateScale(40),
     height: moderateScale(40),
     borderRadius: SIZES.radius.full,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accentOpacity20,
     justifyContent: 'center',
     alignItems: 'center',
   },

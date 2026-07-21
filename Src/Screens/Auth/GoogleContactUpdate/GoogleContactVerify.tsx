@@ -1,12 +1,49 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, SafeAreaView } from 'react-native';
+// Src/Screens/Auth/GoogleContactUpdate/GoogleContactVerify.tsx
+// -----------------------------------------------------------------------------
+// Verifies the OTP sent to a Google user's new mobile number, then persists the
+// session and continues to MPIN. Premium champagne-gold design matching Login.
+// All auth logic (verifyGoogleOtp / requestGoogleOtp / saveAuthData) preserved.
+// -----------------------------------------------------------------------------
+
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Alert,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { getHash, useOtpVerify, removeListener } from 'react-native-otp-verify';
+import Animated, {
+  Easing,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
+
 import useAuth from '../../../api/hooks/Auth/useAuth';
-import CommonHeader from '../../../Components/CommonHeader/CommonHeader';
 import theme from '../../../Utills/AppTheme';
 import { saveAuthData } from '../../../Utills/AsynchStorageHelper';
-import { AppOTPInput, AppButton } from '../../../Components/ui/appcomponents';
+import { AppOTPInput } from '../../../Components/ui/appcomponents';
+import CommonHeader from '../../../Components/CommonHeader/CommonHeader';
+import LoginButton from '../Login/components/LoginButton';
+import GoldParticles from '../Login/components/GoldParticles';
 
 const { COLORS, SIZES, FONTS, SHADOWS } = theme;
+const { width, height } = Dimensions.get('window');
+
+const BG_GRADIENT = COLORS.gradient.champagneSurface as [string, string, string];
+const MEDALLION_GRADIENT = COLORS.gradient.champagneGold as [string, string, string];
+const MEDALLION = SIZES.icon.xxxxl + SIZES.md;
+const RESEND_SECONDS = 30;
 
 interface Props {
   route: { params: { userId?: string; mobile: string } };
@@ -15,153 +52,278 @@ interface Props {
 
 const GoogleContactOtpScreen = ({ route, navigation }: Props) => {
   const { userId, mobile } = route.params;
-  const { verifyGoogleOtp, loading, error } = useAuth();
+  const { verifyGoogleOtp, requestGoogleOtp, loading, error } = useAuth();
 
   const [otp, setOtp] = useState('');
-  const [timer, setTimer] = useState(30);
+  const [timer, setTimer] = useState(RESEND_SECONDS);
   const [canResend, setCanResend] = useState(false);
 
-  useEffect(() => {
-    let interval: ReturnType<typeof setInterval> | null = null;
-    if (timer > 0 && !canResend) {
-      interval = setInterval(() => {
-        setTimer((prevTimer) => {
-          if (prevTimer <= 1) {
-            setCanResend(true);
-            if (interval) clearInterval(interval);
-            return 0;
-          }
-          return prevTimer - 1;
-        });
-      }, 1000);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [timer, canResend]);
+  // Auto SMS OTP capture (Android). Reads the OTP from the incoming SMS that
+  // matches the app hash so the user doesn't have to type it.
+  const { message, startListener, stopListener } = useOtpVerify({ numberOfDigits: 6 });
+  // Prevents double submission when auto-detect + onComplete fire together.
+  const submittingRef = useRef(false);
 
-  const handleVerifyOtp = async () => {
+  const enter = useSharedValue(0);
+  useEffect(() => {
+    enter.value = withTiming(1, { duration: 650, easing: Easing.out(Easing.cubic) });
+  }, [enter]);
+
+  const contentStyle = useAnimatedStyle(() => ({
+    opacity: enter.value,
+    transform: [{ translateY: interpolate(enter.value, [0, 1], [28, 0]) }],
+  }));
+
+  useEffect(() => {
+    if (timer <= 0) {
+      setCanResend(true);
+      return;
+    }
+    const interval = setInterval(() => setTimer((t) => Math.max(t - 1, 0)), 1000);
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  // Core verification — accepts the code directly so auto-detect can submit
+  // without waiting for a state update. Guarded against concurrent calls.
+  const submitOtp = useCallback(
+    async (code: string) => {
+      if (code.length < 6 || submittingRef.current || loading) return;
+      submittingRef.current = true;
+
+      try {
+        const result: any = await verifyGoogleOtp({ newContactNumber: mobile, otp: code, userId });
+        console.log('OTP Verify Result:', result);
+
+        if (result && !result.error) {
+          const saveResult = await saveAuthData(result);
+          if (saveResult.success) {
+            Alert.alert('Success', 'Mobile number verified successfully!', [
+              { text: 'Continue', onPress: () => navigation.replace('MpinVerify') },
+            ]);
+          } else {
+            Alert.alert('Storage Error', saveResult.error ?? 'Could not save session');
+          }
+        }
+      } finally {
+        submittingRef.current = false;
+      }
+    },
+    [loading, mobile, userId, verifyGoogleOtp, navigation],
+  );
+
+  const handleVerifyOtp = () => {
     if (otp.length < 6) {
       Alert.alert('Invalid OTP', 'Please enter the complete 6-digit OTP');
       return;
     }
+    submitOtp(otp);
+  };
 
-    const result: any = await verifyGoogleOtp({ newContactNumber: mobile, otp, userId });
+  // ---- Start the SMS retriever on mount (Android only) ----------------------
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    let active = true;
 
-    console.log('OTP Verify Result:', result);
-
-    if (result && !result.error) {
-      const saveResult = await saveAuthData(result);
-
-      if (saveResult.success) {
-        Alert.alert('Success', 'Mobile number verified successfully!', [
-          { text: 'Continue', onPress: () => navigation.replace('MpinVerify') },
-        ]);
-      } else {
-        Alert.alert('Storage Error', saveResult.error);
+    (async () => {
+      try {
+        await getHash(); // app hash the SMS must contain to be auto-read
+        if (active) startListener?.();
+      } catch (err) {
+        console.log('OTP auto-detect unavailable:', err);
       }
+    })();
+
+    return () => {
+      active = false;
+      try {
+        removeListener();
+        stopListener?.();
+      } catch {
+        /* noop */
+      }
+    };
+  }, [startListener, stopListener]);
+
+  // ---- Parse the captured SMS, fill the boxes, and auto-verify --------------
+  useEffect(() => {
+    if (!message) return;
+    const match = /(\d{6})/.exec(message);
+    if (match?.[1]) {
+      const detected = match[1];
+      setOtp(detected);
+      submitOtp(detected);
+    }
+  }, [message, submitOtp]);
+
+  const handleResend = async () => {
+    if (!canResend) return;
+    const result: any = await requestGoogleOtp({ userId: userId ?? '', newContactNumber: mobile });
+    if (!result?.error) {
+      setOtp('');
+      setTimer(RESEND_SECONDS);
+      setCanResend(false);
+      submittingRef.current = false;
+      try {
+        startListener?.(); // listen again for the new code
+      } catch {
+        /* noop */
+      }
+      Alert.alert('OTP Resent', `A new verification code has been sent to ${mobile}`);
     }
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <CommonHeader title="Verify OTP" />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.flex}>
-        <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false} bounces={false}>
-          <View style={styles.container}>
-            <View style={styles.decorativeCircle1} />
-            <View style={styles.decorativeCircle2} />
+    <View style={styles.root}>
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <LinearGradient colors={BG_GRADIENT} style={StyleSheet.absoluteFill} />
+        <GoldParticles width={width} height={height} />
+      </View>
 
-            <View style={styles.iconContainer}>
-              <View style={styles.iconWrapper}>
-                <Text style={styles.iconText}>🔐</Text>
+      <CommonHeader title="Verify OTP" transparent borderBottom={false} shadow={false} />
+
+      <SafeAreaView style={styles.safe} edges={['bottom']}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
+          <ScrollView
+            contentContainerStyle={styles.scroll}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            bounces={false}
+          >
+            <Animated.View style={contentStyle}>
+              <View style={styles.medallionWrap}>
+                <LinearGradient colors={MEDALLION_GRADIENT} style={styles.medallion} start={{ x: 0.1, y: 0.1 }} end={{ x: 0.9, y: 0.9 }}>
+                  <View style={styles.medallionInner}>
+                    <MaterialCommunityIcons name="shield-lock" size={SIZES.icon.xxl} color={COLORS.accentDark} />
+                  </View>
+                </LinearGradient>
               </View>
-            </View>
 
-            <View style={styles.headerContainer}>
               <Text style={styles.title}>Enter Verification Code</Text>
-              <Text style={styles.subtitle}>We've sent a 6-digit verification code to</Text>
-              <View style={styles.phoneContainer}>
-                <Text style={styles.phoneIcon}>📱</Text>
+              <Text style={styles.subtitle}>We&apos;ve sent a 6-digit code to</Text>
+              <View style={styles.phoneChip}>
+                <MaterialCommunityIcons name="cellphone" size={SIZES.icon.xs} color={COLORS.accentDark} />
                 <Text style={styles.phoneNumber}>{mobile}</Text>
               </View>
-            </View>
 
-            <View style={styles.otpContainer}>
-              <AppOTPInput length={6} onChangeText={setOtp} error={!!error} errorMessage={error || undefined} autoFocus />
-            </View>
+              <View style={styles.otpContainer}>
+                <AppOTPInput
+                  length={6}
+                  value={otp}
+                  onChangeText={setOtp}
+                  onComplete={submitOtp}
+                  error={!!error}
+                  errorMessage={error || undefined}
+                  autoFocus
+                />
+              </View>
 
-            <AppButton
-              label="Verify & Continue"
-              onPress={handleVerifyOtp}
-              disabled={loading || otp.length < 6}
-              loading={loading}
-              variant="gold"
-              size="lg"
-              rightIcon="checkmark"
-              style={styles.button}
-            />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+              <LoginButton
+                label="Verify & Continue"
+                onPress={handleVerifyOtp}
+                loading={loading}
+                disabled={loading || otp.length < 6}
+                icon="check-decagram"
+              />
+
+              <View style={styles.resendRow}>
+                {canResend ? (
+                  <Pressable onPress={handleResend} hitSlop={8} accessibilityRole="button">
+                    <Text style={styles.resendLink}>Resend Code</Text>
+                  </Pressable>
+                ) : (
+                  <Text style={styles.resendMuted}>
+                    Resend code in 0:{timer.toString().padStart(2, '0')}
+                  </Text>
+                )}
+              </View>
+            </Animated.View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 };
 
 export default GoogleContactOtpScreen;
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: COLORS.background },
+  root: { flex: 1, backgroundColor: COLORS.background },
+  safe: { flex: 1 },
   flex: { flex: 1 },
-  scrollContainer: { flexGrow: 1 },
-  container: { flex: 1, padding: SIZES.padding.xl, position: 'relative' },
-  decorativeCircle1: {
-    position: 'absolute',
-    top: -SIZES.xxxl,
-    right: -SIZES.xxl,
-    width: SIZES.xxxl * 2,
-    height: SIZES.xxxl * 2,
-    borderRadius: SIZES.radius.xxxl,
-    backgroundColor: COLORS.blueOpacity10,
-    zIndex: 0,
+  scroll: {
+    flexGrow: 1,
+    paddingHorizontal: SIZES.padding.container,
+    paddingTop: SIZES.xl,
+    paddingBottom: SIZES.xl,
   },
-  decorativeCircle2: {
-    position: 'absolute',
-    bottom: -SIZES.xxl,
-    left: -SIZES.xxl,
-    width: SIZES.xxxl * 1.5,
-    height: SIZES.xxxl * 1.5,
-    borderRadius: SIZES.radius.xxxl,
-    backgroundColor: COLORS.goldOpacity10,
-    zIndex: 0,
+  medallionWrap: {
+    alignSelf: 'center',
+    borderRadius: MEDALLION / 2,
+    ...SHADOWS.goldStrong,
+    shadowColor: COLORS.accent,
+    marginBottom: SIZES.lg,
   },
-  iconContainer: { alignItems: 'center', marginTop: SIZES.xl, marginBottom: SIZES.lg, zIndex: 1 },
-  iconWrapper: {
-    width: SIZES.xxxl * 1.2,
-    height: SIZES.xxxl * 1.2,
-    borderRadius: SIZES.radius.xxxl,
-    backgroundColor: COLORS.goldOpacity10,
-    justifyContent: 'center',
+  medallion: {
+    width: MEDALLION,
+    height: MEDALLION,
+    borderRadius: MEDALLION / 2,
     alignItems: 'center',
-    ...SHADOWS.gold,
+    justifyContent: 'center',
   },
-  iconText: { fontSize: SIZES.heading.h1 },
-  headerContainer: { marginBottom: SIZES.xl, zIndex: 1 },
-  title: { ...FONTS.h1, color: COLORS.primary, textAlign: 'center', marginBottom: SIZES.sm },
-  subtitle: { ...FONTS.bodySmall, color: COLORS.textSecondary, textAlign: 'center' },
-  phoneContainer: {
+  medallionInner: {
+    width: MEDALLION - SIZES.md,
+    height: MEDALLION - SIZES.md,
+    borderRadius: (MEDALLION - SIZES.md) / 2,
+    backgroundColor: COLORS.whiteOpacity80,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: {
+    fontFamily: FONTS.family.bold,
+    fontSize: SIZES.heading.h3,
+    color: COLORS.textPrimary,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontFamily: FONTS.family.regular,
+    fontSize: SIZES.font.md,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginTop: SIZES.sm,
+  },
+  phoneChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: SIZES.xs,
-    backgroundColor: COLORS.blueOpacity10,
+    alignSelf: 'center',
+    backgroundColor: COLORS.accentOpacity20,
     paddingVertical: SIZES.xs,
     paddingHorizontal: SIZES.md,
     borderRadius: SIZES.radius.full,
-    alignSelf: 'center',
+    marginTop: SIZES.sm,
+    marginBottom: SIZES.xl,
   },
-  phoneIcon: { fontSize: SIZES.font.md, marginRight: SIZES.font.xxs },
-  phoneNumber: { ...FONTS.bodyBold, color: COLORS.primary },
-  otpContainer: { alignItems: 'center', marginBottom: SIZES.lg, zIndex: 1 },
-  button: { marginBottom: SIZES.lg, zIndex: 1 },
+  phoneNumber: {
+    fontFamily: FONTS.family.bold,
+    fontSize: SIZES.font.md,
+    color: COLORS.textPrimary,
+    marginLeft: SIZES.xs,
+  },
+  otpContainer: {
+    alignItems: 'center',
+    marginBottom: SIZES.xl,
+  },
+  resendRow: {
+    alignItems: 'center',
+    marginTop: SIZES.lg,
+  },
+  resendLink: {
+    fontFamily: FONTS.family.bold,
+    fontSize: SIZES.font.md,
+    color: COLORS.accentDark,
+  },
+  resendMuted: {
+    fontFamily: FONTS.family.medium,
+    fontSize: SIZES.font.md,
+    color: COLORS.textSecondary,
+  },
 });

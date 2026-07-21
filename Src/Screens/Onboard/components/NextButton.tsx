@@ -21,6 +21,8 @@ import Animated, {
 import theme from '../../../Utills/AppTheme';
 import { GOLD, GOLD_DEEP, GOLD_LIGHT } from '../data';
 
+const { COLORS } = theme;
+
 const AnimatedGradient = Animated.createAnimatedComponent(LinearGradient);
 
 export interface NextButtonProps {
@@ -89,7 +91,7 @@ const NextButton: React.FC<NextButtonProps> = ({
             <MaterialCommunityIcons
               name="arrow-right"
               size={20}
-              color="#3A2E05"
+              color={COLORS.textOnGold}
               style={styles.arrow}
             />
           )}
@@ -132,7 +134,7 @@ const styles = StyleSheet.create({
     fontFamily: theme.FONTS.family.bold,
     fontSize: 16,
     letterSpacing: 0.5,
-    color: '#3A2E05',
+    color: COLORS.textOnGold,
   },
   arrow: {
     marginLeft: 8,

@@ -17,6 +17,7 @@ import ErrorBoundary from './Src/Components/ErrorBoundary';
 import { AppToastProvider } from './Src/Components/ui/appcomponents';
 import NotificationBanner from './Src/Components/NotificationBanner/NotificationBanner';
 
+
 export default function App() {
   const [appReady, setAppReady] = useState(false);
 
