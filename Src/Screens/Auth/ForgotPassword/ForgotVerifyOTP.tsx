@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import useAuth from '../../../api/hooks/Auth/useAuth';
 import CommonHeader from '../../../Components/CommonHeader/CommonHeader';
+import PremiumBackground from '../../../Components/PremiumBackground/PremiumBackground';
 import theme from '../../../Utills/AppTheme';
 import { AppOTPInput, AppOTPInputRef, AppInput, AppButton } from '../../../Components/ui/appcomponents';
 
@@ -83,7 +84,8 @@ const ForgotVerifyOTPScreen = ({ route, navigation }: Props) => {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
-      <CommonHeader title="Verify OTP" />
+      <PremiumBackground />
+      <CommonHeader title="Verify OTP" transparent borderBottom={false} shadow={false} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} bounces={false} keyboardShouldPersistTaps="handled">
         <View style={styles.blueAccent} />
@@ -195,7 +197,7 @@ const styles = StyleSheet.create({
     left: 0,
     width: SIZES.screen.width * 0.28,
     height: SIZES.screen.width * 0.28,
-    backgroundColor: COLORS.blueOpacity10,
+    backgroundColor: COLORS.accentOpacity20,
     borderBottomRightRadius: SIZES.radius.xxxl,
   },
   goldAccent: {
@@ -214,20 +216,20 @@ const styles = StyleSheet.create({
     width: SIZES.icon.xxxl,
     height: SIZES.icon.xxxl,
     borderRadius: SIZES.icon.xxxl / 2,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accentDark,
     justifyContent: 'center',
     alignItems: 'center',
     ...SHADOWS.blue,
   },
   iconText: { fontSize: SIZES.font.xxl, color: COLORS.white, fontWeight: 'bold', lineHeight: SIZES.font.xxl * 1.2 },
-  title: { ...FONTS.h2, color: COLORS.primary, marginBottom: SIZES.margin.xs, textAlign: 'center' },
+  title: { ...FONTS.h2, color: COLORS.accentDark, marginBottom: SIZES.margin.xs, textAlign: 'center' },
   subtitle: { ...FONTS.bodySmall, color: COLORS.textSecondary, textAlign: 'center', paddingHorizontal: SIZES.padding.lg, lineHeight: SIZES.font.sm * 1.6 },
-  phoneNumber: { ...FONTS.bodyBold, color: COLORS.primary },
+  phoneNumber: { ...FONTS.bodyBold, color: COLORS.accentDark },
   otpContainer: { marginBottom: SIZES.margin.md, alignItems: 'center' },
   timerContainer: { alignItems: 'center', marginBottom: SIZES.margin.lg, minHeight: 24 },
   timerText: { ...FONTS.bodySmall, color: COLORS.textSecondary },
-  timerBold: { ...FONTS.bodyBold, color: COLORS.primary },
-  resendText: { ...FONTS.bodyMedium, color: COLORS.primary, textDecorationLine: 'underline' },
+  timerBold: { ...FONTS.bodyBold, color: COLORS.accentDark },
+  resendText: { ...FONTS.bodyMedium, color: COLORS.accentDark, textDecorationLine: 'underline' },
   resendDisabled: { color: COLORS.gray400, textDecorationLine: 'none' },
   dividerContainer: { flexDirection: 'row', alignItems: 'center', marginVertical: SIZES.margin.lg },
   dividerLine: { flex: 1, height: 1, backgroundColor: COLORS.gray300 },
@@ -248,7 +250,7 @@ const styles = StyleSheet.create({
   indicatorText: { ...FONTS.bodySmall, color: COLORS.textSecondary, flex: 1 },
   validText: { color: COLORS.success },
   backToLogin: { marginTop: SIZES.margin.md, alignSelf: 'center', paddingVertical: SIZES.padding.sm, paddingHorizontal: SIZES.padding.lg },
-  backToLoginText: { ...FONTS.bodyMedium, color: COLORS.primary, textDecorationLine: 'underline' },
+  backToLoginText: { ...FONTS.bodyMedium, color: COLORS.accentDark, textDecorationLine: 'underline' },
 });
 
 export default ForgotVerifyOTPScreen;

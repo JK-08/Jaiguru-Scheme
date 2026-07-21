@@ -19,7 +19,7 @@ export function navigate(name: string, params?: Record<string, any>) {
     console.log('[navigationRef] navigate() called before container was ready — ignoring', { name, params });
     return;
   }
-  navigationRef.navigate(name as never, params as never);
+  (navigationRef.navigate as any)(name, params);
 }
 
 // ─── Notification deep-link resolution ──────────────────────────────────────

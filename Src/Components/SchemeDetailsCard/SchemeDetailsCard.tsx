@@ -358,7 +358,7 @@ export default function SchemeDetailsCard({ layout = 'horizontal', filter = 'all
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: 'transparent',
   },
   containerVertical: {
     paddingBottom: SIZES.padding.lg,

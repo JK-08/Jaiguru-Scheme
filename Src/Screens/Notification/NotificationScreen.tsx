@@ -8,6 +8,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import useNotifications, { FormattedNotification } from '../../api/hooks/Notifications/useNotifications';
 import { notificationService } from '../../api/services/notificationService';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
+import PremiumBackground from '../../Components/PremiumBackground/PremiumBackground';
 import BottomTab from '../../Components/BottomTab/BottomTab';
 import theme from '../../Utills/AppTheme';
 
@@ -84,9 +85,9 @@ const NotificationScreen = () => {
     } else if (title?.toLowerCase().includes('gold') || title?.toLowerCase().includes('silver')) {
       return { name: 'gold', color: COLORS.goldDark, bg: COLORS.goldOpacity10 };
     } else if (title?.toLowerCase().includes('scheme')) {
-      return { name: 'account-cash', color: COLORS.primaryLight, bg: COLORS.blueOpacity10 };
+      return { name: 'account-cash', color: COLORS.accent, bg: COLORS.accentOpacity20 };
     }
-    return { name: 'bell-outline', color: COLORS.primary, bg: COLORS.primaryPale };
+    return { name: 'bell-outline', color: COLORS.accentDark, bg: COLORS.accentLight };
   };
 
   interface NotificationItemProps {
@@ -187,9 +188,10 @@ const NotificationScreen = () => {
   if (loading && notifications.length === 0) {
     return (
       <View style={styles.container}>
-        <CommonHeader title="Notifications" />
+        <PremiumBackground />
+        <CommonHeader title="Notifications" transparent borderBottom={false} shadow={false} />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <ActivityIndicator size="large" color={COLORS.accentDark} />
           <Text style={styles.loadingText}>Loading notifications...</Text>
         </View>
       </View>
@@ -218,7 +220,8 @@ const NotificationScreen = () => {
 
   return (
     <View style={styles.container}>
-      <CommonHeader title="Notifications" rightComponent={headerRight} />
+      <PremiumBackground />
+      <CommonHeader title="Notifications" rightComponent={headerRight} transparent borderBottom={false} shadow={false} />
 
       <SectionList
         sections={sections}
@@ -227,12 +230,12 @@ const NotificationScreen = () => {
         renderSectionHeader={renderSectionHeader}
         stickySectionHeadersEnabled={false}
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={refresh} colors={[COLORS.primary]} tintColor={COLORS.primary} progressBackgroundColor="#fff" />
+          <RefreshControl refreshing={loading} onRefresh={refresh} colors={[COLORS.accentDark]} tintColor={COLORS.accentDark} progressBackgroundColor="#fff" />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <LinearGradient colors={[COLORS.primaryPale, COLORS.blueLight]} style={styles.emptyIconContainer}>
-              <MaterialCommunityIcons name="bell-off-outline" size={64} color={COLORS.primary} />
+            <LinearGradient colors={[COLORS.accentLight, COLORS.accentLight]} style={styles.emptyIconContainer}>
+              <MaterialCommunityIcons name="bell-off-outline" size={64} color={COLORS.accentDark} />
             </LinearGradient>
             <Text style={styles.emptyText}>All Caught Up!</Text>
             <Text style={styles.emptySubText}>You have no notifications at the moment</Text>
@@ -264,7 +267,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accentDark,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -293,7 +296,7 @@ const styles = StyleSheet.create({
       android: { elevation: 2 },
     }),
   },
-  accentBar: { width: 4, borderRadius: 2, backgroundColor: COLORS.primary, marginRight: 10 },
+  accentBar: { width: 4, borderRadius: 2, backgroundColor: COLORS.accentDark, marginRight: 10 },
   cardContent: { flex: 1, flexDirection: 'row', gap: 12 },
 
   iconContainer: {
@@ -321,7 +324,7 @@ const styles = StyleSheet.create({
   unreadTitle: { fontWeight: '700' },
   message: { fontSize: 13, color: COLORS.textSecondary, lineHeight: 18 },
   date: { fontSize: 11, color: COLORS.textTertiary, fontWeight: '500' },
-  expandHint: { fontSize: 11, color: COLORS.primary, fontWeight: '600', marginTop: 4 },
+  expandHint: { fontSize: 11, color: COLORS.accentDark, fontWeight: '600', marginTop: 4 },
 
   deleteSwipe: { width: 84 },
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity } from 'react-native';
 import useAuth from '../../../api/hooks/Auth/useAuth';
 import CommonHeader from '../../../Components/CommonHeader/CommonHeader';
+import PremiumBackground from '../../../Components/PremiumBackground/PremiumBackground';
 import theme from '../../../Utills/AppTheme';
 import { AppInput, AppButton } from '../../../Components/ui/appcomponents';
 
@@ -38,7 +39,8 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
-      <CommonHeader title="Forgot Password" />
+      <PremiumBackground />
+      <CommonHeader title="Forgot Password" transparent borderBottom={false} shadow={false} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} bounces={false}>
         <View style={styles.goldAccent} />
@@ -104,19 +106,19 @@ const styles = StyleSheet.create({
     width: SIZES.icon.xxxxl,
     height: SIZES.icon.xxxxl,
     borderRadius: SIZES.radius.xxxl,
-    backgroundColor: COLORS.primaryPale,
+    backgroundColor: COLORS.accentLight,
     justifyContent: 'center',
     alignItems: 'center',
     ...SHADOWS.blue,
   },
   iconText: { fontSize: SIZES.icon.xxxl },
   content: { flex: 1, paddingHorizontal: SIZES.padding.xl, paddingTop: SIZES.padding.md },
-  title: { ...FONTS.h2, color: COLORS.primary, marginBottom: SIZES.margin.sm, textAlign: 'center' },
+  title: { ...FONTS.h2, color: COLORS.accentDark, marginBottom: SIZES.margin.sm, textAlign: 'center' },
   subtitle: { ...FONTS.bodySmall, color: COLORS.textSecondary, textAlign: 'center', marginBottom: SIZES.margin.xl, paddingHorizontal: SIZES.padding.md },
   inputWrapper: { marginBottom: SIZES.margin.xl },
   button: { marginTop: SIZES.margin.sm },
   backToLogin: { marginTop: SIZES.margin.xl, alignItems: 'center', padding: SIZES.padding.md },
-  backToLoginText: { ...FONTS.bodyMedium, color: COLORS.primary, textDecorationLine: 'underline' },
+  backToLoginText: { ...FONTS.bodyMedium, color: COLORS.accentDark, textDecorationLine: 'underline' },
 });
 
 export default ForgotPasswordScreen;

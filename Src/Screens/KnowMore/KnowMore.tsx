@@ -3,6 +3,7 @@ import { View, ScrollView, StyleSheet, Text, SafeAreaView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
+import PremiumBackground from '../../Components/PremiumBackground/PremiumBackground';
 import { COLORS, SIZES, FONTS, SHADOWS, moderateScale, verticalScale } from '../../Utills/AppTheme';
 
 interface Step {
@@ -32,7 +33,7 @@ function KnowMore() {
   const StepItem = ({ icon, text }: Step) => (
     <View style={styles.stepRow}>
       <View style={styles.stepIconWrap}>
-        <Icon name={icon} size={moderateScale(22)} color={COLORS.primary} />
+        <Icon name={icon} size={moderateScale(22)} color={COLORS.accentDark} />
       </View>
       <Text style={styles.stepText}>{text}</Text>
     </View>
@@ -51,7 +52,8 @@ function KnowMore() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <CommonHeader title="Know More" onBackPress={() => navigation.goBack()} />
+      <PremiumBackground />
+      <CommonHeader title="Know More" onBackPress={() => navigation.goBack()} transparent borderBottom={false} shadow={false} />
 
       <ScrollView
         contentContainerStyle={styles.content}
@@ -151,7 +153,7 @@ const styles = StyleSheet.create({
   // Hero
   heroBanner: {
     alignItems: 'center',
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accentDark,
     borderRadius: SIZES.radius.lg,
     paddingVertical: SIZES.padding.xl,
     marginBottom: SIZES.margin.md,
@@ -201,14 +203,14 @@ const styles = StyleSheet.create({
   sectionTitleBar: {
     width: moderateScale(4),
     height: moderateScale(18),
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accentDark,
     borderRadius: SIZES.radius.full,
     marginRight: SIZES.sm,
   },
   sectionTitle: {
     fontFamily: FONTS.family.bold,
     fontSize: SIZES.font.lg,
-    color: COLORS.primary,
+    color: COLORS.accentDark,
   },
 
   // Sub Heading
@@ -244,9 +246,9 @@ const styles = StyleSheet.create({
     height: moderateScale(44),
     borderRadius: SIZES.radius.full,
     borderWidth: 1.5,
-    borderColor: COLORS.primary,
+    borderColor: COLORS.accentDark,
     borderStyle: 'dashed',
-    backgroundColor: COLORS.primaryPale,
+    backgroundColor: COLORS.accentLight,
     alignItems: 'center',
     justifyContent: 'center',
   },

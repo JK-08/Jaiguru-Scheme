@@ -5,6 +5,7 @@ import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { useRazorpayPayment } from '../../api/hooks/Razorpay/useRazorpay';
 import RazorpayWebView from '../../Components/RazorpayWebView';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
+import PremiumBackground from '../../Components/PremiumBackground/PremiumBackground';
 import { AppCard, AppText, AppButton, AppBadge, AppDivider, ScreenWrapper } from '../../Components/ui/appcomponents';
 import theme from '../../Utills/AppTheme';
 
@@ -165,7 +166,7 @@ const PayNow = () => {
           <AppText variant="body" color={COLORS.textSecondary} align="center" style={styles.statusSpacing}>
             {formatCurrency(paymentAmount)} paid successfully
           </AppText>
-          <AppText variant="bodyBold" color={COLORS.primary} style={styles.statusDetail}>
+          <AppText variant="bodyBold" color={COLORS.accentDark} style={styles.statusDetail}>
             Installment {nextInstallment}/{totalInstallments}
           </AppText>
           {paymentId ? (
@@ -205,9 +206,10 @@ const PayNow = () => {
 
   return (
     <View style={styles.container}>
-      <CommonHeader title="Pay Now" />
+      <PremiumBackground />
+      <CommonHeader title="Pay Now" transparent borderBottom={false} shadow={false} />
 
-      <ScreenWrapper scroll contentStyle={styles.scrollContent}>
+      <ScreenWrapper scroll backgroundColor="transparent" contentStyle={styles.scrollContent}>
         {/* Scheme Card */}
         <AppCard style={styles.card}>
           <View style={styles.badgeRow}>
@@ -231,7 +233,7 @@ const PayNow = () => {
           </AppText>
 
           <View style={styles.nextBadge}>
-            <AppText variant="bodyMedium" color={COLORS.primaryDark}>
+            <AppText variant="bodyMedium" color={COLORS.accentDark}>
               Next Installment: #{nextInstallment}
             </AppText>
           </View>
@@ -272,7 +274,7 @@ const PayNow = () => {
           <AppDivider />
           <View style={styles.row}>
             <AppText variant="h6">Due Amount</AppText>
-            <AppText variant="h4" color={COLORS.primary}>
+            <AppText variant="h4" color={COLORS.accentDark}>
               {formatCurrency(paymentAmount)}
             </AppText>
           </View>
@@ -349,14 +351,14 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accentDark,
     borderRadius: SIZES.radius.full,
   },
   progressText: {
     marginBottom: SIZES.sm,
   },
   nextBadge: {
-    backgroundColor: COLORS.primaryPale,
+    backgroundColor: COLORS.accentLight,
     padding: SIZES.padding.sm,
     borderRadius: SIZES.radius.sm,
     alignItems: 'center',

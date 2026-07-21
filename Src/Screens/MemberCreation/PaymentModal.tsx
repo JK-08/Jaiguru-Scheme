@@ -20,13 +20,13 @@ const CONTENT_BY_STEP: Record<string, { title: string; message: string; icon: st
     title: 'Creating Order',
     message: 'Please wait while we set up your payment order...',
     icon: 'receipt-outline',
-    color: COLORS.primary,
+    color: COLORS.accentDark,
   },
   verifying: {
     title: 'Verifying Payment',
     message: 'Please wait while we confirm your payment...',
     icon: 'shield-checkmark-outline',
-    color: COLORS.primary,
+    color: COLORS.accentDark,
   },
   failed: {
     title: 'Payment Failed',
@@ -40,7 +40,7 @@ const DEFAULT_CONTENT = {
   title: 'Processing',
   message: 'Please wait...',
   icon: 'hourglass-outline',
-  color: COLORS.primary,
+  color: COLORS.accentDark,
 };
 
 const PaymentModal = ({ visible, step, error }: PaymentModalProps) => {
@@ -51,7 +51,7 @@ const PaymentModal = ({ visible, step, error }: PaymentModalProps) => {
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <AppCard variant="elevated" style={styles.card}>
-          <View style={[styles.iconCircle, { backgroundColor: isFailed ? COLORS.errorLight + '22' : COLORS.primaryPale }]}>
+          <View style={[styles.iconCircle, { backgroundColor: isFailed ? COLORS.errorLight + '22' : COLORS.accentLight }]}>
             <Icon name={content.icon} size={40} color={content.color} />
           </View>
           <AppText variant="h5" align="center" style={styles.title}>
@@ -60,7 +60,7 @@ const PaymentModal = ({ visible, step, error }: PaymentModalProps) => {
           <AppText variant="bodySmall" color={COLORS.textSecondary} align="center" style={styles.message}>
             {isFailed ? error || 'Something went wrong. Please try again.' : content.message}
           </AppText>
-          {!isFailed && <ActivityIndicator size="large" color={COLORS.primary} style={styles.spinner} />}
+          {!isFailed && <ActivityIndicator size="large" color={COLORS.accentDark} style={styles.spinner} />}
         </AppCard>
       </View>
     </Modal>

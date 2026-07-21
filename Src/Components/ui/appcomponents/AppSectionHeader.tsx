@@ -23,7 +23,7 @@ export default function AppSectionHeader({ title, actionLabel, onActionPress, st
       <Text style={FONTS.h5}>{title}</Text>
       {actionLabel ? (
         <TouchableOpacity onPress={onActionPress} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Text style={[FONTS.bodyMedium, { color: COLORS.primary }]}>{actionLabel}</Text>
+          <Text style={[FONTS.bodyMedium, { color: COLORS.accentDark }]}>{actionLabel}</Text>
         </TouchableOpacity>
       ) : null}
     </View>

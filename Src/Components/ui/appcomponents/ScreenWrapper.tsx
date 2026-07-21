@@ -58,7 +58,7 @@ export default function ScreenWrapper({
           keyboardShouldPersistTaps="handled"
           refreshControl={
             onRefresh ? (
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.primary]} tintColor={COLORS.primary} />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.accentDark]} tintColor={COLORS.accentDark} />
             ) : undefined
           }
         >

@@ -4,6 +4,7 @@ import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import theme from '../../Utills/AppTheme';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
+import PremiumBackground from '../../Components/PremiumBackground/PremiumBackground';
 
 export interface TermsAndConditionsProps {
   navigation: { goBack: () => void };
@@ -198,7 +199,7 @@ const TermsAndConditions = ({ navigation }: TermsAndConditionsProps) => {
       justifyContent: 'center',
     },
     activeLanguageButton: {
-      backgroundColor: COLORS.primary,
+      backgroundColor: COLORS.accentDark,
       ...SHADOWS.sm,
     },
     languageButtonText: {
@@ -213,7 +214,7 @@ const TermsAndConditions = ({ navigation }: TermsAndConditionsProps) => {
       alignItems: 'center',
       marginBottom: SIZES.padding.xl,
       padding: SIZES.padding.lg,
-      backgroundColor: COLORS.primaryPale,
+      backgroundColor: COLORS.accentLight,
       borderRadius: SIZES.radius.lg,
       ...SHADOWS.sm,
     },
@@ -221,7 +222,7 @@ const TermsAndConditions = ({ navigation }: TermsAndConditionsProps) => {
       width: moderateScale(70),
       height: moderateScale(70),
       borderRadius: SIZES.radius.lg,
-      backgroundColor: COLORS.primary,
+      backgroundColor: COLORS.accentDark,
       alignItems: 'center',
       justifyContent: 'center',
       marginBottom: SIZES.padding.md,
@@ -234,7 +235,7 @@ const TermsAndConditions = ({ navigation }: TermsAndConditionsProps) => {
     },
     planTitle: {
       ...FONTS.h4,
-      color: COLORS.primary,
+      color: COLORS.accentDark,
       textAlign: 'center',
       marginBottom: SIZES.padding.xs,
     },
@@ -259,13 +260,13 @@ const TermsAndConditions = ({ navigation }: TermsAndConditionsProps) => {
       padding: SIZES.padding.md,
       borderBottomWidth: 1,
       borderBottomColor: COLORS.borderLight,
-      backgroundColor: COLORS.primaryPale,
+      backgroundColor: COLORS.accentLight,
       borderTopLeftRadius: SIZES.radius.md,
       borderTopRightRadius: SIZES.radius.md,
     },
     sectionTitle: {
       ...FONTS.h5,
-      color: COLORS.primary,
+      color: COLORS.accentDark,
     },
     sectionContent: {
       padding: SIZES.padding.md,
@@ -277,7 +278,7 @@ const TermsAndConditions = ({ navigation }: TermsAndConditionsProps) => {
     },
     bullet: {
       ...FONTS.body,
-      color: COLORS.primary,
+      color: COLORS.accentDark,
       marginRight: SIZES.padding.sm,
       marginTop: 2,
     },
@@ -297,7 +298,7 @@ const TermsAndConditions = ({ navigation }: TermsAndConditionsProps) => {
     },
     disclaimerTitle: {
       ...FONTS.bodyBold,
-      color: COLORS.primary,
+      color: COLORS.accentDark,
       marginBottom: SIZES.padding.sm,
     },
     disclaimerText: {
@@ -308,15 +309,15 @@ const TermsAndConditions = ({ navigation }: TermsAndConditionsProps) => {
     },
     contactSection: {
       ...COMMON_STYLES.card.default,
-      backgroundColor: COLORS.primaryPale,
+      backgroundColor: COLORS.accentLight,
       borderWidth: 1,
-      borderColor: COLORS.primary + '20',
+      borderColor: COLORS.accentDark + '20',
       alignItems: 'center',
       padding: SIZES.padding.lg,
     },
     contactTitle: {
       ...FONTS.h5,
-      color: COLORS.primary,
+      color: COLORS.accentDark,
       textAlign: 'center',
       marginBottom: SIZES.padding.lg,
     },
@@ -341,7 +342,8 @@ const TermsAndConditions = ({ navigation }: TermsAndConditionsProps) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <CommonHeader title="Terms & Conditions" onBackPress={() => navigation.goBack()} backgroundColor={COLORS.background} />
+      <PremiumBackground />
+      <CommonHeader title="Terms & Conditions" onBackPress={() => navigation.goBack()} transparent borderBottom={false} shadow={false} />
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Language Toggle */}

@@ -937,7 +937,7 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
                     maxLength: 6,
                   })}
                   {isFetchingLocation && (
-                    <ActivityIndicator size="small" color={COLORS.primary} style={styles.pincodeLoader} />
+                    <ActivityIndicator size="small" color={COLORS.accentDark} style={styles.pincodeLoader} />
                   )}
                 </View>
               </View>
@@ -1016,7 +1016,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...FONTS.h3,
-    color: COLORS.primary,
+    color: COLORS.accentDark,
     marginBottom: 2,
   },
   headerSubtitle: {
@@ -1056,7 +1056,7 @@ const styles = StyleSheet.create({
     width: SIZES.icon.lg,
     height: SIZES.icon.lg,
     borderRadius: SIZES.radius.sm,
-    backgroundColor: COLORS.blueOpacity10,
+    backgroundColor: COLORS.accentOpacity20,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: SIZES.padding.sm,
@@ -1066,7 +1066,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...FONTS.h4,
-    color: COLORS.primary,
+    color: COLORS.accentDark,
   },
   inputContainer: {
     marginBottom: SIZES.padding.md,
@@ -1090,7 +1090,7 @@ const styles = StyleSheet.create({
   },
   clearFieldText: {
     ...FONTS.captionBold,
-    color: COLORS.primary,
+    color: COLORS.accentDark,
   },
   input: {
     borderWidth: 1,
@@ -1146,8 +1146,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   maritalStatusButtonActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: COLORS.accentDark,
+    borderColor: COLORS.accentDark,
   },
   maritalStatusText: {
     ...FONTS.body,
@@ -1216,7 +1216,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     ...FONTS.h4,
-    color: COLORS.primary,
+    color: COLORS.accentDark,
   },
   closeButton: {
     fontSize: SIZES.font.xl,
@@ -1225,7 +1225,7 @@ const styles = StyleSheet.create({
   },
   selectedDatePreview: {
     ...FONTS.body,
-    color: COLORS.primary,
+    color: COLORS.accentDark,
     marginBottom: SIZES.padding.md,
     textAlign: 'center',
     fontWeight: '600',
@@ -1254,11 +1254,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 44,
-    backgroundColor: COLORS.primary + '15',
+    backgroundColor: COLORS.accentDark + '15',
     borderRadius: 8,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: COLORS.primary + '40',
+    borderColor: COLORS.accentDark + '40',
     zIndex: 1,
   },
   pickerItem: {
@@ -1273,7 +1273,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   pickerItemTextSelected: {
-    color: COLORS.primary,
+    color: COLORS.accentDark,
     fontWeight: '700',
     fontSize: 16,
     textAlign: 'center',
@@ -1299,7 +1299,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: SIZES.padding.sm,
     borderRadius: SIZES.radius.input,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accentDark,
     alignItems: 'center',
   },
   confirmButtonText: {

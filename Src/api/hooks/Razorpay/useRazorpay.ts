@@ -202,7 +202,7 @@ export const useRazorpayPayment = () => {
                 contact: backendOrder.contact || userDetails?.phone || '',
                 name: backendOrder.name || userDetails?.name || '',
               },
-              theme: { color: COLORS.primary },
+              theme: { color: COLORS.accentDark },
             };
 
             setRazorpayOptions(options);

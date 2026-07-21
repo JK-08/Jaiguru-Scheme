@@ -41,7 +41,7 @@ export default function AppAvatar({ uri, initials, size = 'medium', style }: App
   };
 
   if (uri) {
-    return <Image source={{ uri }} style={[containerStyle, style]} />;
+    return <Image source={{ uri }} style={[containerStyle, style] as any} />;
   }
 
   return (

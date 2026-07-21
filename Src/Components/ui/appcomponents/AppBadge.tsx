@@ -18,12 +18,12 @@ export interface AppBadgeProps {
 
 export default function AppBadge({ label, variant = 'primary', size = 'md', style, textStyle }: AppBadgeProps) {
   const variantStyles: Record<BadgeVariant, { bg: string; text: string; border?: string }> = {
-    primary: { bg: COLORS.primary, text: COLORS.white },
-    gold: { bg: COLORS.goldPrimary, text: COLORS.primary },
+    primary: { bg: COLORS.accentDark, text: COLORS.white },
+    gold: { bg: COLORS.goldPrimary, text: COLORS.accentDark },
     success: { bg: COLORS.success, text: COLORS.white },
     error: { bg: COLORS.error, text: COLORS.white },
     warning: { bg: COLORS.warning, text: COLORS.white },
-    outline: { bg: COLORS.transparent, text: COLORS.primary, border: COLORS.primary },
+    outline: { bg: COLORS.transparent, text: COLORS.accentDark, border: COLORS.accentDark },
     neutral: { bg: COLORS.gray100, text: COLORS.textSecondary },
   };
   const vc = variantStyles[variant];

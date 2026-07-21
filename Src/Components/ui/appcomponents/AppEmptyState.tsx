@@ -33,13 +33,13 @@ export default function AppEmptyState({
           width: iconSize + 32,
           height: iconSize + 32,
           borderRadius: (iconSize + 32) / 2,
-          backgroundColor: COLORS.primaryPale,
+          backgroundColor: COLORS.accentLight,
           alignItems: 'center',
           justifyContent: 'center',
           marginBottom: SIZES.margin.lg,
         }}
       >
-        <Icon name={icon} size={iconSize} color={COLORS.primary} />
+        <Icon name={icon} size={iconSize} color={COLORS.accentDark} />
       </View>
 
       <Text style={[FONTS.h5, { textAlign: 'center', marginBottom: message ? 6 : 0 }]}>{title}</Text>

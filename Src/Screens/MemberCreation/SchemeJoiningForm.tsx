@@ -120,7 +120,7 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
     if (loadingSchemes) {
       return (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <ActivityIndicator size="large" color={COLORS.accentDark} />
           <AppText variant="bodySmall" color={COLORS.textSecondary} style={{ marginTop: SIZES.sm }}>
             Loading schemes...
           </AppText>
@@ -255,10 +255,10 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
                         setDropdownVisible(false);
                       }}
                     >
-                      <AppText variant={isSelected ? 'bodyBold' : 'body'} color={isSelected ? COLORS.primary : COLORS.textPrimary}>
+                      <AppText variant={isSelected ? 'bodyBold' : 'body'} color={isSelected ? COLORS.accentDark : COLORS.textPrimary}>
                         {item.GROUPCODE} · ₹{item.AMOUNT}
                       </AppText>
-                      {isSelected && <Icon name="checkmark-circle" size={20} color={COLORS.primary} />}
+                      {isSelected && <Icon name="checkmark-circle" size={20} color={COLORS.accentDark} />}
                     </TouchableOpacity>
                   );
                 }}
@@ -271,10 +271,10 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
         <AppCard style={styles.card}>
           <AppSectionHeader title="Payment Method" />
           <View style={styles.paymentDetails}>
-            <AppText variant="bodySmall" color={COLORS.primary}>
+            <AppText variant="bodySmall" color={COLORS.accentDark}>
               Payment Type
             </AppText>
-            <AppText variant="h6" color={COLORS.primaryDark}>
+            <AppText variant="h6" color={COLORS.accentDark}>
               Online (00001)
             </AppText>
           </View>
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.borderLight,
   },
   dropdownRowSelected: {
-    backgroundColor: COLORS.primaryPale,
+    backgroundColor: COLORS.accentLight,
     borderRadius: SIZES.radius.sm,
   },
   amountContainer: {
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.success + '40',
   },
   paymentDetails: {
-    backgroundColor: COLORS.primaryPale,
+    backgroundColor: COLORS.accentLight,
     padding: SIZES.padding.md,
     borderRadius: SIZES.radius.md,
   },

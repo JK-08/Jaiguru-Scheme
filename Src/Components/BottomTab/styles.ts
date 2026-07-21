@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
   activeText: {
     fontSize: SIZES.font.xs,
     fontFamily: FONTS.family.medium,
-    color: COLORS.primary,
+    color: COLORS.accentDark,
     marginTop: SIZES.margin.xs,
     textAlign: "center",
     includeFontPadding: false,
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     width: SIZES.radius.sm * 0.7,
     height: SIZES.radius.sm * 0.7,
     borderRadius: SIZES.radius.full,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accentDark,
   },
 
   // Center "Home" tab — elevated pill/FAB style so it visually anchors the
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     width: SIZES.icon.xl * 1.3,
     height: SIZES.icon.xl * 1.3,
     borderRadius: SIZES.radius.full,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accentDark,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 3,
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   centerActiveText: {
     fontSize: SIZES.font.xs,
     fontFamily: FONTS.family.bold,
-    color: COLORS.primary,
+    color: COLORS.accentDark,
     marginTop: SIZES.margin.xs,
     textAlign: "center",
     includeFontPadding: false,

@@ -71,7 +71,7 @@ const SliderComponentSimple = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={COLORS.accentDark} />
       </View>
     );
   }
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
   },
   activeDot: {
     width: moderateScale(24),
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accentDark,
   },
   loadingContainer: {
     width: '100%',

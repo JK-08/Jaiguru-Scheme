@@ -19,7 +19,7 @@ export interface AppProgressBarProps {
 
 export default function AppProgressBar({
   progress,
-  color = COLORS.primary,
+  color = COLORS.accentDark,
   trackColor = COLORS.gray200,
   height = 8,
   label,

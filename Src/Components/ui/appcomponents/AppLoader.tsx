@@ -21,7 +21,7 @@ export default function AppLoader({
   overlay = false,
   message,
   size = 'large',
-  color = COLORS.primary,
+  color = COLORS.accentDark,
   style,
 }: AppLoaderProps) {
   if (!visible) return null;

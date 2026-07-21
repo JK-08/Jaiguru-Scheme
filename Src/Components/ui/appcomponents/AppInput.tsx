@@ -96,7 +96,7 @@ const AppInput = forwardRef<AppInputRef, AppInputProps>(
 
     const borderColor = borderAnim.interpolate({
       inputRange: [0, 1],
-      outputRange: [error ? COLORS.error : COLORS.border, error ? COLORS.error : COLORS.primary],
+      outputRange: [error ? COLORS.error : COLORS.border, error ? COLORS.error : COLORS.accentDark],
     });
 
     const hasError = !!error;
@@ -111,7 +111,7 @@ const AppInput = forwardRef<AppInputRef, AppInputProps>(
               {
                 fontFamily: FONTS.family.medium,
                 fontSize: SIZES.font.sm,
-                color: hasError ? COLORS.error : focused ? COLORS.primary : COLORS.textSecondary,
+                color: hasError ? COLORS.error : focused ? COLORS.accentDark : COLORS.textSecondary,
               },
             ]}
           >
@@ -135,7 +135,7 @@ const AppInput = forwardRef<AppInputRef, AppInputProps>(
             <Icon
               name={leftIcon}
               size={iSize}
-              color={hasError ? COLORS.error : focused ? COLORS.primary : COLORS.textTertiary}
+              color={hasError ? COLORS.error : focused ? COLORS.accentDark : COLORS.textTertiary}
               style={styles.leftIcon}
             />
           )}
@@ -160,7 +160,7 @@ const AppInput = forwardRef<AppInputRef, AppInputProps>(
             </TouchableOpacity>
           ) : rightIcon ? (
             <TouchableOpacity onPress={onRightIconPress} style={styles.rightIcon}>
-              <Icon name={rightIcon} size={iSize} color={focused ? COLORS.primary : COLORS.textTertiary} />
+              <Icon name={rightIcon} size={iSize} color={focused ? COLORS.accentDark : COLORS.textTertiary} />
             </TouchableOpacity>
           ) : null}
         </Animated.View>

@@ -148,13 +148,13 @@ export default function SchemeDetails() {
 
   if (!schemeData) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={{ fontSize: 48, marginBottom: 12 }}>📭</Text>
           <Text style={styles.errorText}>No scheme data available</Text>
           <AppButton label="← Go Back" onPress={() => navigation.goBack()} variant="gold" size="md" style={styles.goBackButton} />
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -409,7 +409,7 @@ export default function SchemeDetails() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar backgroundColor="transparent" barStyle="dark-content" translucent />
       <CommonHeader title="Scheme Details" />
 
@@ -429,7 +429,7 @@ export default function SchemeDetails() {
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 

@@ -279,6 +279,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 6,
     zIndex: 5,
+    
   },
   brand: {
     fontFamily: theme.FONTS.family.bold,

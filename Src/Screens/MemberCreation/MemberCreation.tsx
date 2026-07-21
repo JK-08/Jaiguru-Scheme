@@ -8,6 +8,7 @@ import { useRazorpayPayment } from '../../api/hooks/Razorpay/useRazorpay';
 import PaymentModal from './PaymentModal';
 import RazorpayWebView from '../../Components/RazorpayWebView';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
+import PremiumBackground from '../../Components/PremiumBackground/PremiumBackground';
 import { getUserId, getUserField } from '../../Utills/AsynchStorageHelper';
 import { Scheme } from '../../types/Scheme/Scheme';
 import { CreateMemberPayload } from '../../types/Member/Member';
@@ -299,7 +300,8 @@ const MemberCreation = () => {
 
   return (
     <View style={styles.container}>
-      <CommonHeader title="Member Creation" showBack onBackPress={handleBack} />
+      <PremiumBackground />
+      <CommonHeader title="Member Creation" showBack onBackPress={handleBack} transparent borderBottom={false} shadow={false} />
 
       {/* Step Indicator */}
       {/* <StepIndicator currentStep={currentStep} /> */}
@@ -354,10 +356,10 @@ const StepIndicator = ({ currentStep }: { currentStep: Step }) => (
       ))}
     </View>
     <View style={styles.stepLabels}>
-      <AppText variant="caption" color={currentStep >= 1 ? COLORS.primary : COLORS.textSecondary} align="center" style={styles.stepLabelFlex}>
+      <AppText variant="caption" color={currentStep >= 1 ? COLORS.accentDark : COLORS.textSecondary} align="center" style={styles.stepLabelFlex}>
         Registration
       </AppText>
-      <AppText variant="caption" color={currentStep >= 2 ? COLORS.primary : COLORS.textSecondary} align="center" style={styles.stepLabelFlex}>
+      <AppText variant="caption" color={currentStep >= 2 ? COLORS.accentDark : COLORS.textSecondary} align="center" style={styles.stepLabelFlex}>
         Scheme Joining
       </AppText>
     </View>
@@ -366,7 +368,7 @@ const StepIndicator = ({ currentStep }: { currentStep: Step }) => (
 
 const LoadingOverlay = ({ message }: { message: string }) => (
   <View style={styles.loadingOverlay}>
-    <ActivityIndicator size="large" color={COLORS.primary} />
+    <ActivityIndicator size="large" color={COLORS.accentDark} />
     <AppText variant="bodyBold" color={COLORS.white} style={{ marginTop: SIZES.sm }}>
       {message}
     </AppText>
@@ -446,7 +448,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeStep: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accentDark,
   },
   stepLine: {
     flex: 1,
@@ -455,7 +457,7 @@ const styles = StyleSheet.create({
     marginHorizontal: SIZES.sm,
   },
   activeStepLine: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accentDark,
   },
   stepLabels: {
     flexDirection: 'row',

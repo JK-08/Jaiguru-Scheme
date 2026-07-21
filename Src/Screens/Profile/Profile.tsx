@@ -11,6 +11,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
+import PremiumBackground from '../../Components/PremiumBackground/PremiumBackground';
 import BottomTab from '../../Components/BottomTab/BottomTab';
 import { AppText, AppCard, AppBadge } from '../../Components/ui/appcomponents';
 import { getAuthSession, getUserData, getUserId, clearAuthData } from '../../Utills/AsynchStorageHelper';
@@ -141,12 +142,13 @@ const ProfileScreen = () => {
 
   return (
     <View style={styles.container}>
-      <CommonHeader title="Profile" showBack={false} />
+      <PremiumBackground />
+      <CommonHeader title="Profile" showBack={false} transparent borderBottom={false} shadow={false} />
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* User Card */}
         <LinearGradient
-          colors={[COLORS.primary, COLORS.primaryDark]}
+          colors={[COLORS.accentDark, COLORS.accent]}
           style={styles.profileGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -202,10 +204,10 @@ const ProfileScreen = () => {
                 <View
                   style={[
                     styles.menuIconWrap,
-                    { backgroundColor: item.danger ? COLORS.error + '12' : COLORS.primaryPale },
+                    { backgroundColor: item.danger ? COLORS.error + '12' : COLORS.accentLight },
                   ]}
                 >
-                  <Icon name={item.icon} size={20} color={item.danger ? COLORS.error : COLORS.primary} />
+                  <Icon name={item.icon} size={20} color={item.danger ? COLORS.error : COLORS.accentDark} />
                 </View>
                 <AppText variant="body" color={item.danger ? COLORS.error : COLORS.textPrimary} style={{ flex: 1 }}>
                   {item.label}
@@ -244,7 +246,7 @@ export default ProfileScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.backgroundSecondary,
+    backgroundColor: COLORS.background,
   },
   content: {
     padding: SIZES.padding.lg,

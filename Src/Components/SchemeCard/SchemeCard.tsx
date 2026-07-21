@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     marginRight: moderateScale(8),
   },
   joinButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accentDark,
     marginLeft: moderateScale(8),
     padding: moderateScale(12),
   },

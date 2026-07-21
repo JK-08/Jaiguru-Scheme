@@ -20,9 +20,9 @@ export default function AppCard({ children, variant = 'default', onPress, style,
     default: { backgroundColor: COLORS.white, ...SHADOWS.sm },
     elevated: { backgroundColor: COLORS.white, ...SHADOWS.md },
     premium: { backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.goldPrimary, ...SHADOWS.gold },
-    blue: { backgroundColor: COLORS.primary, ...SHADOWS.blue },
-    blueLight: { backgroundColor: COLORS.primaryPale, ...SHADOWS.sm },
-    blueBorder: { backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.primary, ...SHADOWS.sm },
+    blue: { backgroundColor: COLORS.accentDark, ...SHADOWS.blue },
+    blueLight: { backgroundColor: COLORS.accentLight, ...SHADOWS.sm },
+    blueBorder: { backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.accentDark, ...SHADOWS.sm },
     flat: { backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.border },
   };
 

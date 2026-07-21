@@ -109,7 +109,7 @@ const AnimatedTab = ({ tab, isActive, onPress, badgeCount = 0 }: AnimatedTabProp
     return (
       <TouchableOpacity style={styles.centerContainer} onPress={onPress} activeOpacity={0.8}>
         <Animated.View style={[styles.centerIconWrap, { transform: [{ translateY: lift }, { scale }] }]}>
-          <IconComponent name={iconName} size={SIZES.icon.lg} color={COLORS.white} />
+          <IconComponent name={iconName as any} size={SIZES.icon.lg} color={COLORS.white} />
         </Animated.View>
         <Text style={isActive ? styles.centerActiveText : styles.centerInactiveText}>{tab.label}</Text>
       </TouchableOpacity>
@@ -118,13 +118,13 @@ const AnimatedTab = ({ tab, isActive, onPress, badgeCount = 0 }: AnimatedTabProp
 
   const scale = progress.interpolate({ inputRange: [0, 1], outputRange: [1, 1.12] });
   const lift = progress.interpolate({ inputRange: [0, 1], outputRange: [0, -2] });
-  const color = isActive ? COLORS.primary : COLORS.textSecondary;
+  const color = isActive ? COLORS.accentDark : COLORS.textSecondary;
 
   return (
     <TouchableOpacity style={styles.footerBtnContainer} onPress={onPress} activeOpacity={0.7}>
       <Animated.View style={{ transform: [{ scale }, { translateY: lift }] }}>
         <View>
-          <IconComponent name={iconName} size={SIZES.icon.md} color={color} />
+          <IconComponent name={iconName as any} size={SIZES.icon.md} color={color} />
           {badgeCount > 0 && (
             <View style={styles.tabBadge}>
               <Text style={styles.tabBadgeText}>{badgeCount > 99 ? '99+' : badgeCount}</Text>

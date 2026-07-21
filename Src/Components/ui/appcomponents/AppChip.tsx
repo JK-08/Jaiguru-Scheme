@@ -21,11 +21,11 @@ export interface AppChipProps {
 export default function AppChip({ label, variant = 'default', icon, selected = false, onPress, onRemove, style }: AppChipProps) {
   const variantStyles: Record<ChipVariant, { bg: string; text: string; border?: string }> = {
     default: { bg: COLORS.gray100, text: COLORS.textSecondary },
-    blue: { bg: COLORS.blueOpacity10, text: COLORS.primary },
+    blue: { bg: COLORS.accentOpacity20, text: COLORS.accentDark },
     gold: { bg: COLORS.goldOpacity10, text: COLORS.goldDark },
     outline: { bg: COLORS.transparent, text: COLORS.textSecondary, border: COLORS.border },
   };
-  const vc = selected ? { bg: COLORS.primary, text: COLORS.white } : variantStyles[variant];
+  const vc = selected ? { bg: COLORS.accentDark, text: COLORS.white } : variantStyles[variant];
 
   const Wrapper = onPress ? TouchableOpacity : View;
 

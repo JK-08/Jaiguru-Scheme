@@ -64,12 +64,12 @@ export default function AppButton({
 
   type VariantColors = { bg: string; border: string; text: string; loaderColor: string };
   const variants: Record<ButtonVariant, VariantColors> = {
-    primary: { bg: COLORS.primary, border: COLORS.primary, text: COLORS.white, loaderColor: COLORS.white },
-    secondary: { bg: COLORS.gray100, border: COLORS.gray100, text: COLORS.textPrimary, loaderColor: COLORS.primary },
-    outline: { bg: 'transparent', border: COLORS.primary, text: COLORS.primary, loaderColor: COLORS.primary },
-    ghost: { bg: 'transparent', border: 'transparent', text: COLORS.textSecondary, loaderColor: COLORS.primary },
+    primary: { bg: COLORS.accentDark, border: COLORS.accentDark, text: COLORS.white, loaderColor: COLORS.white },
+    secondary: { bg: COLORS.gray100, border: COLORS.gray100, text: COLORS.textPrimary, loaderColor: COLORS.accentDark },
+    outline: { bg: 'transparent', border: COLORS.accentDark, text: COLORS.accentDark, loaderColor: COLORS.accentDark },
+    ghost: { bg: 'transparent', border: 'transparent', text: COLORS.textSecondary, loaderColor: COLORS.accentDark },
     danger: { bg: COLORS.error, border: COLORS.error, text: COLORS.white, loaderColor: COLORS.white },
-    gold: { bg: COLORS.goldPrimary, border: COLORS.goldPrimary, text: COLORS.primary, loaderColor: COLORS.primary },
+    gold: { bg: COLORS.goldPrimary, border: COLORS.goldPrimary, text: COLORS.accentDark, loaderColor: COLORS.accentDark },
   };
   const vc = variants[variant];
   const iSize = iconSize ?? iconSizes[size];

@@ -9,6 +9,7 @@ import { companyService } from '../../api/services/companyService';
 import { Company } from '../../types/Company/Company';
 import { API_BASE_URL, IMAGE_BASE_URL } from '../../Config/BaseUrl';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
+import PremiumBackground from '../../Components/PremiumBackground/PremiumBackground';
 import BottomTab from '../../Components/BottomTab/BottomTab';
 import theme from '../../Utills/AppTheme';
 
@@ -86,7 +87,7 @@ const InfoRow = ({ icon, label, value, onPress, isLink, multiline }: InfoRowProp
   return (
     <TouchableOpacity style={styles.infoRow} onPress={onPress ?? undefined} disabled={!onPress} activeOpacity={onPress ? 0.65 : 1}>
       <View style={styles.iconBox}>
-        <Icon name={icon} size={20} color={COLORS.primary} />
+        <Icon name={icon} size={20} color={COLORS.accentDark} />
       </View>
       <View style={[styles.infoContent, multiline ? { paddingVertical: 2 } : undefined]}>
         <Text style={styles.infoLabel}>{label}</Text>
@@ -94,7 +95,7 @@ const InfoRow = ({ icon, label, value, onPress, isLink, multiline }: InfoRowProp
           {value}
         </Text>
       </View>
-      {onPress && <Icon name="chevron-right" size={18} color={COLORS.primaryLighter} />}
+      {onPress && <Icon name="chevron-right" size={18} color={COLORS.accentLight} />}
     </TouchableOpacity>
   );
 };
@@ -109,7 +110,7 @@ const SocialButton = ({ iconName, link, label }: SocialButtonProps) => {
   if (!link) return null;
   return (
     <TouchableOpacity style={styles.socialBtn} onPress={() => openUrl(link)} activeOpacity={0.75}>
-      <MaterialCommunityIcons name={iconName as any} size={22} color={COLORS.primary} />
+      <MaterialCommunityIcons name={iconName as any} size={22} color={COLORS.accentDark} />
       <Text style={styles.socialBtnLabel}>{label}</Text>
     </TouchableOpacity>
   );
@@ -119,7 +120,7 @@ const AppStoreButton = ({ iconName, link, label }: SocialButtonProps) => {
   if (!link) return null;
   return (
     <TouchableOpacity style={styles.appButton} onPress={() => openUrl(link)} activeOpacity={0.75}>
-      <MaterialCommunityIcons name={iconName as any} size={20} color={COLORS.primary} />
+      <MaterialCommunityIcons name={iconName as any} size={20} color={COLORS.accentDark} />
       <Text style={styles.appButtonText}>{label}</Text>
     </TouchableOpacity>
   );
@@ -179,7 +180,7 @@ const HelpCentreScreen = () => {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={COLORS.accentDark} />
         <Text style={styles.loadingText}>Loading company details…</Text>
       </View>
     );
@@ -208,15 +209,16 @@ const HelpCentreScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <CommonHeader title="Help Center" showBack onBackPress={handleBackPress} />
+      <PremiumBackground />
+      <CommonHeader title="Help Center" showBack onBackPress={handleBackPress} transparent borderBottom={false} shadow={false} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.accentDark} />}
       >
         {/* ── Hero Banner ── */}
         <LinearGradient
-          colors={[COLORS.primary, COLORS.primaryDark]}
+          colors={[COLORS.accentDark, COLORS.accentDark]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.heroBanner}
@@ -234,7 +236,7 @@ const HelpCentreScreen = () => {
             <Image source={{ uri: company.CompanyLogoUrl }} style={styles.logo} resizeMode="contain" />
           ) : (
             <View style={styles.logoPlaceholder}>
-              <Icon name="business" size={44} color={COLORS.primaryLighter} />
+              <Icon name="business" size={44} color={COLORS.accentLight} />
             </View>
           )}
 
@@ -324,7 +326,7 @@ const HelpCentreScreen = () => {
         {/* ── Footer ── */}
         <FadeInUp delay={260} style={styles.footer}>
           <View style={styles.footerIconWrap}>
-            <Icon name="support-agent" size={28} color={COLORS.primary} />
+            <Icon name="support-agent" size={28} color={COLORS.accentDark} />
           </View>
           <Text style={styles.footerTitle}>Need more help?</Text>
           <Text style={styles.footerSub}>Contact us through any of the channels above</Text>
@@ -337,7 +339,7 @@ const HelpCentreScreen = () => {
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
-const INDIGO_LIGHT = COLORS.primaryPale;
+const INDIGO_LIGHT = COLORS.accentLight;
 const SURFACE = COLORS.white;
 const BG = COLORS.backgroundSecondary;
 const TEXT_PRIMARY = COLORS.textPrimary;
@@ -352,7 +354,7 @@ const styles = StyleSheet.create({
   loadingText: { marginTop: 12, fontSize: 15, color: TEXT_SECONDARY },
   errorTitle: { marginTop: 16, fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY },
   errorMsg: { marginTop: 8, fontSize: 14, color: TEXT_SECONDARY, textAlign: 'center', lineHeight: 20 },
-  retryBtn: { marginTop: 20, paddingHorizontal: 28, paddingVertical: 12, backgroundColor: COLORS.primary, borderRadius: 10, ...SHADOWS.blue },
+  retryBtn: { marginTop: 20, paddingHorizontal: 28, paddingVertical: 12, backgroundColor: COLORS.accentDark, borderRadius: 10, ...SHADOWS.blue },
   retryBtnText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
 
   // Hero
@@ -382,7 +384,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 20,
     alignItems: 'center',
-    shadowColor: COLORS.primary,
+    shadowColor: COLORS.accentDark,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.14,
     shadowRadius: 16,
@@ -435,7 +437,7 @@ const styles = StyleSheet.create({
   infoContent: { flex: 1 },
   infoLabel: { fontSize: 11, color: TEXT_SECONDARY, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 },
   infoValue: { fontSize: 15, color: TEXT_PRIMARY, fontWeight: '500' },
-  linkText: { color: COLORS.primary },
+  linkText: { color: COLORS.accentDark },
 
   // Social
   socialSection: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 6 },
@@ -450,7 +452,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
   },
-  socialBtnLabel: { fontSize: 13, color: COLORS.primary, fontWeight: '500' },
+  socialBtnLabel: { fontSize: 13, color: COLORS.accentDark, fontWeight: '500' },
 
   // App buttons
   appSection: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 14 },
@@ -464,7 +466,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 10,
   },
-  appButtonText: { color: COLORS.primary, fontSize: 14, fontWeight: '500' },
+  appButtonText: { color: COLORS.accentDark, fontSize: 14, fontWeight: '500' },
 
   // Footer
   footer: {

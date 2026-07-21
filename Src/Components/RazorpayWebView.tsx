@@ -16,7 +16,7 @@ const THEME = {
   bg:      COLORS.backgroundSecondary,
   surface: COLORS.white,
   border:  COLORS.border,
-  accent:  COLORS.primary,
+  accent:  COLORS.accentDark,
   text:    COLORS.textPrimary,
   textSec: COLORS.textSecondary,
   error:   COLORS.error,
@@ -96,7 +96,7 @@ const buildHtml = (options: RazorpayOptions): string => {
       email:   "${safeStr(o.prefill?.email)}",
       contact: "${safeStr(o.prefill?.contact)}"
     },
-    theme: { color: "${safeStr(o.theme?.color || COLORS.primary)}" },
+    theme: { color: "${safeStr(o.theme?.color || COLORS.accentDark)}" },
     handler: function (response) {
       paymentDone = true;
       post({ type: 'success', data: response });

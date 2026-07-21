@@ -4,6 +4,7 @@ import { ScrollView, View, Text, TouchableOpacity, Linking } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import theme from '../../Utills/AppTheme';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
+import PremiumBackground from '../../Components/PremiumBackground/PremiumBackground';
 
 export interface PrivacyPolicyProps {
   navigation: { goBack: () => void };
@@ -25,7 +26,7 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
       <Text
         style={{
           ...FONTS.h4,
-          color: COLORS.primary,
+          color: COLORS.accentDark,
           marginBottom: SIZES.padding.md,
         }}
       >
@@ -61,7 +62,8 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
 
   return (
     <SafeAreaView style={COMMON_STYLES.container}>
-      <CommonHeader title="Privacy Policy" onBackPress={() => navigation.goBack()} backgroundColor={COLORS.background} />
+      <PremiumBackground />
+      <CommonHeader title="Privacy Policy" onBackPress={() => navigation.goBack()} transparent borderBottom={false} shadow={false} />
 
       <ScrollView
         style={{ flex: 1 }}
@@ -77,7 +79,7 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
             alignItems: 'center',
             marginBottom: SIZES.padding.xl,
             padding: SIZES.padding.lg,
-            backgroundColor: COLORS.primaryPale,
+            backgroundColor: COLORS.accentLight,
             borderRadius: SIZES.radius.lg,
             ...SHADOWS.sm,
           }}
@@ -87,7 +89,7 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
               width: moderateScale(60),
               height: moderateScale(60),
               borderRadius: SIZES.radius.lg,
-              backgroundColor: COLORS.primary,
+              backgroundColor: COLORS.accentDark,
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: SIZES.padding.md,
@@ -103,7 +105,7 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
               SF
             </Text>
           </View>
-          <Text style={{ ...FONTS.h4, color: COLORS.primary, textAlign: 'center' }}>SANDIYA FOUNDATIONS CHENNAI LLP</Text>
+          <Text style={{ ...FONTS.h4, color: COLORS.accentDark, textAlign: 'center' }}>SANDIYA FOUNDATIONS CHENNAI LLP</Text>
           <Text
             style={{
               ...FONTS.bodySmall,
@@ -175,7 +177,7 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
             <Text
               style={{
                 ...FONTS.body,
-                color: COLORS.primary,
+                color: COLORS.accentDark,
                 fontStyle: 'italic',
               }}
             >
@@ -253,7 +255,7 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
             <Text
               style={{
                 ...FONTS.label,
-                color: COLORS.primary,
+                color: COLORS.accentDark,
                 marginBottom: SIZES.padding.sm,
               }}
             >
@@ -271,7 +273,7 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
             <Text
               style={{
                 ...FONTS.label,
-                color: COLORS.primary,
+                color: COLORS.accentDark,
                 marginBottom: SIZES.padding.sm,
               }}
             >
@@ -329,7 +331,7 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
                   marginBottom: SIZES.padding.sm,
                 }}
               >
-                <Text style={{ ...FONTS.bodySmall, color: COLORS.primary }}>{label}</Text>
+                <Text style={{ ...FONTS.bodySmall, color: COLORS.accentDark }}>{label}</Text>
               </View>
             ))}
           </View>
@@ -358,7 +360,7 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
         <View
           style={{
             ...COMMON_STYLES.card.default,
-            backgroundColor: COLORS.primaryPale,
+            backgroundColor: COLORS.accentLight,
             alignItems: 'center',
             marginTop: SIZES.padding.xl,
             marginBottom: SIZES.padding.xl,
@@ -367,7 +369,7 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
           <Text
             style={{
               ...FONTS.h5,
-              color: COLORS.primary,
+              color: COLORS.accentDark,
               marginBottom: SIZES.padding.lg,
               textAlign: 'center',
             }}
@@ -378,7 +380,7 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
           <Text
             style={{
               ...FONTS.bodyMedium,
-              color: COLORS.primary,
+              color: COLORS.accentDark,
               marginBottom: SIZES.padding.sm,
               textAlign: 'center',
             }}
@@ -389,7 +391,7 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
             <Text
               style={{
                 ...FONTS.body,
-                color: COLORS.primary,
+                color: COLORS.accentDark,
                 textDecorationLine: 'underline',
                 marginBottom: SIZES.padding.md,
               }}

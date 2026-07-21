@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, StatusBar, Alert, Image, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
+import PremiumBackground from '../../Components/PremiumBackground/PremiumBackground';
 import PaymentReceiptPDF from '../../Utills/PaymentReceiptPDF';
 import { useCompany } from '../../api/hooks/Company/useCompany';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -109,22 +110,26 @@ export default function PaymentReceiptPage() {
 
   return (
     <View style={styles.container}>
+      <PremiumBackground />
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
         <CommonHeader
           title="Payment Receipt"
+          transparent
+          borderBottom={false}
+          shadow={false}
           showBack
           backIconName="arrow-back"
-          backIconColor="#4C0B0B"
+          backIconColor="#B8860B"
           backgroundColor="#FFFFFF"
           textColor="#000000"
           centerTitle
           rightComponent={
             <TouchableOpacity onPress={handleDownloadReceipt} style={styles.actionButton} disabled={isGeneratingPDF}>
               {isGeneratingPDF ? (
-                <ActivityIndicator size="small" color="#4C0B0B" />
+                <ActivityIndicator size="small" color="#B8860B" />
               ) : (
-                <MaterialIcons name="download" size={24} color="#4C0B0B" />
+                <MaterialIcons name="download" size={24} color="#B8860B" />
               )}
             </TouchableOpacity>
           }
@@ -277,7 +282,7 @@ export default function PaymentReceiptPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#FFFFFF',
   },
   safeArea: {
     flex: 1,
@@ -295,7 +300,7 @@ const styles = StyleSheet.create({
     marginBottom: moderateScale(20),
   },
   goBackButton: {
-    backgroundColor: '#4C0B0B',
+    backgroundColor: '#B8860B',
     paddingHorizontal: moderateScale(20),
     paddingVertical: moderateScale(12),
     borderRadius: moderateScale(8),
@@ -337,7 +342,7 @@ const styles = StyleSheet.create({
     width: moderateScale(60),
     height: moderateScale(60),
     borderRadius: moderateScale(30),
-    backgroundColor: '#4C0B0B',
+    backgroundColor: '#B8860B',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: moderateScale(12),
@@ -351,13 +356,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   companyName: {
-    color: '#4C0B0B',
+    color: '#B8860B',
     fontSize: moderateScale(18),
     fontWeight: 'bold',
     letterSpacing: 0.5,
   },
   contactSection: {
-    backgroundColor: '#FFF9F0',
+    backgroundColor: '#FBF4E4',
     padding: moderateScale(12),
     borderRadius: moderateScale(6),
     marginBottom: moderateScale(16),
@@ -370,13 +375,13 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 2,
-    backgroundColor: '#4C0B0B',
+    backgroundColor: '#B8860B',
     marginVertical: moderateScale(16),
   },
   receiptTitle: {
     fontSize: moderateScale(20),
     fontWeight: 'bold',
-    color: '#4C0B0B',
+    color: '#B8860B',
     textAlign: 'center',
     marginBottom: moderateScale(20),
     letterSpacing: 1,
@@ -387,7 +392,7 @@ const styles = StyleSheet.create({
     borderRadius: moderateScale(6),
     marginBottom: moderateScale(16),
     borderLeftWidth: 4,
-    borderLeftColor: '#4C0B0B',
+    borderLeftColor: '#B8860B',
   },
   infoRow: {
     flexDirection: 'row',
@@ -415,7 +420,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: moderateScale(13),
     fontWeight: 'bold',
-    color: '#4C0B0B',
+    color: '#B8860B',
     marginBottom: moderateScale(10),
     textTransform: 'uppercase',
   },
@@ -455,7 +460,7 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#4C0B0B',
+    backgroundColor: '#B8860B',
     paddingVertical: moderateScale(10),
     paddingHorizontal: moderateScale(8),
   },
@@ -484,7 +489,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
-    backgroundColor: '#FFF9F0',
+    backgroundColor: '#FBF4E4',
     padding: moderateScale(14),
     borderRadius: moderateScale(6),
     marginBottom: moderateScale(20),
@@ -500,7 +505,7 @@ const styles = StyleSheet.create({
   totalAmount: {
     fontSize: moderateScale(18),
     fontWeight: 'bold',
-    color: '#4C0B0B',
+    color: '#B8860B',
   },
   paymentModeSection: {
     backgroundColor: '#F8F9FA',
@@ -511,7 +516,7 @@ const styles = StyleSheet.create({
   paymentModeTitle: {
     fontSize: moderateScale(12),
     fontWeight: 'bold',
-    color: '#4C0B0B',
+    color: '#B8860B',
     marginBottom: moderateScale(8),
   },
   paymentModeRow: {

@@ -158,7 +158,7 @@ const DrawerItem = memo(
               <Icon
                 name={item.icon}
                 size={SIZES.icon.md}
-                color={isActive ? COLORS.white : COLORS.primary}
+                color={isActive ? COLORS.white : COLORS.accentDark}
               />
               <Badge count={item.badge} />
             </View>
@@ -501,7 +501,7 @@ const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }: SideBar
         ]}
       >
         <StatusBar
-          backgroundColor={COLORS.primary}
+          backgroundColor={COLORS.accentDark}
           barStyle="light-content"
           translucent={Platform.OS === "android"}
         />
@@ -515,7 +515,7 @@ const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }: SideBar
         {/* User Profile Section */}
         <View style={styles.profileSection}>
           <LinearGradient
-            colors={[COLORS.primary, COLORS.secondary]}
+            colors={[COLORS.accentDark, COLORS.secondary]}
             style={styles.profileGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -753,7 +753,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   activeItem: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accentDark,
     ...SHADOWS.sm,
   },
   iconContainer: {

@@ -71,7 +71,7 @@ const BannerContent = ({ data, onHide }: { data: BannerData; onHide: () => void 
             <Image source={{ uri: data.imageUrl }} style={styles.image} resizeMode="cover" />
           ) : (
             <View style={styles.iconFallback}>
-              <MaterialCommunityIcons name="bell" size={26} color={COLORS.primary} />
+              <MaterialCommunityIcons name="bell" size={26} color={COLORS.accentDark} />
             </View>
           )}
         </View>
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 10,
-    backgroundColor: COLORS.primaryPale,
+    backgroundColor: COLORS.accentLight,
     justifyContent: 'center',
     alignItems: 'center',
   },

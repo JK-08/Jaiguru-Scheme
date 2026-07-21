@@ -1,12 +1,14 @@
 // SchemeDetailScreen.tsx
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, StatusBar, SafeAreaView } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import SchemeDetailsCard from '../../Components/SchemeDetailsCard/SchemeDetailsCard';
+import PremiumBackground from '../../Components/PremiumBackground/PremiumBackground';
 import BottomTab from '../../Components/BottomTab/BottomTab';
 import theme from '../../Utills/AppTheme';
 import { AppText } from '../../Components/ui/appcomponents';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { COLORS, SIZES } = theme;
 
@@ -38,7 +40,8 @@ export default function AllSchemesScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <PremiumBackground />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
@@ -50,9 +53,9 @@ export default function AllSchemesScreen() {
 
       <View style={styles.filterContainer}>
         <FilterButton title="All" value="all" isActive={filter === 'all'} onPress={setFilter} />
-        <FilterButton title="Active" value="active" isActive={filter === 'active'} onPress={setFilter} />
+        {/* <FilterButton title="Active" value="active" isActive={filter === 'active'} onPress={setFilter} /> */}
         <FilterButton title="Due" value="due" isActive={filter === 'due'} onPress={setFilter} />
-        <FilterButton title="Completed" value="completed" isActive={filter === 'completed'} onPress={setFilter} />
+        <FilterButton title="Finished" value="completed" isActive={filter === 'completed'} onPress={setFilter} />
       </View>
 
       <View style={styles.content}>
@@ -94,6 +97,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.gray100,
     alignItems: 'center',
   },
-  filterButtonActive: { backgroundColor: COLORS.primary },
+  filterButtonActive: { backgroundColor: COLORS.accentDark },
   content: { flex: 1 },
 });
