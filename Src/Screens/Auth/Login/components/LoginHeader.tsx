@@ -115,6 +115,8 @@ const LoginHeader: React.FC<LoginHeaderProps> = ({
 const styles = StyleSheet.create({
   wrap: {
     alignItems: 'center',
+    flexDirection: 'row',
+    gap:10
   },
   medallionShadow: {
     borderRadius: MEDALLION / 2,
@@ -161,7 +163,7 @@ const styles = StyleSheet.create({
   },
   brand: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.font.xxl,
+    fontSize: SIZES.font.xxxl,
     letterSpacing: 0.3,
     color: COLORS.textPrimary,
   },

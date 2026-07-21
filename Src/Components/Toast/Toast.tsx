@@ -1,23 +1,32 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  Animated,
-  TouchableOpacity,
-  StyleSheet,
-  Platform,
   Dimensions,
-  SafeAreaView,
-  Easing,
-  PanResponder,
+  Platform,
+  Pressable,
   StyleProp,
+  StyleSheet,
+  Text,
+  View,
   ViewStyle,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import Animated, {
+  Easing,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
+
 import theme from '../../Utills/AppTheme';
 
-const { height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
+const { COLORS, SIZES, FONTS, SHADOWS } = theme;
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 export const ToastTypes = {
   SUCCESS: 'success',
@@ -25,21 +34,21 @@ export const ToastTypes = {
   WARNING: 'warning',
   INFO: 'info',
   DEFAULT: 'default',
-  PREMIUM: 'premium', // New premium type with gold accent
-  PROGRESS: 'progress' // New type for progress notifications
+  PREMIUM: 'premium',
+  PROGRESS: 'progress',
 } as const;
 
 export const ToastPositions = {
   TOP: 'top',
   BOTTOM: 'bottom',
-  CENTER: 'center'
+  CENTER: 'center',
 } as const;
 
 export const ToastAnimationTypes = {
   SLIDE: 'slide',
   FADE: 'fade',
   SCALE: 'scale',
-  BOUNCE: 'bounce'
+  BOUNCE: 'bounce',
 } as const;
 
 type ToastType = typeof ToastTypes[keyof typeof ToastTypes];
@@ -62,644 +71,296 @@ export interface ToastConfig {
   customStyle?: StyleProp<ViewStyle> | null;
 }
 
+// ─── Config per type ──────────────────────────────────────────────────────────
+
+const TYPE_CONFIG: Record<ToastType, {
+  icon: string;
+  gradient: [string, string];
+  accent: string;
+  iconBg: string;
+}> = {
+  success: {
+    icon: 'check-circle',
+    gradient: ['#1A1A1A', '#1A1A1A'],
+    accent: '#22C55E',
+    iconBg: 'rgba(34,197,94,0.15)',
+  },
+  error: {
+    icon: 'close-circle',
+    gradient: ['#1A1A1A', '#1A1A1A'],
+    accent: '#EF4444',
+    iconBg: 'rgba(239,68,68,0.15)',
+  },
+  warning: {
+    icon: 'alert-circle',
+    gradient: ['#1A1A1A', '#1A1A1A'],
+    accent: '#F59E0B',
+    iconBg: 'rgba(245,158,11,0.15)',
+  },
+  info: {
+    icon: 'information-outline',
+    gradient: ['#1A1A1A', '#1A1A1A'],
+    accent: '#3B82F6',
+    iconBg: 'rgba(59,130,246,0.15)',
+  },
+  premium: {
+    icon: 'crown',
+    gradient: [COLORS.accentDark, '#8B6914'],
+    accent: COLORS.accent,
+    iconBg: 'rgba(212,175,55,0.2)',
+  },
+  default: {
+    icon: 'bell-outline',
+    gradient: ['#1A1A1A', '#1A1A1A'],
+    accent: COLORS.accent,
+    iconBg: 'rgba(212,175,55,0.15)',
+  },
+  progress: {
+    icon: 'progress-clock',
+    gradient: ['#1A1A1A', '#1A1A1A'],
+    accent: COLORS.accent,
+    iconBg: 'rgba(212,175,55,0.15)',
+  },
+};
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 interface ToastComponentProps extends ToastConfig {
   visible: boolean;
   onHide?: (() => void) | null;
-  hideOnSwipe?: boolean;
   hideOnTap?: boolean;
-  multiline?: boolean;
-  maxLines?: number;
   showCloseButton?: boolean;
-  elevation?: number;
-  borderRadius?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
-  showIcon?: boolean;
 }
 
 const ToastComponent = ({
   visible,
   message,
-  type = ToastTypes.DEFAULT,
+  type = 'default',
   duration = 3000,
-  onHide,
   title,
-  position = ToastPositions.TOP,
-  animationType = ToastAnimationTypes.SLIDE,
-  showProgress = false,
-  progress = 0,
+  position = 'top',
+  animationType = 'slide',
+  customIcon,
+  customStyle,
   actionText,
   onActionPress,
-  hideOnSwipe = true,
-  hideOnTap = true,
-  customIcon,
-  customBackground,
-  customStyle,
-  multiline = false,
-  maxLines = 2,
   showCloseButton = true,
-  elevation = 8,
-  borderRadius = 'md',
-  showIcon = true
+  hideOnTap = true,
+  onHide,
 }: ToastComponentProps) => {
-  const [fadeAnim] = useState(new Animated.Value(0));
-  const [scaleAnim] = useState(new Animated.Value(0.8));
-  const [slideAnim] = useState(new Animated.Value(position === ToastPositions.BOTTOM ? 100 : -100));
-  const [bounceAnim] = useState(new Animated.Value(0));
-  const [progressAnim] = useState(new Animated.Value(0));
-  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const insets = useSafeAreaInsets();
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(position === 'bottom' ? 80 : -80);
+  const scale = useSharedValue(0.88);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const pan = useRef(new Animated.ValueXY()).current;
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => hideOnSwipe,
-      onMoveShouldSetPanResponder: () => hideOnSwipe,
-      onPanResponderMove: Animated.event([null, { dx: pan.x }], { useNativeDriver: false }),
-      onPanResponderRelease: (_, gestureState) => {
-        if (Math.abs(gestureState.dx) > 50) {
-          hideToast();
-        } else {
-          Animated.spring(pan, {
-            toValue: { x: 0, y: 0 },
-            useNativeDriver: true,
-          }).start();
-        }
-      },
-    })
-  ).current;
+  const cfg = TYPE_CONFIG[type] ?? TYPE_CONFIG.default;
+  const icon = customIcon ?? cfg.icon;
+
+  const hide = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    opacity.value = withTiming(0, { duration: 220, easing: Easing.in(Easing.cubic) });
+    translateY.value = withTiming(
+      position === 'bottom' ? 80 : -80,
+      { duration: 220 },
+      (done) => { if (done) runOnJS(onHide ?? (() => {}))(); },
+    );
+    scale.value = withTiming(0.88, { duration: 220 });
+  }, [opacity, translateY, scale, position, onHide]);
 
   useEffect(() => {
-    if (visible) {
-      startShowAnimation();
+    if (!visible) return;
+    translateY.value = position === 'bottom' ? 80 : -80;
+    scale.value = 0.88;
+    opacity.value = 0;
 
-      if (showProgress && progress > 0) {
-        animateProgress();
-      } else if (duration > 0) {
-        const timer = setTimeout(() => {
-          hideToast();
-        }, duration);
-        return () => clearTimeout(timer);
-      }
+    opacity.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.cubic) });
+    translateY.value = withSpring(0, { damping: 18, stiffness: 200 });
+    scale.value = withSpring(1, { damping: 16, stiffness: 220 });
+
+    if (duration > 0) {
+      timerRef.current = setTimeout(hide, duration);
     }
-  }, [visible, progress]);
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [visible]);
 
-  useEffect(() => {
-    if (showProgress) {
-      progressAnim.setValue(progress);
-    }
-  }, [progress]);
+  const animStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }, { scale: scale.value }],
+  }));
 
-  const startShowAnimation = () => {
-    pan.setValue({ x: 0, y: 0 });
-
-    switch (animationType) {
-      case ToastAnimationTypes.FADE:
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-          easing: Easing.out(Easing.cubic)
-        }).start();
-        break;
-
-      case ToastAnimationTypes.SCALE:
-        Animated.parallel([
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-          Animated.spring(scaleAnim, {
-            toValue: 1,
-            tension: 100,
-            friction: 8,
-            useNativeDriver: true,
-          })
-        ]).start();
-        break;
-
-      case ToastAnimationTypes.BOUNCE:
-        Animated.sequence([
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 200,
-            useNativeDriver: true,
-          }),
-          Animated.spring(bounceAnim, {
-            toValue: 1,
-            tension: 300,
-            friction: 5,
-            useNativeDriver: true,
-          })
-        ]).start();
-        break;
-
-      default: // SLIDE
-        Animated.parallel([
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-          Animated.spring(slideAnim, {
-            toValue: 0,
-            tension: 100,
-            friction: 10,
-            useNativeDriver: true,
-          })
-        ]).start();
-    }
-  };
-
-  const animateProgress = () => {
-    if (progressIntervalRef.current) {
-      clearInterval(progressIntervalRef.current);
-    }
-
-    Animated.timing(progressAnim, {
-      toValue: progress,
-      duration: 300,
-      useNativeDriver: false,
-      easing: Easing.out(Easing.cubic)
-    }).start();
-  };
-
-  const hideToast = () => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      animationType === ToastAnimationTypes.SLIDE ?
-        Animated.timing(slideAnim, {
-          toValue: position === ToastPositions.BOTTOM ? 100 : -100,
-          duration: 250,
-          useNativeDriver: true,
-        }) :
-        Animated.timing(scaleAnim, {
-          toValue: 0.8,
-          duration: 250,
-          useNativeDriver: true,
-        })
-    ]).start(() => {
-      onHide && onHide();
-    });
-  };
+  const posStyle = position === 'bottom'
+    ? { bottom: insets.bottom + SIZES.md }
+    : { top: insets.top + SIZES.sm };
 
   if (!visible) return null;
 
-  const getToastStyle = () => {
-    const styles: Record<string, any> = {
-      success: {
-        backgroundColor: theme.COLORS.success,
-        borderColor: theme.COLORS.successDark,
-        icon: 'check-circle',
-        gradient: ['#10B981', '#34D399'],
-        iconColor: theme.COLORS.white,
-        textColor: theme.COLORS.white,
-        progressColor: theme.COLORS.successLight
-      },
-      error: {
-        backgroundColor: theme.COLORS.error,
-        borderColor: theme.COLORS.errorDark,
-        icon: 'alert-circle',
-        gradient: ['#DC2626', '#EF4444'],
-        iconColor: theme.COLORS.white,
-        textColor: theme.COLORS.white,
-        progressColor: theme.COLORS.errorLight
-      },
-      warning: {
-        backgroundColor: theme.COLORS.warning,
-        borderColor: theme.COLORS.warningDark,
-        icon: 'alert',
-        gradient: ['#F59E0B', '#FBBF24'],
-        iconColor: theme.COLORS.white,
-        textColor: theme.COLORS.white,
-        progressColor: theme.COLORS.warningLight
-      },
-      info: {
-        backgroundColor: theme.COLORS.info,
-        borderColor: theme.COLORS.infoDark,
-        icon: 'information',
-        gradient: ['#3B82F6', '#60A5FA'],
-        iconColor: theme.COLORS.white,
-        textColor: theme.COLORS.white,
-        progressColor: theme.COLORS.infoLight
-      },
-      premium: {
-        backgroundColor: theme.COLORS.primary,
-        borderColor: theme.COLORS.goldPrimary,
-        icon: 'crown',
-        gradient: theme.COLORS.gradient.luxury,
-        iconColor: theme.COLORS.goldPrimary,
-        textColor: theme.COLORS.white,
-        progressColor: theme.COLORS.goldPrimary
-      },
-      default: {
-        backgroundColor: theme.COLORS.primary,
-        borderColor: theme.COLORS.primaryDark,
-        icon: 'bell',
-        gradient: theme.COLORS.gradient.bluePrimary,
-        iconColor: theme.COLORS.white,
-        textColor: theme.COLORS.white,
-        progressColor: theme.COLORS.primaryLight
-      },
-      progress: {
-        backgroundColor: theme.COLORS.primary,
-        borderColor: theme.COLORS.primaryDark,
-        icon: 'progress-clock',
-        gradient: theme.COLORS.gradient.blueDeep,
-        iconColor: theme.COLORS.white,
-        textColor: theme.COLORS.white,
-        progressColor: theme.COLORS.goldPrimary
-      }
-    };
-
-    return styles[type] || styles.default;
-  };
-
-  const getPositionStyle = () => {
-    switch (position) {
-      case ToastPositions.BOTTOM:
-        return {
-          top: undefined,
-          bottom: Platform.OS === 'ios' ? theme.SIZES.padding.xxl : theme.SIZES.padding.xl,
-        };
-      case ToastPositions.CENTER:
-        return {
-          top: height / 2 - 50,
-          bottom: undefined,
-        };
-      default: // TOP
-        return {
-          top: Platform.OS === 'ios' ? theme.SIZES.padding.xxl : theme.SIZES.padding.xl,
-          bottom: undefined,
-        };
-    }
-  };
-
-  const getAnimationStyle = () => {
-    switch (animationType) {
-      case ToastAnimationTypes.FADE:
-        return {
-          opacity: fadeAnim,
-          transform: [{ translateY: 0 }]
-        };
-      case ToastAnimationTypes.SCALE:
-        return {
-          opacity: fadeAnim,
-          transform: [{ scale: scaleAnim }]
-        };
-      case ToastAnimationTypes.BOUNCE: {
-        const bounceValue = bounceAnim.interpolate({
-          inputRange: [0, 0.5, 1],
-          outputRange: [0, -15, 0]
-        });
-        return {
-          opacity: fadeAnim,
-          transform: [{ translateY: bounceValue }]
-        };
-      }
-      default: // SLIDE
-        return {
-          opacity: fadeAnim,
-          transform: [
-            { translateY: slideAnim },
-            { translateX: pan.x }
-          ]
-        };
-    }
-  };
-
-  const getBorderRadius = () => {
-    const radiusMap: Record<string, number> = {
-      xs: theme.SIZES.radius.xs,
-      sm: theme.SIZES.radius.sm,
-      md: theme.SIZES.radius.md,
-      lg: theme.SIZES.radius.lg,
-      xl: theme.SIZES.radius.xl,
-      full: theme.SIZES.radius.full
-    };
-    return radiusMap[borderRadius] || theme.SIZES.radius.md;
-  };
-
-  const getElevation = () => {
-    const elevationMap: Record<number, any> = {
-      0: theme.SHADOWS.none,
-      1: theme.SHADOWS.xs,
-      2: theme.SHADOWS.sm,
-      4: theme.SHADOWS.md,
-      8: theme.SHADOWS.lg,
-      12: theme.SHADOWS.xl
-    };
-    return elevationMap[elevation] || theme.SHADOWS.lg;
-  };
-
-  const toastStyle = getToastStyle();
-  const positionStyle = getPositionStyle();
-  const animationStyle = getAnimationStyle();
-  const borderRadiusValue = getBorderRadius();
-  const shadowStyle = getElevation();
-
-  const progressWidth = progressAnim.interpolate({
-    inputRange: [0, 100],
-    outputRange: ['0%', '100%']
-  });
-
   return (
-    <SafeAreaView style={[styles.safeArea, positionStyle]} pointerEvents="box-none">
-      <Animated.View
-        {...panResponder.panHandlers}
-        style={[
-          styles.container,
-          {
-            borderRadius: borderRadiusValue,
-            borderColor: customBackground ? 'transparent' : toastStyle.borderColor,
-            borderWidth: type === 'premium' ? 2 : 1,
-            ...shadowStyle,
-            ...animationStyle,
-          },
-          position === ToastPositions.CENTER && styles.centerContainer,
-          customStyle
-        ]}
-      >
-        {customBackground ? (
-          customBackground
-        ) : (
-          <LinearGradient
-            colors={toastStyle.gradient}
-            style={[styles.gradient, { borderRadius: borderRadiusValue - 1 }]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <View style={styles.content}>
-              {showIcon && (
-                <Icon
-                  name={customIcon || toastStyle.icon}
-                  size={24}
-                  color={toastStyle.iconColor}
-                  style={styles.icon}
-                />
-              )}
+    <Animated.View style={[styles.wrapper, posStyle, animStyle, customStyle as any]}>
+      <Pressable onPress={hideOnTap ? hide : undefined} style={styles.pressable}>
+        {/* Dark pill container */}
+        <View style={styles.pill}>
+          {/* Left accent bar */}
+          <View style={[styles.accentBar, { backgroundColor: cfg.accent }]} />
 
-              <View style={styles.textContainer}>
-                {title && (
-                  <Text style={[styles.title, { color: toastStyle.textColor }]}>
-                    {title}
-                  </Text>
-                )}
-                <Text
-                  style={[styles.message, { color: toastStyle.textColor }]}
-                  numberOfLines={multiline ? undefined : maxLines}
-                >
-                  {message}
-                </Text>
-              </View>
+          {/* Icon bubble */}
+          <View style={[styles.iconBubble, { backgroundColor: cfg.iconBg }]}>
+            <MaterialCommunityIcons name={icon as any} size={20} color={cfg.accent} />
+          </View>
 
-              <View style={styles.rightActions}>
-                {actionText && onActionPress && (
-                  <TouchableOpacity onPress={onActionPress} style={styles.actionButton}>
-                    <Text style={[styles.actionText, { color: toastStyle.textColor }]}>
-                      {actionText}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-
-                {showCloseButton && (
-                  <TouchableOpacity
-                    onPress={hideToast}
-                    style={styles.closeButton}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  >
-                    <Icon name="close" size={20} color={toastStyle.textColor} />
-                  </TouchableOpacity>
-                )}
-              </View>
-            </View>
-
-            {showProgress && (
-              <Animated.View
-                style={[
-                  styles.progressBar,
-                  {
-                    width: progressWidth,
-                    backgroundColor: toastStyle.progressColor
-                  }
-                ]}
-              />
+          {/* Text */}
+          <View style={styles.textWrap}>
+            {title ? (
+              <>
+                <Text style={styles.titleText} numberOfLines={1}>{title}</Text>
+                <Text style={styles.messageText} numberOfLines={2}>{message}</Text>
+              </>
+            ) : (
+              <Text style={styles.messageText} numberOfLines={2}>{message}</Text>
             )}
-          </LinearGradient>
-        )}
-      </Animated.View>
-    </SafeAreaView>
+          </View>
+
+          {/* Action or close */}
+          {actionText && onActionPress ? (
+            <Pressable onPress={onActionPress} style={[styles.actionBtn, { borderColor: cfg.accent }]}>
+              <Text style={[styles.actionText, { color: cfg.accent }]}>{actionText}</Text>
+            </Pressable>
+          ) : showCloseButton ? (
+            <Pressable onPress={hide} hitSlop={10} style={styles.closeBtn}>
+              <MaterialCommunityIcons name="close" size={16} color="rgba(255,255,255,0.4)" />
+            </Pressable>
+          ) : null}
+        </View>
+      </Pressable>
+    </Animated.View>
   );
 };
 
-interface ToastState {
+// ─── Hook ─────────────────────────────────────────────────────────────────────
+
+interface ToastState extends ToastConfig {
   visible: boolean;
-  message: string;
-  type: ToastType;
-  duration: number;
-  title: string | null;
-  position: ToastPosition;
-  animationType: ToastAnimationType;
-  showProgress: boolean;
-  progress: number;
-  actionText: string | null;
-  onActionPress: (() => void) | null;
-  customIcon: string | null;
-  customBackground: React.ReactNode | null;
-  customStyle: StyleProp<ViewStyle> | null;
 }
 
-// Toast Hook for easy usage
 export const useToast = () => {
-  const [toastState, setToastState] = useState<ToastState>({
-    visible: false,
-    message: '',
-    type: ToastTypes.DEFAULT,
-    duration: 3000,
-    title: null,
-    position: ToastPositions.TOP,
-    animationType: ToastAnimationTypes.SLIDE,
-    showProgress: false,
-    progress: 0,
-    actionText: null,
-    onActionPress: null,
-    customIcon: null,
-    customBackground: null,
-    customStyle: null
-  });
+  const [state, setState] = useState<ToastState>({ visible: false, message: '' });
 
-  // Stable identities (empty dep arrays — they only ever use setState's
-  // functional/direct forms, never stale outer values) so that `Toast`
-  // below doesn't get a new component identity on every render.
   const showToast = useCallback((config: ToastConfig) => {
-    setToastState({
-      visible: true,
-      message: config.message,
-      type: config.type || ToastTypes.DEFAULT,
-      duration: config.duration ?? 3000,
-      title: config.title || null,
-      position: config.position || ToastPositions.TOP,
-      animationType: config.animationType || ToastAnimationTypes.SLIDE,
-      showProgress: config.showProgress || false,
-      progress: config.progress || 0,
-      actionText: config.actionText || null,
-      onActionPress: config.onActionPress || null,
-      customIcon: config.customIcon || null,
-      customBackground: config.customBackground || null,
-      customStyle: config.customStyle || null
-    });
+    setState({ ...config, visible: true });
   }, []);
 
   const hideToast = useCallback(() => {
-    setToastState(prev => ({ ...prev, visible: false }));
+    setState((prev) => ({ ...prev, visible: false }));
   }, []);
 
   const updateProgress = useCallback((progress: number) => {
-    setToastState(prev => ({ ...prev, progress }));
+    setState((prev) => ({ ...prev, progress }));
   }, []);
 
-  // IMPORTANT: `Toast` must keep a stable function identity across
-  // re-renders that don't actually change the toast (e.g. a parent screen
-  // re-rendering every second because of an unrelated countdown timer).
-  // Previously this was a plain arrow function recreated on every call to
-  // useToast(), which made React treat it as a brand-new component type on
-  // every render and remount <ToastComponent /> from scratch each time —
-  // replaying its entrance animation and making the toast appear to
-  // "blink" continuously. Memoizing on [toastState, hideToast] means its
-  // identity (and therefore the mounted instance) only changes when the
-  // toast's own state actually changes.
   const Toast = useCallback(
-    () => <ToastComponent {...toastState} onHide={hideToast} />,
-    [toastState, hideToast]
+    () => <ToastComponent {...state} onHide={hideToast} />,
+    [state, hideToast],
   );
 
-  return {
-    showToast,
-    hideToast,
-    updateProgress,
-    Toast,
-    toastState
-  };
+  return { showToast, hideToast, updateProgress, Toast, toastState: state };
 };
 
-// Quick Toast Methods
-export const showSuccessToast = (message: string, title = 'Success', duration = 3000): ToastConfig & { visible: boolean } => ({
-  visible: true,
-  message,
-  title,
-  type: ToastTypes.SUCCESS,
-  duration
-});
-
-export const showErrorToast = (message: string, title = 'Error', duration = 4000): ToastConfig & { visible: boolean } => ({
-  visible: true,
-  message,
-  title,
-  type: ToastTypes.ERROR,
-  duration
-});
-
-export const showPremiumToast = (message: string, title = 'Premium', duration = 3000): ToastConfig & { visible: boolean } => ({
-  visible: true,
-  message,
-  title,
-  type: ToastTypes.PREMIUM,
-  duration
-});
-
-export const showProgressToast = (message: string, title = 'Loading...', initialProgress = 0): ToastConfig & { visible: boolean } => ({
-  visible: true,
-  message,
-  title,
-  type: ToastTypes.PROGRESS,
-  duration: 0, // Infinite until manually hidden
-  showProgress: true,
-  progress: initialProgress
-});
+// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  safeArea: {
+  wrapper: {
     position: 'absolute',
-    left: 0,
-    right: 0,
+    left: SIZES.md,
+    right: SIZES.md,
     zIndex: 9999,
   },
-  container: {
-    marginHorizontal: theme.SIZES.padding.md,
+  pressable: {
+    borderRadius: SIZES.radius.xl,
     overflow: 'hidden',
-    minHeight: theme.SIZES.button.md,
   },
-  centerContainer: {
-    position: 'absolute',
-    left: theme.SIZES.padding.md,
-    right: theme.SIZES.padding.md,
-  },
-  gradient: {
-    flex: 1,
-  },
-  content: {
+  pill: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: theme.SIZES.padding.md,
-    minHeight: theme.SIZES.button.md,
+    backgroundColor: '#1C1C1E',
+    borderRadius: SIZES.radius.xl,
+    paddingVertical: SIZES.sm + 2,
+    paddingRight: SIZES.md,
+    overflow: 'hidden',
+    ...SHADOWS.xl,
+    shadowColor: '#000',
+    shadowOpacity: 0.45,
+    shadowRadius: 16,
+    elevation: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.07)',
   },
-  textContainer: {
+  accentBar: {
+    width: 3,
+    alignSelf: 'stretch',
+    borderRadius: 2,
+    marginLeft: SIZES.sm,
+    marginRight: SIZES.sm,
+    minHeight: 32,
+  },
+  iconBubble: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: SIZES.sm,
+  },
+  textWrap: {
     flex: 1,
-    marginRight: theme.SIZES.padding.sm,
+    justifyContent: 'center',
   },
-  title: {
-    ...theme.FONTS.label,
-    fontSize: theme.SIZES.font.sm,
-    fontWeight: '600',
+  titleText: {
+    fontFamily: FONTS.family.bold,
+    fontSize: SIZES.font.sm,
+    color: '#FFFFFF',
     marginBottom: 2,
+    letterSpacing: 0.1,
   },
-  message: {
-    ...theme.FONTS.bodySmall,
-    fontSize: theme.SIZES.font.sm,
-    lineHeight: theme.SIZES.font.sm * 1.4,
+  messageText: {
+    fontFamily: FONTS.family.regular,
+    fontSize: SIZES.font.sm,
+    color: 'rgba(255,255,255,0.75)',
+    lineHeight: SIZES.font.sm * 1.45,
   },
-  icon: {
-    marginRight: theme.SIZES.padding.sm,
-  },
-  rightActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  actionButton: {
-    paddingHorizontal: theme.SIZES.padding.sm,
-    paddingVertical: theme.SIZES.padding.xs,
-    marginRight: theme.SIZES.padding.xs,
-    borderRadius: theme.SIZES.radius.xs,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  actionBtn: {
+    paddingHorizontal: SIZES.sm,
+    paddingVertical: 4,
+    borderRadius: SIZES.radius.sm,
+    borderWidth: 1,
+    marginLeft: SIZES.sm,
   },
   actionText: {
-    ...theme.FONTS.captionBold,
-    fontSize: theme.SIZES.font.xs,
+    fontFamily: FONTS.family.semiBold,
+    fontSize: SIZES.font.xs,
   },
-  closeButton: {
-    padding: theme.SIZES.padding.xs,
-  },
-  progressBar: {
-    height: 3,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    borderBottomLeftRadius: theme.SIZES.radius.xs,
+  closeBtn: {
+    marginLeft: SIZES.sm,
+    padding: 2,
   },
 });
 
-// Toast Provider for global usage
+// ─── Quick helpers (kept for backward compat) ─────────────────────────────────
+
+export const showSuccessToast = (message: string, title = 'Success', duration = 3000) =>
+  ({ visible: true, message, title, type: ToastTypes.SUCCESS, duration } as ToastConfig & { visible: boolean });
+
+export const showErrorToast = (message: string, title = 'Error', duration = 4000) =>
+  ({ visible: true, message, title, type: ToastTypes.ERROR, duration } as ToastConfig & { visible: boolean });
+
+export const showPremiumToast = (message: string, title = 'Premium', duration = 3000) =>
+  ({ visible: true, message, title, type: ToastTypes.PREMIUM, duration } as ToastConfig & { visible: boolean });
+
+export const showProgressToast = (message: string, title = 'Loading...', initialProgress = 0) =>
+  ({ visible: true, message, title, type: ToastTypes.PROGRESS, duration: 0, showProgress: true, progress: initialProgress } as ToastConfig & { visible: boolean });
+
 export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   const { Toast } = useToast();
-
-  return (
-    <>
-      {children}
-      <Toast />
-    </>
-  );
+  return <>{children}<Toast /></>;
 };
 
 export default ToastComponent;
