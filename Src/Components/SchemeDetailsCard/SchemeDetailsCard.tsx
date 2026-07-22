@@ -284,7 +284,7 @@ export default function SchemeDetailsCard({ layout = 'horizontal', filter = 'all
   if (loading && !refreshing) {
     return (
       <View style={styles.container}>
-        {renderHeader()}
+        {layout === 'horizontal' && renderHeader()}
         <View style={styles.center}>
           <ActivityIndicator size="large" color={COLORS.accentDark} />
           <Text style={styles.loadingText}>Loading your schemes...</Text>
@@ -297,7 +297,7 @@ export default function SchemeDetailsCard({ layout = 'horizontal', filter = 'all
   if (error) {
     return (
       <View style={styles.container}>
-        {renderHeader()}
+        {layout === 'horizontal' && renderHeader()}
         <View style={styles.center}>
           <Text style={styles.errorText}>Failed to load schemes</Text>
           <TouchableOpacity style={styles.retryButton} onPress={onRefresh}>
@@ -312,7 +312,7 @@ export default function SchemeDetailsCard({ layout = 'horizontal', filter = 'all
   if (!accounts || accounts.length === 0) {
     return (
       <View style={styles.container}>
-        {renderHeader()}
+        {layout === 'horizontal' && renderHeader()}
         <View style={styles.center}>
           <Text style={styles.noAccountText}>No schemes found</Text>
           <Text style={styles.emptySubtext}>You don't have any active schemes yet.</Text>
@@ -325,7 +325,7 @@ export default function SchemeDetailsCard({ layout = 'horizontal', filter = 'all
   if (!filteredAccounts || filteredAccounts.length === 0) {
     return (
       <View style={styles.container}>
-        {renderHeader()}
+        {layout === 'horizontal' && renderHeader()}
         <View style={styles.center}>
           <Text style={styles.noAccountText}>No schemes match this filter</Text>
           <Text style={styles.emptySubtext}>Try a different filter to see your other schemes.</Text>

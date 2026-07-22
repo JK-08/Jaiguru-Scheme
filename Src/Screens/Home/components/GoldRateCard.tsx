@@ -96,6 +96,7 @@ const GoldRateCard: React.FC<GoldRateCardProps> = ({
               <MaterialCommunityIcons name="circle" size={SIZES.icon.xs} color={COLORS.accent} />
               <Text style={styles.metal}>GOLD</Text>
             </View>
+            <Text style={styles.purity}>916</Text>
             {renderValue(gold)}
             <Text style={styles.unit}>per gram</Text>
           </View>
@@ -184,6 +185,13 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     letterSpacing: 1,
     marginLeft: SIZES.xs,
+  },
+  purity: {
+    fontFamily: FONTS.family.bold,
+    fontSize: SIZES.font.xs,
+    color: COLORS.accentDark,
+    letterSpacing: 1,
+    marginTop: 1,
   },
   rate: {
     fontFamily: FONTS.family.bold,

@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   // Small dot under the icon of the active (non-center) tab.
   activeDot: {
     position: "absolute",
-    top: 0,
+    top: -5,
     width: SIZES.radius.sm * 0.7,
     height: SIZES.radius.sm * 0.7,
     borderRadius: SIZES.radius.full,

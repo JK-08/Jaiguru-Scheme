@@ -1,6 +1,6 @@
 // Src/Components/Slider/Slider.tsx
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Image, ActivityIndicator, Text, StyleSheet, FlatList, Dimensions, TouchableOpacity, ViewToken } from 'react-native';
+import { View, Image, ActivityIndicator, Animated, Text, StyleSheet, FlatList, Dimensions, TouchableOpacity, ViewToken } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSchemeSliders } from '../../api/hooks/HomeBanner/useSchemeSliders';
 import { useSchemeCatalog } from '../../api/hooks/Schemes/useSchemeCatalog';
@@ -17,6 +17,23 @@ const SLIDE_LINKS: Array<{ type: 'screen'; screen: string } | { type: 'web'; url
 ];
 
 const { width } = Dimensions.get('window');
+
+const SlideItem = React.memo(({ item, index, onPress }: { item: SchemeSlider; index: number; onPress: (i: number) => void }) => {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const onLoad = () => Animated.timing(opacity, { toValue: 1, duration: 300, useNativeDriver: true }).start();
+  return (
+    <TouchableOpacity style={styles.slide} activeOpacity={0.9} onPress={() => onPress(index)}>
+      <View style={[styles.image, { backgroundColor: COLORS.backgroundSecondary, overflow: 'hidden' }]}>
+        <Animated.Image
+          source={{ uri: `${IMAGE_BASE_URL}${item.image_path}` }}
+          style={[styles.image, { opacity }]}
+          resizeMode="cover"
+          onLoad={onLoad}
+        />
+      </View>
+    </TouchableOpacity>
+  );
+});
 
 const SliderComponentSimple = () => {
   const navigation = useNavigation<any>();
@@ -36,26 +53,25 @@ const SliderComponentSimple = () => {
   };
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList<SchemeSlider>>(null);
+  const isManualScroll = useRef(false);
 
   // Auto-scroll every 4 seconds
   useEffect(() => {
     if (!sliders || sliders.length <= 1) return;
-
     const interval = setInterval(() => {
-      const nextIndex = (currentIndex + 1) % sliders.length;
-      flatListRef.current?.scrollToIndex({
-        index: nextIndex,
-        animated: true,
+      if (isManualScroll.current) return;
+      setCurrentIndex((prev) => {
+        const next = (prev + 1) % sliders.length;
+        flatListRef.current?.scrollToIndex({ index: next, animated: true });
+        return next;
       });
-      setCurrentIndex(nextIndex);
     }, 4000);
-
     return () => clearInterval(interval);
-  }, [currentIndex, sliders]);
+  }, [sliders]);
 
   const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
     if (viewableItems.length > 0) {
-      setCurrentIndex(viewableItems[0].index || 0);
+      setCurrentIndex(viewableItems[0].index ?? 0);
     }
   }).current;
 
@@ -64,14 +80,16 @@ const SliderComponentSimple = () => {
   }).current;
 
   const handleDotPress = (index: number) => {
-    flatListRef.current?.scrollToIndex({ index, animated: true });
+    isManualScroll.current = true;
     setCurrentIndex(index);
+    flatListRef.current?.scrollToIndex({ index, animated: true });
+    setTimeout(() => { isManualScroll.current = false; }, 500);
   };
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.accentDark} />
+      <View style={styles.skeletonWrap}>
+        <View style={styles.skeleton} />
       </View>
     );
   }
@@ -99,11 +117,7 @@ const SliderComponentSimple = () => {
         showsHorizontalScrollIndicator={false}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
-        renderItem={({ item, index }) => (
-          <TouchableOpacity style={styles.slide} activeOpacity={0.9} onPress={() => handleSlidePress(index)}>
-            <Image source={{ uri: `${IMAGE_BASE_URL}${item.image_path}` }} style={styles.image} resizeMode="cover" />
-          </TouchableOpacity>
-        )}
+        renderItem={({ item, index }) => <SlideItem item={item} index={index} onPress={handleSlidePress} />}
       />
 
       {/* Pagination Dots */}
@@ -132,7 +146,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: moderateScale(200),
+    height: (width - SIZES.padding.container * 2) * (9 / 16),
     borderRadius: SIZES.radius.lg,
     backgroundColor: COLORS.backgroundSecondary,
     ...SHADOWS.md,
@@ -153,6 +167,18 @@ const styles = StyleSheet.create({
   activeDot: {
     width: moderateScale(24),
     backgroundColor: COLORS.accentDark,
+  },
+  skeletonWrap: {
+    width: '100%',
+    paddingHorizontal: SIZES.padding.container,
+    marginBottom: SIZES.margin.md,
+    marginTop: SIZES.margin.md,
+  },
+  skeleton: {
+    width: '100%',
+    height: (width - SIZES.padding.container * 2) * (9 / 16),
+    borderRadius: SIZES.radius.lg,
+    backgroundColor: COLORS.backgroundSecondary,
   },
   loadingContainer: {
     width: '100%',

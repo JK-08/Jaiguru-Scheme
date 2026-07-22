@@ -90,7 +90,7 @@ const HomeScreen = () => {
       const data = await ratesService.getTodayRate();
       setRates(data);
       setRatesUpdatedAt(
-        new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+        new Date().toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
       );
     } catch (err: any) {
       setRatesError(err?.message || 'Failed to fetch rates');

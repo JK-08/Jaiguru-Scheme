@@ -209,6 +209,7 @@ const ResetMpinScreen = () => {
   );
 
   return (
+    <View style={styles.root}>
     <MpinScaffold
       headerTitle="Reset MPIN"
       icon={step === 'old' ? 'lock-outline' : 'lock-reset'}
@@ -226,8 +227,6 @@ const ResetMpinScreen = () => {
           setTimeout(() => oldRef.current?.focus(), 150);
         } : handleBack}
     >
-      <Toast />
-
       {/* Step indicator */}
       <View style={styles.stepsRow}>
         <View style={[styles.stepDot, styles.stepDotActive]}>
@@ -294,10 +293,13 @@ const ResetMpinScreen = () => {
         </>
       )}
     </MpinScaffold>
+    <Toast />
+  </View>
   );
 };
 
 const styles = StyleSheet.create({
+  root: { flex: 1 },
   stepsRow: {
     flexDirection: 'row',
     alignItems: 'center',

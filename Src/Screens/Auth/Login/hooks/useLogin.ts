@@ -158,6 +158,7 @@ export function useLogin(): UseLogin {
       else await AsyncStorage.removeItem(REMEMBER_KEY);
 
       const res: any = await login({ contactOrEmailOrUsername: mobile, password });
+      console.log('=== LOGIN RESPONSE ===', JSON.stringify(res, null, 2));
 
       if (res?.success !== false && res?.token) {
         await saveAuthData({ ...res, contactNumber: res.contactNumber || res.contact || mobile, loginType: 'NORMAL' });

@@ -19,6 +19,7 @@ export default function SchemeCardSlider() {
   const CARD_WIDTH = screenWidth * 0.85;
   const CARD_MARGIN = SIZES.md;
   const SNAP_INTERVAL = CARD_WIDTH + CARD_MARGIN;
+  const IMAGE_HEIGHT = CARD_WIDTH * (9 / 16);
 
   const handleJoinScheme = (scheme: Scheme) => {
     navigation.navigate('MemberCreation', { scheme });
@@ -35,7 +36,7 @@ export default function SchemeCardSlider() {
       <View style={[styles.cardContainer, { width: CARD_WIDTH, marginRight: CARD_MARGIN }]}>
         <ImageBackground
           source={typeof imageUri === 'string' ? { uri: imageUri } : imageUri}
-          style={styles.imageBackground}
+          style={[styles.imageBackground, { height: IMAGE_HEIGHT }]}
           resizeMode="cover"
         />
 
@@ -80,7 +81,6 @@ const styles = StyleSheet.create({
   },
   imageBackground: {
     width: '100%',
-    height: moderateScale(180),
   },
   buttonRow: {
     flexDirection: 'row',

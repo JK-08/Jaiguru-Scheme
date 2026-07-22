@@ -287,6 +287,7 @@ const VerifyForgotMpinScreen = () => {
   };
 
   return (
+    <View style={styles.root}>
     <MpinScaffold
       headerTitle={step === 'otp' ? 'Verify OTP' : 'Reset MPIN'}
       icon={step === 'otp' ? 'message-lock-outline' : 'lock-reset'}
@@ -298,7 +299,6 @@ const VerifyForgotMpinScreen = () => {
       }
       onBackPress={step === 'mpin' ? () => setStep('otp') : undefined}
     >
-      <Toast />
 
       {step === 'otp' ? (
         <>
@@ -398,10 +398,13 @@ const VerifyForgotMpinScreen = () => {
         </>
       )}
     </MpinScaffold>
+      <Toast />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  root: { flex: 1 },
   autoCard: {
     flexDirection: 'row',
     alignItems: 'center',

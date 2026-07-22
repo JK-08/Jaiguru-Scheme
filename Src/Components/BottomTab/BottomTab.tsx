@@ -51,12 +51,21 @@ const TABS: TabDef[] = [
     iconLib: 'MaterialIcons',
     iconName: 'savings',
   },
+  // {
+  //   key: 'SUPPORT',
+  //   label: 'Support',
+  //   screen: 'HelpCenter',
+  //   iconLib: 'MaterialCommunityIcons',
+  //   iconName: 'headset',
+  // },
+  
   {
-    key: 'SUPPORT',
-    label: 'Support',
-    screen: 'HelpCenter',
-    iconLib: 'MaterialCommunityIcons',
-    iconName: 'headset',
+    key: 'ALERTS',
+    label: 'Alerts',
+    screen: 'NotificationScreen',
+    iconLib: 'Ionicons',
+    iconName: 'notifications-outline',
+    activeIconName: 'notifications',
   },
   {
     key: 'PROFILE',
@@ -65,14 +74,6 @@ const TABS: TabDef[] = [
     iconLib: 'Ionicons',
     iconName: 'person-outline',
     activeIconName: 'person',
-  },
-  {
-    key: 'ALERTS',
-    label: 'Alerts',
-    screen: 'NotificationScreen',
-    iconLib: 'Ionicons',
-    iconName: 'notifications-outline',
-    activeIconName: 'notifications',
   },
 ];
 
@@ -134,7 +135,7 @@ const AnimatedTab = ({ tab, isActive, onPress, badgeCount = 0 }: AnimatedTabProp
         </View>
       </Animated.View>
       <Text style={isActive ? styles.activeText : styles.inactiveText}>{tab.label}</Text>
-      {isActive && <View style={styles.activeDot} />}
+      {/* {isActive && <View style={styles.activeDot} />} */}
     </TouchableOpacity>
   );
 };

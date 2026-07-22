@@ -88,8 +88,8 @@ const RegisterScreen: React.FC = () => {
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <KeyboardAvoidingView
           style={styles.flex}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+          behavior="padding"
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
             <ScrollView
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: SIZES.padding.container,
     paddingTop: SIZES.sm,
-    paddingBottom: SIZES.md,
+    paddingBottom: SIZES.xl,
   },
   body: { marginTop: SIZES.sm },
   buttonWrap: { marginTop: SIZES.md },

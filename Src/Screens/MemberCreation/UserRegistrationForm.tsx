@@ -124,7 +124,9 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
     const currentYear = new Date().getFullYear();
     const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, '0'));
     const months = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0'));
+    const maxDobYear = currentYear - 18;
     const years = Array.from({ length: 100 }, (_, i) => (currentYear - i).toString());
+    const dobYears = Array.from({ length: 100 }, (_, i) => (maxDobYear - i).toString());
 
     // Load user data from AuthStorage on mount
     useEffect(() => {
@@ -485,7 +487,14 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
 
       // User details validation
       if (!formData.userName) newErrors.userName = 'Name is required';
-      if (!formData.dob) newErrors.dob = 'Date of birth is required';
+      if (!formData.dob) {
+        newErrors.dob = 'Date of birth is required';
+      } else {
+        const dob = new Date(formData.dob);
+        const minAge = new Date();
+        minAge.setFullYear(minAge.getFullYear() - 18);
+        if (dob > minAge) newErrors.dob = 'You must be at least 18 years old';
+      }
       if (!formData.maritalStatus) newErrors.maritalStatus = 'Marital status is required';
 
       // Anniversary validation (if married)
@@ -558,11 +567,12 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
       if (type === 'dob' && formData.dob) {
         const [year, month, day] = formData.dob.split('-');
         setSelectedDate({ day, month, year });
-      } else if (type === 'anniversary' && formData.anniversaryDate) {
+      } else if (type === 'anniversaryDate' && formData.anniversaryDate) {
         const [year, month, day] = formData.anniversaryDate.split('-');
         setSelectedDate({ day, month, year });
       } else {
-        setSelectedDate({ day: '01', month: '01', year: '1990' });
+        const defaultYear = type === 'dob' ? (currentYear - 25).toString() : '1990';
+        setSelectedDate({ day: '01', month: '01', year: defaultYear });
       }
       setShowDatePicker(type);
     };
@@ -576,8 +586,15 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
       const formattedDate = `${selectedDate.year}-${selectedDate.month}-${selectedDate.day}`;
 
       if (showDatePicker === 'dob') {
+        const dob = new Date(parseInt(selectedDate.year), parseInt(selectedDate.month) - 1, parseInt(selectedDate.day));
+        const minAge = new Date();
+        minAge.setFullYear(minAge.getFullYear() - 18);
+        if (dob > minAge) {
+          Alert.alert('Invalid Date', 'You must be at least 18 years old.');
+          return;
+        }
         handleInputChange('dob', formattedDate);
-      } else if (showDatePicker === 'anniversary') {
+      } else if (showDatePicker === 'anniversaryDate') {
         handleInputChange('anniversaryDate', formattedDate);
       }
 
@@ -687,7 +704,7 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
                 monthScrollRef,
                 (m, i) => MONTHS[i]
               )}
-              {renderPickerColumn('Year', years, selectedDate.year, handleYearSelect, yearScrollRef, null)}
+              {renderPickerColumn('Year', showDatePicker === 'dob' ? dobYears : years, selectedDate.year, handleYearSelect, yearScrollRef, null)}
             </View>
 
             <View style={styles.modalButtons}>
@@ -978,9 +995,9 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
           </View>
 
           {/* Action Buttons */}
-          <View style={styles.actionButtonsContainer}>
+          {/* <View style={styles.actionButtonsContainer}>
             <AppButton label="Clear Errors" variant="ghost" size="sm" onPress={clearAllErrors} />
-          </View>
+          </View> */}
 
           {/* Bottom Spacing */}
           <View style={styles.bottomSpacing} />

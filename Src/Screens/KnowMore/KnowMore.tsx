@@ -171,13 +171,13 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontFamily: FONTS.family.bold,
     fontSize: SIZES.font.xxl,
-    color: COLORS.secondary,
+    color: COLORS.white,
     letterSpacing: 2,
   },
   heroSubtitle: {
     fontFamily: FONTS.family.medium,
     fontSize: SIZES.font.md,
-    color: COLORS.whiteOpacity70,
+    color: COLORS.whiteOpacity90,
     marginTop: SIZES.xs,
   },
 

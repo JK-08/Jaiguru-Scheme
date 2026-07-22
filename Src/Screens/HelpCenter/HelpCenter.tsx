@@ -274,16 +274,16 @@ const HelpCentreScreen = () => {
 
           {company.COMPANYNAME ? <Text style={styles.companyName}>{company.COMPANYNAME}</Text> : null}
 
-          <View style={styles.metaRow}>
+          {/* <View style={styles.metaRow}>
             {company.COMPANYID ? <Text style={styles.metaText}>ID: {company.COMPANYID}</Text> : null}
             {company.COMPANYID && company.COSTID ? <Text style={styles.metaDivider}>·</Text> : null}
             {company.COSTID ? <Text style={styles.metaText}>{company.COSTID}</Text> : null}
-          </View>
+          </View> */}
 
-          <View style={[styles.badge, isActive ? styles.badgeActive : styles.badgeInactive]}>
+          {/* <View style={[styles.badge, isActive ? styles.badgeActive : styles.badgeInactive]}>
             <View style={[styles.badgeDot, { backgroundColor: isActive ? COLORS.success : COLORS.error }]} />
             <Text style={styles.badgeText}>{isActive ? 'Active' : 'Inactive'}</Text>
-          </View>
+          </View> */}
         </FadeInUp>
 
         {/* ── Contact ── */}

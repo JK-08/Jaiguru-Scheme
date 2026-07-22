@@ -14,11 +14,11 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
   const { COLORS, SIZES, FONTS, SHADOWS, COMMON_STYLES, moderateScale } = theme;
 
   const openEmail = () => {
-    Linking.openURL('mailto:privacy@sandiyafoundations.com');
+    Linking.openURL('mailto:sandiyafoundationschennaillp@gmail.com');
   };
 
   const openWebsite = () => {
-    Linking.openURL('https://www.sandiyafoundations.com');
+    Linking.openURL('https://jaigurujewellers.com/');
   };
 
   const PolicySection = ({ title, children, isLast = false }: { title: string; children: React.ReactNode; isLast?: boolean }) => (
@@ -114,7 +114,7 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
               marginTop: SIZES.padding.xs,
             }}
           >
-            Last Updated: {new Date().toLocaleDateString()}
+            Last Updated: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
           </Text>
         </View>
 
@@ -396,7 +396,7 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
                 marginBottom: SIZES.padding.md,
               }}
             >
-              privacy@sandiyafoundations.com
+              sandiyafoundationschennaillp@gmail.com
             </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={openWebsite}>
@@ -407,7 +407,7 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
                 textDecorationLine: 'underline',
               }}
             >
-              www.sandiyafoundations.com
+              https://jaigurujewellers.com
             </Text>
           </TouchableOpacity>
         </View>

@@ -1,6 +1,6 @@
 // Src/Screens/MemberCreation/MemberCreation.tsx
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { View, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRoute, useNavigation, useFocusEffect, RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import UserRegistrationForm, { UserRegistrationFormData, UserRegistrationFormRef } from './UserRegistrationForm';
@@ -300,7 +300,10 @@ const MemberCreation = () => {
   const isLoading = paymentLoading;
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <PremiumBackground />
       <CommonHeader title="Member Creation" showBack onBackPress={handleBack} transparent borderBottom={false} shadow={false} />
 
@@ -337,35 +340,35 @@ const MemberCreation = () => {
 
       {/* Navigation Buttons */}
       <NavigationButtons currentStep={currentStep} onBack={handleBack} onNext={handleNext} onSubmit={handleSubmit} isLoading={isLoading} />
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
 // Sub-components for better organization
-const StepIndicator = ({ currentStep }: { currentStep: Step }) => (
-  <View style={styles.stepIndicator}>
-    <View style={styles.stepRow}>
-      {[1, 2].map((step) => (
-        <React.Fragment key={step}>
-          <View style={[styles.stepCircle, currentStep >= step && styles.activeStep]}>
-            <AppText variant="bodyBold" color={currentStep >= step ? COLORS.white : COLORS.textSecondary}>
-              {step}
-            </AppText>
-          </View>
-          {step === 1 && <View style={[styles.stepLine, currentStep >= 2 && styles.activeStepLine]} />}
-        </React.Fragment>
-      ))}
-    </View>
-    <View style={styles.stepLabels}>
-      <AppText variant="caption" color={currentStep >= 1 ? COLORS.accentDark : COLORS.textSecondary} align="center" style={styles.stepLabelFlex}>
-        Registration
-      </AppText>
-      <AppText variant="caption" color={currentStep >= 2 ? COLORS.accentDark : COLORS.textSecondary} align="center" style={styles.stepLabelFlex}>
-        Scheme Joining
-      </AppText>
-    </View>
-  </View>
-);
+// const StepIndicator = ({ currentStep }: { currentStep: Step }) => (
+//   <View style={styles.stepIndicator}>
+//     <View style={styles.stepRow}>
+//       {[1, 2].map((step) => (
+//         <React.Fragment key={step}>
+//           <View style={[styles.stepCircle, currentStep >= step && styles.activeStep]}>
+//             <AppText variant="bodyBold" color={currentStep >= step ? COLORS.white : COLORS.textSecondary}>
+//               {step}
+//             </AppText>
+//           </View>
+//           {step === 1 && <View style={[styles.stepLine, currentStep >= 2 && styles.activeStepLine]} />}
+//         </React.Fragment>
+//       ))}
+//     </View>
+//     <View style={styles.stepLabels}>
+//       <AppText variant="caption" color={currentStep >= 1 ? COLORS.accentDark : COLORS.textSecondary} align="center" style={styles.stepLabelFlex}>
+//         Registration
+//       </AppText>
+//       <AppText variant="caption" color={currentStep >= 2 ? COLORS.accentDark : COLORS.textSecondary} align="center" style={styles.stepLabelFlex}>
+//         Scheme Joining
+//       </AppText>
+//     </View>
+//   </View>
+// );
 
 const LoadingOverlay = ({ message }: { message: string }) => (
   <View style={styles.loadingOverlay}>

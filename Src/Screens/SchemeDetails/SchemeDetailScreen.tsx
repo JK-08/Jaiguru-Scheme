@@ -39,7 +39,7 @@ export default function AllSchemesScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <PremiumBackground />
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
