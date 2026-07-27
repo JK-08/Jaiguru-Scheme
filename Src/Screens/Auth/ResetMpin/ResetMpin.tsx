@@ -202,7 +202,7 @@ const ResetMpinScreen = () => {
           autoFocus={autoFocus}
         />
         <Pressable style={styles.eyeBtn} onPress={onToggle} hitSlop={8} disabled={isLocked}>
-          <MaterialCommunityIcons name={secure ? 'eye' : 'eye-off'} size={SIZES.icon.md} color={COLORS.accentDark} />
+          <MaterialCommunityIcons name={secure ? 'eye' : 'eye-off'} size={SIZES.icon.md} color={COLORS.contentBrand} />
         </Pressable>
       </View>
     </View>
@@ -240,7 +240,7 @@ const ResetMpinScreen = () => {
 
       {isLocked && (
         <View style={styles.lockBox}>
-          <MaterialCommunityIcons name="lock-alert-outline" size={SIZES.icon.xl} color={COLORS.error} />
+          <MaterialCommunityIcons name="lock-alert-outline" size={SIZES.icon.xl} color={COLORS.danger} />
           <Text style={styles.lockTitle}>Temporarily Locked</Text>
           <Text style={styles.lockText}>Please wait {formatTime(lockTime)} before trying again</Text>
         </View>
@@ -272,7 +272,7 @@ const ResetMpinScreen = () => {
                     <MaterialCommunityIcons
                       name={ok ? 'check-circle' : 'circle-outline'}
                       size={SIZES.icon.sm}
-                      color={ok ? COLORS.success : COLORS.textTertiary}
+                      color={ok ? COLORS.success : COLORS.contentMuted}
                     />
                     <Text style={[styles.ruleText, ok && styles.ruleTextOk]}>{label}</Text>
                   </View>
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: SIZES.xl,
+    marginBottom: SIZES.space.xxxl,
   },
   stepDot: {
     width: 32,
@@ -313,78 +313,78 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  stepDotActive: { backgroundColor: COLORS.accent },
+  stepDotActive: { backgroundColor: COLORS.brand },
   stepDotInactive: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     borderWidth: 1.5,
-    borderColor: COLORS.borderChampagne,
+    borderColor: COLORS.accentSubtle,
   },
-  stepNumActive: { fontFamily: FONTS.family.bold, fontSize: SIZES.font.sm, color: COLORS.white },
-  stepNumInactive: { fontFamily: FONTS.family.bold, fontSize: SIZES.font.sm, color: COLORS.textTertiary },
+  stepNumActive: { fontFamily: FONTS.family.bold, fontSize: SIZES.text.sm, color: COLORS.contentOnBrand },
+  stepNumInactive: { fontFamily: FONTS.family.bold, fontSize: SIZES.text.sm, color: COLORS.contentMuted },
   connector: {
     width: 48,
     height: 3,
-    marginHorizontal: SIZES.sm,
+    marginHorizontal: SIZES.space.sm,
     borderRadius: 2,
-    backgroundColor: COLORS.borderChampagne,
+    backgroundColor: COLORS.accentSubtle,
   },
-  connectorActive: { backgroundColor: COLORS.accent },
+  connectorActive: { backgroundColor: COLORS.brand },
   lockBox: {
     alignItems: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     borderRadius: SIZES.radius.lg,
-    padding: SIZES.padding.lg,
-    marginBottom: SIZES.lg,
+    padding: SIZES.space.lg,
+    marginBottom: SIZES.space.xxl,
     borderWidth: 1,
-    borderColor: `${COLORS.error}30`,
+    borderColor: `${COLORS.danger}30`,
   },
   lockTitle: {
     fontFamily: FONTS.family.semiBold,
-    fontSize: SIZES.font.lg,
-    color: COLORS.error,
-    marginTop: SIZES.sm,
+    fontSize: SIZES.text.lg,
+    color: COLORS.danger,
+    marginTop: SIZES.space.sm,
   },
   lockText: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.sm,
-    color: COLORS.textSecondary,
-    marginTop: SIZES.xs,
+    fontSize: SIZES.text.sm,
+    color: COLORS.contentSecondary,
+    marginTop: SIZES.space.xs,
   },
   section: {
-    marginBottom: SIZES.lg,
+    marginBottom: SIZES.space.xxl,
   },
   sectionLabel: {
     fontFamily: FONTS.family.semiBold,
-    fontSize: SIZES.font.sm,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.sm,
+    color: COLORS.contentPrimary,
     textAlign: 'center',
-    marginBottom: SIZES.md,
+    marginBottom: SIZES.space.lg,
   },
   pinRow: { alignItems: 'center' },
-  eyeBtn: { marginTop: SIZES.md, padding: SIZES.xs },
+  eyeBtn: { marginTop: SIZES.space.lg, padding: SIZES.space.xs },
   rules: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    marginBottom: SIZES.lg,
+    marginBottom: SIZES.space.xxl,
   },
   ruleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '48%',
-    paddingVertical: SIZES.xs / 2,
+    paddingVertical: SIZES.space.xs / 2,
   },
   ruleText: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.xs,
-    color: COLORS.textTertiary,
-    marginLeft: SIZES.xs,
+    fontSize: SIZES.text.xxs,
+    color: COLORS.contentMuted,
+    marginLeft: SIZES.space.xs,
   },
   ruleTextOk: {
-    color: COLORS.textPrimary,
+    color: COLORS.contentPrimary,
     fontFamily: FONTS.family.medium,
   },
-  footer: { marginTop: SIZES.sm },
+  footer: { marginTop: SIZES.space.sm },
 });
 
 export default ResetMpinScreen;

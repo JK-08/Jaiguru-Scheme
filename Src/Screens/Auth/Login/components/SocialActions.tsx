@@ -10,7 +10,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import theme from '../../../../Utills/AppTheme';
 
-const { COLORS, SIZES, FONTS, SHADOWS, COMMON_STYLES } = theme;
+const { COLORS, SIZES, FONTS, ELEVATION, STYLES } = theme;
 
 export interface SocialActionsProps {
   onCreateAccount: () => void;
@@ -32,7 +32,7 @@ const SocialActions: React.FC<SocialActionsProps> = ({
   accountLinkLabel = 'Create Account',
 }) => (
   <View style={styles.wrap}>
-    <View style={COMMON_STYLES.rowCenter}>
+    <View style={STYLES.rowCenter}>
       <Text style={styles.muted}>{accountLabel}</Text>
       <Pressable onPress={onCreateAccount} disabled={disabled} hitSlop={6} accessibilityRole="button">
         <Text style={styles.link}>{accountLinkLabel}</Text>
@@ -53,10 +53,10 @@ const SocialActions: React.FC<SocialActionsProps> = ({
       style={({ pressed }) => [styles.googleBtn, pressed && styles.pressed, disabled && styles.btnDisabled]}
     >
       {googleLoading ? (
-        <ActivityIndicator size="small" color={COLORS.textPrimary} />
+        <ActivityIndicator size="small" color={COLORS.contentPrimary} />
       ) : (
         <>
-          <MaterialCommunityIcons name="google" size={SIZES.icon.md} color={COLORS.error} />
+          <MaterialCommunityIcons name="google" size={SIZES.icon.md} color={COLORS.danger} />
           <Text style={styles.googleText}>Continue with Google</Text>
         </>
       )}
@@ -69,7 +69,7 @@ const SocialActions: React.FC<SocialActionsProps> = ({
       accessibilityLabel="Continue as guest"
       style={({ pressed }) => [styles.guestBtn, pressed && styles.pressed]}
     >
-      <MaterialCommunityIcons name="account-outline" size={SIZES.icon.sm} color={COLORS.textSecondary} />
+      <MaterialCommunityIcons name="account-outline" size={SIZES.icon.sm} color={COLORS.contentSecondary} />
       <Text style={styles.guestText}>Continue as Guest</Text>
     </Pressable> */}
   </View>
@@ -77,64 +77,64 @@ const SocialActions: React.FC<SocialActionsProps> = ({
 
 const styles = StyleSheet.create({
   wrap: {
-    marginTop: SIZES.padding.xxl,
+    marginTop: SIZES.space.xxl,
   },
   muted: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.md,
-    color: COLORS.textSecondary,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentSecondary,
   },
   link: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.font.md,
-    color: COLORS.accentDark,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentBrand,
   },
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: SIZES.md,
+    marginVertical: SIZES.space.lg,
   },
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: COLORS.borderChampagne,
+    backgroundColor: COLORS.accentSubtle,
   },
   or: {
     fontFamily: FONTS.family.semiBold,
-    fontSize: SIZES.font.sm,
-    color: COLORS.textSecondary,
-    marginHorizontal: SIZES.md,
+    fontSize: SIZES.text.sm,
+    color: COLORS.contentSecondary,
+    marginHorizontal: SIZES.space.lg,
     letterSpacing: 1,
   },
   googleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: SIZES.button.height.md,
+    height: SIZES.control.heightMd,
     borderRadius: SIZES.radius.lg,
     borderWidth: 1,
-    borderColor: COLORS.borderChampagne,
-    backgroundColor: COLORS.white,
-    ...SHADOWS.xs,
+    borderColor: COLORS.accentSubtle,
+    backgroundColor: COLORS.surface,
+    ...ELEVATION.raised,
   },
   googleText: {
     fontFamily: FONTS.family.semiBold,
-    fontSize: SIZES.font.lg,
-    color: COLORS.textPrimary,
-    marginLeft: SIZES.sm,
+    fontSize: SIZES.text.lg,
+    color: COLORS.contentPrimary,
+    marginLeft: SIZES.space.sm,
   },
   guestBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: SIZES.button.height.md,
-    marginTop: SIZES.md,
+    height: SIZES.control.heightMd,
+    marginTop: SIZES.space.lg,
   },
   guestText: {
     fontFamily: FONTS.family.medium,
-    fontSize: SIZES.font.md,
-    color: COLORS.textSecondary,
-    marginLeft: SIZES.sm,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentSecondary,
+    marginLeft: SIZES.space.sm,
   },
   pressed: {
     opacity: 0.6,

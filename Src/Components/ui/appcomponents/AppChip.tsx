@@ -20,12 +20,12 @@ export interface AppChipProps {
 
 export default function AppChip({ label, variant = 'default', icon, selected = false, onPress, onRemove, style }: AppChipProps) {
   const variantStyles: Record<ChipVariant, { bg: string; text: string; border?: string }> = {
-    default: { bg: COLORS.gray100, text: COLORS.textSecondary },
-    blue: { bg: COLORS.accentOpacity20, text: COLORS.accentDark },
-    gold: { bg: COLORS.goldOpacity10, text: COLORS.goldDark },
-    outline: { bg: COLORS.transparent, text: COLORS.textSecondary, border: COLORS.border },
+    default: { bg: COLORS.surfaceSunken, text: COLORS.contentSecondary },
+    blue: { bg: COLORS.brandSubtle, text: COLORS.contentBrand },
+    gold: { bg: COLORS.accentTint, text: COLORS.contentBrand },
+    outline: { bg: COLORS.transparent, text: COLORS.contentSecondary, border: COLORS.border },
   };
-  const vc = selected ? { bg: COLORS.accentDark, text: COLORS.white } : variantStyles[variant];
+  const vc = selected ? { bg: COLORS.brand, text: COLORS.contentOnBrand } : variantStyles[variant];
 
   const Wrapper = onPress ? TouchableOpacity : View;
 
@@ -38,9 +38,9 @@ export default function AppChip({ label, variant = 'default', icon, selected = f
           flexDirection: 'row',
           alignItems: 'center',
           backgroundColor: vc.bg,
-          borderRadius: SIZES.radius.full,
-          paddingHorizontal: SIZES.padding.md,
-          paddingVertical: SIZES.padding.xs,
+          borderRadius: SIZES.radius.pill,
+          paddingHorizontal: SIZES.space.md,
+          paddingVertical: SIZES.space.xs,
           borderWidth: vc.border ? 1 : 0,
           borderColor: vc.border,
           alignSelf: 'flex-start',
@@ -49,7 +49,7 @@ export default function AppChip({ label, variant = 'default', icon, selected = f
       ]}
     >
       {icon ? <Icon name={icon} size={14} color={vc.text} style={{ marginRight: 6 }} /> : null}
-      <Text style={[FONTS.captionBold, { color: vc.text }]} numberOfLines={1}>
+      <Text style={[FONTS.label, { color: vc.text }]} numberOfLines={1}>
         {label}
       </Text>
       {onRemove ? (

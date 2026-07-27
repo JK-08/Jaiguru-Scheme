@@ -25,7 +25,7 @@ import HomeHeader from './components/HomeHeader';
 const { COLORS, FONTS, SIZES, moderateScale } = theme;
 const { width, height } = Dimensions.get('window');
 
-const BG_GRADIENT = COLORS.gradient.champagneSurface as [string, string, string];
+const BG_GRADIENT = COLORS.gradient.accentWash as [string, string, string];
 
 const CONTACT_PHONE = '9600972227';
 const CONTACT_EMAIL = 'sandiyafoundationchennaillp@gmail.com';
@@ -46,7 +46,7 @@ const NeedHelpCard = () => {
     <View style={styles.helpCard}>
       <View style={styles.helpHeader}>
         <View style={styles.helpIconWrap}>
-          <MaterialCommunityIcons name="headset" size={moderateScale(22)} color={COLORS.accentDark} />
+          <MaterialCommunityIcons name="headset" size={moderateScale(22)} color={COLORS.contentBrand} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.helpTitle}>Need Help?</Text>
@@ -164,12 +164,12 @@ const HomeScreen = () => {
       >
         {isLoading ? (
           <>
-            <ActivityIndicator size="small" color={COLORS.white} />
+            <ActivityIndicator size="small" color={COLORS.contentOnBrand} />
             <Text style={styles.bannerText}>Setting up notifications…</Text>
           </>
         ) : (
           <>
-            <Icon name="notifications-off" size={SIZES.icon.md} color={COLORS.white} />
+            <Icon name="notifications-off" size={SIZES.icon.md} color={COLORS.contentOnBrand} />
             <Text style={styles.bannerText}>Enable notifications to receive updates</Text>
             <Text style={styles.bannerAction}>Tap to retry</Text>
           </>
@@ -193,7 +193,7 @@ const HomeScreen = () => {
         statusBarBg="transparent"
         paddingHorizontal={0}
         paddingTop={0}
-        paddingBottom={SIZES.padding.md}
+        paddingBottom={SIZES.space.md}
         edges={[]}
         footer={<BottomTab activeScreen="HOME" />}
       >
@@ -243,85 +243,85 @@ const HomeScreen = () => {
 export default HomeScreen;
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.background },
+  root: { flex: 1, backgroundColor: COLORS.surfacePage },
 
   banner: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: SIZES.padding.container,
-    marginTop: SIZES.margin.md,
-    marginBottom: SIZES.margin.xs,
-    paddingVertical: SIZES.padding.sm,
-    paddingHorizontal: SIZES.padding.md,
+    marginHorizontal: SIZES.space.gutter,
+    marginTop: SIZES.space.md,
+    marginBottom: SIZES.space.xs,
+    paddingVertical: SIZES.space.sm,
+    paddingHorizontal: SIZES.space.md,
     borderRadius: SIZES.radius.md,
-    gap: SIZES.sm,
+    gap: SIZES.space.sm,
   },
   bannerLoading: { backgroundColor: COLORS.warning },
-  bannerError: { backgroundColor: COLORS.error },
-  bannerText: { ...FONTS.bodySmall, color: COLORS.white, flex: 1 },
-  bannerAction: { ...FONTS.caption, color: COLORS.white, textDecorationLine: 'underline', fontFamily: FONTS.family.semiBold },
+  bannerError: { backgroundColor: COLORS.danger },
+  bannerText: { ...FONTS.bodySm, color: COLORS.contentOnBrand, flex: 1 },
+  bannerAction: { ...FONTS.caption, color: COLORS.contentOnBrand, textDecorationLine: 'underline', fontFamily: FONTS.family.semiBold },
 
-  sliderWrap: { marginTop: SIZES.margin.lg },
+  sliderWrap: { marginTop: SIZES.space.lg },
 
   // Section header
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: SIZES.padding.container,
-    marginTop: SIZES.margin.lg,
-    marginBottom: SIZES.margin.sm,
+    paddingHorizontal: SIZES.space.gutter,
+    marginTop: SIZES.space.lg,
+    marginBottom: SIZES.space.sm,
   },
   sectionBar: {
     width: moderateScale(4),
     height: moderateScale(18),
     borderRadius: 2,
-    backgroundColor: COLORS.accent,
-    marginRight: SIZES.margin.sm,
+    backgroundColor: COLORS.brand,
+    marginRight: SIZES.space.sm,
   },
   sectionTitle: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.heading.h5,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.xl,
+    color: COLORS.contentPrimary,
   },
 
   // Help card
   helpCard: {
-    marginHorizontal: SIZES.padding.container,
+    marginHorizontal: SIZES.space.gutter,
     borderRadius: SIZES.radius.xl,
-    backgroundColor: COLORS.whiteOpacity90,
+    backgroundColor: COLORS.whiteAlpha90,
     borderWidth: 1,
-    borderColor: COLORS.accentOpacity20,
-    padding: SIZES.padding.lg,
-    ...theme.SHADOWS.sm,
+    borderColor: COLORS.brandAlpha16,
+    padding: SIZES.space.lg,
+    ...theme.ELEVATION.raised,
   },
-  helpHeader: { flexDirection: 'row', alignItems: 'center', gap: SIZES.margin.sm },
+  helpHeader: { flexDirection: 'row', alignItems: 'center', gap: SIZES.space.sm },
   helpIconWrap: {
     width: moderateScale(44),
     height: moderateScale(44),
     borderRadius: SIZES.radius.md,
-    backgroundColor: COLORS.accentOpacity20,
+    backgroundColor: COLORS.brandAlpha16,
     alignItems: 'center',
     justifyContent: 'center',
   },
   helpTitle: {
     fontFamily: FONTS.family.semiBold,
-    fontSize: SIZES.font.lg,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.lg,
+    color: COLORS.contentPrimary,
   },
   helpSubtitle: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.sm,
-    color: COLORS.textSecondary,
+    fontSize: SIZES.text.sm,
+    color: COLORS.contentSecondary,
     marginTop: moderateScale(2),
-    lineHeight: SIZES.font.sm * 1.5,
+    lineHeight: SIZES.text.sm * 1.5,
   },
-  helpLink: { color: COLORS.accentDark, fontFamily: FONTS.family.semiBold },
+  helpLink: { color: COLORS.contentBrand, fontFamily: FONTS.family.semiBold },
 
   youtubeWrapper: {
-    marginHorizontal: SIZES.padding.container,
+    marginHorizontal: SIZES.space.gutter,
     borderRadius: SIZES.radius.card,
     overflow: 'hidden',
     backgroundColor: COLORS.black,
-    ...theme.SHADOWS.md,
+    ...theme.ELEVATION.floating,
   },
 });

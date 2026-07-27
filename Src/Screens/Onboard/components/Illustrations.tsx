@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
     borderRadius: MEDALLION / 2,
     alignItems: 'center',
     justifyContent: 'center',
-    ...theme.SHADOWS.goldStrong,
+    ...theme.ELEVATION.brandGlow,
   },
   medallionInner: {
     width: MEDALLION - 34,
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     borderRadius: 24,
     overflow: 'hidden',
-    ...theme.SHADOWS.sm,
+    ...theme.ELEVATION.raised,
   },
   chipBlur: {
     flexDirection: 'row',
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.6)',
     borderWidth: 1,
     borderColor: 'rgba(212,175,55,0.35)',
-    ...theme.SHADOWS.md,
+    ...theme.ELEVATION.floating,
   },
   dashboardHeader: {
     flexDirection: 'row',

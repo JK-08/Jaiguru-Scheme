@@ -19,8 +19,8 @@ export interface AppProgressBarProps {
 
 export default function AppProgressBar({
   progress,
-  color = COLORS.accentDark,
-  trackColor = COLORS.gray200,
+  color = COLORS.contentBrand,
+  trackColor = COLORS.border,
   height = 8,
   label,
   showPercentage = false,
@@ -41,17 +41,17 @@ export default function AppProgressBar({
   return (
     <View style={style}>
       {(label || showPercentage) && (
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: SIZES.xs }}>
-          {label ? <Text style={FONTS.bodySmall}>{label}</Text> : <View />}
-          {showPercentage ? <Text style={[FONTS.captionBold, { color }]}>{Math.round(clamped)}%</Text> : null}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: SIZES.space.xs }}>
+          {label ? <Text style={FONTS.bodySm}>{label}</Text> : <View />}
+          {showPercentage ? <Text style={[FONTS.label, { color }]}>{Math.round(clamped)}%</Text> : null}
         </View>
       )}
-      <View style={{ height, backgroundColor: trackColor, borderRadius: SIZES.radius.full, overflow: 'hidden' }}>
+      <View style={{ height, backgroundColor: trackColor, borderRadius: SIZES.radius.pill, overflow: 'hidden' }}>
         <Animated.View
           style={{
             height: '100%',
             backgroundColor: color,
-            borderRadius: SIZES.radius.full,
+            borderRadius: SIZES.radius.pill,
             width: widthAnim.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] }),
           }}
         />

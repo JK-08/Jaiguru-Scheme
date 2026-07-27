@@ -13,7 +13,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import theme from '../../../Utills/AppTheme';
 
-const { COLORS, FONTS, SIZES, SHADOWS, moderateScale } = theme;
+const { COLORS, FONTS, SIZES, ELEVATION, moderateScale } = theme;
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'gold';
 export type ButtonSize = 'sm' | 'md' | 'lg';
@@ -59,17 +59,18 @@ export default function AppButton({
     md: moderateScale(48),
     lg: moderateScale(56),
   };
-  const fontSizes: Record<ButtonSize, number> = { sm: SIZES.font.sm, md: SIZES.font.md, lg: SIZES.font.lg };
+  const fontSizes: Record<ButtonSize, number> = { sm: SIZES.text.sm, md: SIZES.text.md, lg: SIZES.text.lg };
   const iconSizes: Record<ButtonSize, number> = { sm: 16, md: 20, lg: 22 };
 
   type VariantColors = { bg: string; border: string; text: string; loaderColor: string };
   const variants: Record<ButtonVariant, VariantColors> = {
-    primary: { bg: COLORS.accentDark, border: COLORS.accentDark, text: COLORS.white, loaderColor: COLORS.white },
-    secondary: { bg: COLORS.gray100, border: COLORS.gray100, text: COLORS.textPrimary, loaderColor: COLORS.accentDark },
-    outline: { bg: 'transparent', border: COLORS.accentDark, text: COLORS.accentDark, loaderColor: COLORS.accentDark },
-    ghost: { bg: 'transparent', border: 'transparent', text: COLORS.textSecondary, loaderColor: COLORS.accentDark },
-    danger: { bg: COLORS.error, border: COLORS.error, text: COLORS.white, loaderColor: COLORS.white },
-    gold: { bg: COLORS.goldPrimary, border: COLORS.goldPrimary, text: COLORS.accentDark, loaderColor: COLORS.accentDark },
+    primary: { bg: COLORS.brand, border: COLORS.brand, text: COLORS.contentOnBrand, loaderColor: COLORS.contentOnBrand },
+    secondary: { bg: COLORS.surfaceSunken, border: COLORS.surfaceSunken, text: COLORS.contentPrimary, loaderColor: COLORS.contentPrimary },
+    outline: { bg: 'transparent', border: COLORS.borderBrand, text: COLORS.contentBrand, loaderColor: COLORS.contentBrand },
+    ghost: { bg: 'transparent', border: 'transparent', text: COLORS.contentSecondary, loaderColor: COLORS.contentSecondary },
+    danger: { bg: COLORS.danger, border: COLORS.danger, text: COLORS.contentOnInverse, loaderColor: COLORS.contentOnInverse },
+    // "gold" is now the cream variant: cream fill, magenta text (9.4:1)
+    gold: { bg: COLORS.accent, border: COLORS.accentSubtle, text: COLORS.contentOnAccent, loaderColor: COLORS.contentOnAccent },
   };
   const vc = variants[variant];
   const iSize = iconSize ?? iconSizes[size];
@@ -95,12 +96,12 @@ export default function AppButton({
           styles.btn,
           {
             height: heights[size],
-            backgroundColor: isDisabled ? COLORS.gray200 : vc.bg,
-            borderColor: isDisabled ? COLORS.gray200 : vc.border,
+            backgroundColor: isDisabled ? COLORS.border : vc.bg,
+            borderColor: isDisabled ? COLORS.border : vc.border,
             borderWidth: variant === 'outline' ? 1.5 : 0,
             transform: [{ scale }],
-            ...(variant === 'primary' || variant === 'danger' ? SHADOWS.md : {}),
-            ...(variant === 'gold' ? SHADOWS.gold : {}),
+            ...(variant === 'primary' || variant === 'danger' ? ELEVATION.floating : {}),
+            ...(variant === 'gold' ? ELEVATION.brandGlow : {}),
           },
         ]}
       >
@@ -112,14 +113,14 @@ export default function AppButton({
               <Icon
                 name={leftIcon}
                 size={iSize}
-                color={isDisabled ? COLORS.textDisabled : vc.text}
+                color={isDisabled ? COLORS.contentDisabled : vc.text}
                 style={{ marginRight: 6 }}
               />
             )}
             <Text
               style={[
                 styles.label,
-                { fontSize: fontSizes[size], color: isDisabled ? COLORS.textDisabled : vc.text, fontFamily: FONTS.family.semiBold },
+                { fontSize: fontSizes[size], color: isDisabled ? COLORS.contentDisabled : vc.text, fontFamily: FONTS.family.semiBold },
                 textStyle,
               ]}
             >
@@ -129,7 +130,7 @@ export default function AppButton({
               <Icon
                 name={rightIcon}
                 size={iSize}
-                color={isDisabled ? COLORS.textDisabled : vc.text}
+                color={isDisabled ? COLORS.contentDisabled : vc.text}
                 style={{ marginLeft: 6 }}
               />
             )}
@@ -145,8 +146,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: SIZES.radius.button,
-    paddingHorizontal: SIZES.padding.xl,
+    borderRadius: SIZES.radius.control,
+    paddingHorizontal: SIZES.space.xl,
   },
   label: {
     letterSpacing: 0.3,

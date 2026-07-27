@@ -55,7 +55,7 @@ export default function App() {
     return (
       <View style={styles.loadingContainer}>
         <Image source={appLogo} style={styles.loadingLogo} resizeMode="contain" />
-        <ActivityIndicator size="large" color={COLORS.primary} style={styles.loadingSpinner} />
+        <ActivityIndicator size="large" color={COLORS.brand} style={styles.loadingSpinner} />
       </View>
     );
   }

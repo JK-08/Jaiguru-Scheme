@@ -17,8 +17,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import theme from '../../Utills/AppTheme';
 
-const { COLORS, FONTS, SIZES, moderateScale, verticalScale, SHADOWS } = theme;
-const GOLD_GRADIENT = COLORS.gradient.champagneGold as [string, string, string];
+const { COLORS, FONTS, SIZES, moderateScale, verticalScale, ELEVATION } = theme;
+const GOLD_GRADIENT = COLORS.gradient.brand as [string, string, string];
 
 interface HeaderProps {
   title?: string;
@@ -91,9 +91,9 @@ const Header = ({
   const insets = useSafeAreaInsets();
 
   // On a filled gold gradient bar we use dark "ink on gold"; otherwise gold accents.
-  const accentColor = gradient ? COLORS.textOnGold : COLORS.accentDark;
-  const titleColor = gradient ? COLORS.textOnGold : COLORS.textPrimary;
-  const iconBg = gradient ? COLORS.whiteOpacity50 : COLORS.accentOpacity20;
+  const accentColor = gradient ? COLORS.contentOnAccent : COLORS.accent;
+  const titleColor = gradient ? COLORS.contentOnAccent : COLORS.contentPrimary;
+  const iconBg = gradient ? COLORS.whiteAlpha50 : COLORS.brandAlpha16;
 
   const resolvedLeftIconName = leftIconName || backIconName || 'arrow-back';
   const resolvedLeftIconColor = leftIconColor || backIconColor || accentColor;
@@ -116,7 +116,7 @@ const Header = ({
     else if (navigation.canGoBack()) navigation.goBack();
   };
 
-  const bg = transparent ? 'transparent' : backgroundColor ?? COLORS.background;
+  const bg = transparent ? 'transparent' : backgroundColor ?? COLORS.surfacePage;
 
   const Row = (
     <Animated.View
@@ -162,7 +162,7 @@ const Header = ({
               </Text>
             )}
             {!!subtitle && (
-              <Text numberOfLines={1} style={[styles.subtitle, gradient && { color: COLORS.textOnGold }]}>
+              <Text numberOfLines={1} style={[styles.subtitle, gradient && { color: COLORS.contentOnAccent }]}>
                 {subtitle}
               </Text>
             )}
@@ -209,22 +209,22 @@ const styles = StyleSheet.create({
   gradientWrap: {
     borderBottomLeftRadius: SIZES.radius.xl,
     borderBottomRightRadius: SIZES.radius.xl,
-    ...SHADOWS.gold,
-    shadowColor: COLORS.accent,
+    ...ELEVATION.brandGlow,
+    shadowColor: COLORS.shadowBrand,
   },
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     minHeight: verticalScale(56),
     paddingBottom: moderateScale(6),
-    paddingHorizontal: SIZES.padding.lg,
+    paddingHorizontal: SIZES.space.lg,
   },
   borderBottom: {
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.borderChampagne,
+    borderBottomColor: COLORS.accentSubtle,
   },
   shadow: {
-    ...SHADOWS.sm,
+    ...ELEVATION.raised,
   },
   side: {
     minWidth: moderateScale(52),
@@ -234,29 +234,29 @@ const styles = StyleSheet.create({
   center: {
     flex: 1,
     alignItems: 'center',
-    paddingHorizontal: SIZES.padding.sm,
+    paddingHorizontal: SIZES.space.sm,
   },
   title: {
-    ...FONTS.h4,
-    fontSize: SIZES.font.xl,
+    ...FONTS.heading,
+    fontSize: SIZES.text.xl,
     textAlign: 'center',
   },
   subtitle: {
-    ...FONTS.bodySmall,
-    color: COLORS.textSecondary,
+    ...FONTS.bodySm,
+    color: COLORS.contentSecondary,
     marginTop: verticalScale(2),
   },
   iconButton: {
     width: moderateScale(44),
     height: moderateScale(44),
-    borderRadius: SIZES.radius.full,
+    borderRadius: SIZES.radius.pill,
     justifyContent: 'center',
     alignItems: 'center',
   },
   iconContainer: {
     width: moderateScale(40),
     height: moderateScale(40),
-    borderRadius: SIZES.radius.full,
+    borderRadius: SIZES.radius.pill,
     justifyContent: 'center',
     alignItems: 'center',
   },

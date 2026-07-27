@@ -47,8 +47,8 @@ import GoldParticles from './components/GoldParticles';
 const { COLORS, SIZES, FONTS } = theme;
 const { width, height } = Dimensions.get('window');
 
-const BG_GRADIENT = COLORS.gradient.champagneSurface as [string, string, string];
-const GLOW_GRADIENT = [COLORS.champagne, COLORS.whiteOpacity10] as [string, string];
+const BG_GRADIENT = COLORS.gradient.accentWash as [string, string, string];
+const GLOW_GRADIENT = [COLORS.accentSubtle, COLORS.whiteAlpha10] as [string, string];
 
 const LoginScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -149,7 +149,7 @@ const LoginScreen: React.FC = () => {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.surfacePage,
   },
   flex: { flex: 1 },
   safe: { flex: 1 },
@@ -167,28 +167,28 @@ const styles = StyleSheet.create({
   glowFill: { flex: 1 },
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: SIZES.padding.container,
-    paddingTop: SIZES.md,
-    paddingBottom: SIZES.xl,
+    paddingHorizontal: SIZES.space.gutter,
+    paddingTop: SIZES.space.lg,
+    paddingBottom: SIZES.space.xxxl,
   },
   welcome: {
     alignItems: 'center',
-    marginTop: SIZES.lg,
-    marginBottom: SIZES.md,
+    marginTop: SIZES.space.xxl,
+    marginBottom: SIZES.space.lg,
   },
   welcomeTitle: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.heading.h3,
+    fontSize: SIZES.text.display3,
     letterSpacing: -0.3,
-    color: COLORS.textPrimary,
+    color: COLORS.contentPrimary,
   },
   welcomeSubtitle: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.md,
-    lineHeight: SIZES.font.md * 1.5,
+    fontSize: SIZES.text.md,
+    lineHeight: SIZES.text.md * 1.5,
     textAlign: 'center',
-    color: COLORS.textSecondary,
-    marginTop: SIZES.sm,
+    color: COLORS.contentSecondary,
+    marginTop: SIZES.space.sm,
     maxWidth: 300,
   },
 });

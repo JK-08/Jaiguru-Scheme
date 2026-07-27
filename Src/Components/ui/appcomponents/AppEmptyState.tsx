@@ -27,31 +27,31 @@ export default function AppEmptyState({
   iconSize = 56,
 }: AppEmptyStateProps) {
   return (
-    <View style={[{ alignItems: 'center', justifyContent: 'center', padding: SIZES.padding.xxl }, style]}>
+    <View style={[{ alignItems: 'center', justifyContent: 'center', padding: SIZES.space.xxl }, style]}>
       <View
         style={{
           width: iconSize + 32,
           height: iconSize + 32,
           borderRadius: (iconSize + 32) / 2,
-          backgroundColor: COLORS.accentLight,
+          backgroundColor: COLORS.accentSoft,
           alignItems: 'center',
           justifyContent: 'center',
-          marginBottom: SIZES.margin.lg,
+          marginBottom: SIZES.space.lg,
         }}
       >
-        <Icon name={icon} size={iconSize} color={COLORS.accentDark} />
+        <Icon name={icon} size={iconSize} color={COLORS.contentBrand} />
       </View>
 
-      <Text style={[FONTS.h5, { textAlign: 'center', marginBottom: message ? 6 : 0 }]}>{title}</Text>
+      <Text style={[FONTS.subheading, { textAlign: 'center', marginBottom: message ? 6 : 0 }]}>{title}</Text>
 
       {message && (
-        <Text style={[FONTS.bodySmall, { textAlign: 'center', color: COLORS.textSecondary, marginBottom: actionLabel ? SIZES.margin.lg : 0 }]}>
+        <Text style={[FONTS.bodySm, { textAlign: 'center', color: COLORS.contentSecondary, marginBottom: actionLabel ? SIZES.space.lg : 0 }]}>
           {message}
         </Text>
       )}
 
       {actionLabel && onAction && (
-        <View style={{ width: '70%', marginTop: SIZES.margin.sm }}>
+        <View style={{ width: '70%', marginTop: SIZES.space.sm }}>
           <AppButton label={actionLabel} onPress={onAction} variant="primary" size="md" />
         </View>
       )}

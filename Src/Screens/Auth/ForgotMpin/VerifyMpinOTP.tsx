@@ -304,7 +304,7 @@ const VerifyForgotMpinScreen = () => {
         <>
           {Platform.OS === 'android' && smsListenerReady && waitingForOtp && (
             <View style={styles.autoCard}>
-              <MaterialCommunityIcons name="email-fast-outline" size={SIZES.icon.md} color={COLORS.accentDark} />
+              <MaterialCommunityIcons name="email-fast-outline" size={SIZES.icon.md} color={COLORS.contentBrand} />
               <View style={styles.autoContent}>
                 <Text style={styles.autoTitle}>Auto-detecting OTP</Text>
                 <Text style={styles.autoTimer}>{autoVerifyTimer}s remaining</Text>
@@ -329,7 +329,7 @@ const VerifyForgotMpinScreen = () => {
 
           {otp.length > 0 && (
             <Pressable style={styles.clearBtn} onPress={clearOtp} disabled={waitingForOtp} hitSlop={8}>
-              <MaterialCommunityIcons name="close-circle" size={SIZES.icon.sm} color={COLORS.textTertiary} />
+              <MaterialCommunityIcons name="close-circle" size={SIZES.icon.sm} color={COLORS.contentMuted} />
               <Text style={styles.clearText}>Clear</Text>
             </Pressable>
           )}
@@ -337,14 +337,14 @@ const VerifyForgotMpinScreen = () => {
           <View style={styles.resendRow}>
             {timer > 0 ? (
               <View style={styles.timerChip}>
-                <MaterialCommunityIcons name="timer-sand" size={SIZES.icon.sm} color={COLORS.accentDark} />
+                <MaterialCommunityIcons name="timer-sand" size={SIZES.icon.sm} color={COLORS.contentBrand} />
                 <Text style={styles.timerText}>
                   Resend in <Text style={styles.timerValue}>{formatTime(timer)}</Text>
                 </Text>
               </View>
             ) : (
               <Pressable onPress={handleResendOtp} style={styles.resendBtn} disabled={waitingForOtp} hitSlop={8}>
-                <MaterialCommunityIcons name="refresh" size={SIZES.icon.sm} color={COLORS.accentDark} />
+                <MaterialCommunityIcons name="refresh" size={SIZES.icon.sm} color={COLORS.contentBrand} />
                 <Text style={styles.resendText}>Resend OTP</Text>
               </Pressable>
             )}
@@ -408,38 +408,38 @@ const styles = StyleSheet.create({
   autoCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.whiteOpacity80,
+    backgroundColor: COLORS.whiteAlpha80,
     borderRadius: SIZES.radius.lg,
-    padding: SIZES.padding.md,
-    marginBottom: SIZES.lg,
+    padding: SIZES.space.md,
+    marginBottom: SIZES.space.xxl,
     borderWidth: 1,
-    borderColor: COLORS.accentOpacity30,
+    borderColor: COLORS.brandAlpha32,
   },
-  autoContent: { flex: 1, marginLeft: SIZES.sm },
-  autoTitle: { fontFamily: FONTS.family.semiBold, fontSize: SIZES.font.sm, color: COLORS.textPrimary },
-  autoTimer: { fontFamily: FONTS.family.regular, fontSize: SIZES.font.xs, color: COLORS.textSecondary },
+  autoContent: { flex: 1, marginLeft: SIZES.space.sm },
+  autoTitle: { fontFamily: FONTS.family.semiBold, fontSize: SIZES.text.sm, color: COLORS.contentPrimary },
+  autoTimer: { fontFamily: FONTS.family.regular, fontSize: SIZES.text.xxs, color: COLORS.contentSecondary },
   skipBtn: {
-    paddingHorizontal: SIZES.md,
-    paddingVertical: SIZES.xs,
-    borderRadius: SIZES.radius.full,
-    backgroundColor: COLORS.accentOpacity20,
+    paddingHorizontal: SIZES.space.lg,
+    paddingVertical: SIZES.space.xs,
+    borderRadius: SIZES.radius.pill,
+    backgroundColor: COLORS.brandAlpha16,
   },
-  skipText: { fontFamily: FONTS.family.semiBold, fontSize: SIZES.font.xs, color: COLORS.accentDark },
+  skipText: { fontFamily: FONTS.family.semiBold, fontSize: SIZES.text.xxs, color: COLORS.contentBrand },
   clearBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: SIZES.md,
+    marginTop: SIZES.space.lg,
   },
   clearText: {
     fontFamily: FONTS.family.medium,
-    fontSize: SIZES.font.sm,
-    color: COLORS.textTertiary,
-    marginLeft: SIZES.xs,
+    fontSize: SIZES.text.sm,
+    color: COLORS.contentMuted,
+    marginLeft: SIZES.space.xs,
   },
   resendRow: {
     alignItems: 'center',
-    marginTop: SIZES.lg,
+    marginTop: SIZES.space.xxl,
   },
   timerChip: {
     flexDirection: 'row',
@@ -447,28 +447,28 @@ const styles = StyleSheet.create({
   },
   timerText: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.sm,
-    color: COLORS.textSecondary,
-    marginLeft: SIZES.xs,
+    fontSize: SIZES.text.sm,
+    color: COLORS.contentSecondary,
+    marginLeft: SIZES.space.xs,
   },
-  timerValue: { fontFamily: FONTS.family.bold, color: COLORS.accentDark },
+  timerValue: { fontFamily: FONTS.family.bold, color: COLORS.contentBrand },
   resendBtn: { flexDirection: 'row', alignItems: 'center' },
   resendText: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.font.md,
-    color: COLORS.accentDark,
-    marginLeft: SIZES.xs,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentBrand,
+    marginLeft: SIZES.space.xs,
   },
   pinLabel: {
     fontFamily: FONTS.family.semiBold,
-    fontSize: SIZES.font.sm,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.sm,
+    color: COLORS.contentPrimary,
     textAlign: 'center',
-    marginBottom: SIZES.md,
+    marginBottom: SIZES.space.lg,
   },
-  pinLabelSpaced: { marginTop: SIZES.xl },
+  pinLabelSpaced: { marginTop: SIZES.space.xxxl },
   pinCenter: { alignItems: 'center' },
-  footer: { marginTop: SIZES.xl },
+  footer: { marginTop: SIZES.space.xxxl },
 });
 
 export default VerifyForgotMpinScreen;

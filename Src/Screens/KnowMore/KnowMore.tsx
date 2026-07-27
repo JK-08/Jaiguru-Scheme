@@ -4,7 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
 import PremiumBackground from '../../Components/PremiumBackground/PremiumBackground';
-import { COLORS, SIZES, FONTS, SHADOWS, moderateScale, verticalScale } from '../../Utills/AppTheme';
+import { COLORS, SIZES, FONTS, ELEVATION, moderateScale, verticalScale } from '../../Utills/AppTheme';
 
 interface Step {
   icon: string;
@@ -33,7 +33,7 @@ function KnowMore() {
   const StepItem = ({ icon, text }: Step) => (
     <View style={styles.stepRow}>
       <View style={styles.stepIconWrap}>
-        <Icon name={icon} size={moderateScale(22)} color={COLORS.accentDark} />
+        <Icon name={icon} size={moderateScale(22)} color={COLORS.contentBrand} />
       </View>
       <Text style={styles.stepText}>{text}</Text>
     </View>
@@ -62,7 +62,7 @@ function KnowMore() {
         {/* Hero Banner */}
         <View style={styles.heroBanner}>
           <View style={styles.heroIconWrap}>
-            <Icon name="gold" size={moderateScale(40)} color={COLORS.secondary} />
+            <Icon name="gold" size={moderateScale(40)} color={COLORS.contentOnBrand} />
           </View>
           <Text style={styles.heroTitle}>GOLD SCHEME</Text>
           <Text style={styles.heroSubtitle}>Jaiguru Jewellers</Text>
@@ -126,7 +126,7 @@ function KnowMore() {
         {/* Refunds */}
         <View style={[styles.card, styles.cardWarning]}>
           <View style={styles.warningRow}>
-            <Icon name="alert-circle-outline" size={SIZES.icon.md} color={COLORS.error} />
+            <Icon name="alert-circle-outline" size={SIZES.icon.md} color={COLORS.danger} />
             <Text style={styles.warningTitle}>No Refund Policy</Text>
           </View>
           <Text style={styles.description}>
@@ -143,119 +143,119 @@ function KnowMore() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.backgroundSecondary,
+    backgroundColor: COLORS.surfaceMuted,
   },
   content: {
-    padding: SIZES.padding.lg,
+    padding: SIZES.space.lg,
     paddingBottom: verticalScale(40),
   },
 
   // Hero
   heroBanner: {
     alignItems: 'center',
-    backgroundColor: COLORS.accentDark,
+    backgroundColor: COLORS.brand,
     borderRadius: SIZES.radius.lg,
-    paddingVertical: SIZES.padding.xl,
-    marginBottom: SIZES.margin.md,
-    ...SHADOWS.blue,
+    paddingVertical: SIZES.space.xl,
+    marginBottom: SIZES.space.md,
+    ...ELEVATION.brandGlow,
   },
   heroIconWrap: {
     width: moderateScale(72),
     height: moderateScale(72),
-    borderRadius: SIZES.radius.full,
-    backgroundColor: COLORS.whiteOpacity20,
+    borderRadius: SIZES.radius.pill,
+    backgroundColor: COLORS.whiteAlpha20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: SIZES.margin.sm,
+    marginBottom: SIZES.space.sm,
   },
   heroTitle: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.font.xxl,
-    color: COLORS.white,
+    fontSize: SIZES.text.xxl,
+    color: COLORS.contentOnBrand,
     letterSpacing: 2,
   },
   heroSubtitle: {
     fontFamily: FONTS.family.medium,
-    fontSize: SIZES.font.md,
-    color: COLORS.whiteOpacity90,
-    marginTop: SIZES.xs,
+    fontSize: SIZES.text.md,
+    color: COLORS.whiteAlpha90,
+    marginTop: SIZES.space.xs,
   },
 
   // Card
   card: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     borderRadius: SIZES.radius.md,
-    padding: SIZES.padding.lg,
-    marginBottom: SIZES.margin.md,
-    ...SHADOWS.sm,
+    padding: SIZES.space.lg,
+    marginBottom: SIZES.space.md,
+    ...ELEVATION.raised,
   },
   cardWarning: {
     borderLeftWidth: 4,
-    borderLeftColor: COLORS.error,
+    borderLeftColor: COLORS.danger,
   },
 
   // Section Title
   sectionTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SIZES.margin.sm,
+    marginBottom: SIZES.space.sm,
   },
   sectionTitleBar: {
     width: moderateScale(4),
     height: moderateScale(18),
-    backgroundColor: COLORS.accentDark,
-    borderRadius: SIZES.radius.full,
-    marginRight: SIZES.sm,
+    backgroundColor: COLORS.brand,
+    borderRadius: SIZES.radius.pill,
+    marginRight: SIZES.space.sm,
   },
   sectionTitle: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.font.lg,
-    color: COLORS.accentDark,
+    fontSize: SIZES.text.lg,
+    color: COLORS.contentBrand,
   },
 
   // Sub Heading
   subHeading: {
     fontFamily: FONTS.family.semiBold,
-    fontSize: SIZES.font.md,
-    color: COLORS.textPrimary,
-    marginTop: SIZES.sm,
-    marginBottom: SIZES.xs,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentPrimary,
+    marginTop: SIZES.space.sm,
+    marginBottom: SIZES.space.xs,
   },
 
   // Description
   description: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.md,
-    color: COLORS.textSecondary,
-    lineHeight: SIZES.font.md * 1.6,
-    marginBottom: SIZES.sm,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentSecondary,
+    lineHeight: SIZES.text.md * 1.6,
+    marginBottom: SIZES.space.sm,
   },
 
   // Step
   stepRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.backgroundSecondary,
+    backgroundColor: COLORS.surfaceMuted,
     borderRadius: SIZES.radius.sm,
-    padding: SIZES.padding.md,
-    marginBottom: SIZES.sm,
-    gap: SIZES.sm,
+    padding: SIZES.space.md,
+    marginBottom: SIZES.space.sm,
+    gap: SIZES.space.sm,
   },
   stepIconWrap: {
     width: moderateScale(44),
     height: moderateScale(44),
-    borderRadius: SIZES.radius.full,
+    borderRadius: SIZES.radius.pill,
     borderWidth: 1.5,
-    borderColor: COLORS.accentDark,
+    borderColor: COLORS.borderAccent,
     borderStyle: 'dashed',
-    backgroundColor: COLORS.accentLight,
+    backgroundColor: COLORS.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
   stepText: {
     fontFamily: FONTS.family.medium,
-    fontSize: SIZES.font.md,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentPrimary,
     flex: 1,
   },
 
@@ -263,13 +263,13 @@ const styles = StyleSheet.create({
   warningRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SIZES.sm,
-    marginBottom: SIZES.sm,
+    gap: SIZES.space.sm,
+    marginBottom: SIZES.space.sm,
   },
   warningTitle: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.font.lg,
-    color: COLORS.error,
+    fontSize: SIZES.text.lg,
+    color: COLORS.danger,
   },
 
 

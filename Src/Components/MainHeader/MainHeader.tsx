@@ -7,10 +7,10 @@ import { useCompany } from '../../api/hooks/Company/useCompany';
 import { useTodayRate } from '../../api/hooks/Rates/useTodayRate';
 import useNotifications from '../../api/hooks/Notifications/useNotifications';
 import { notificationEmitter } from '../NotificationBanner/NotificationBanner';
-import { COLORS, SIZES, FONTS, SHADOWS, moderateScale } from '../../Utills/AppTheme';
+import { COLORS, SIZES, FONTS, ELEVATION, moderateScale } from '../../Utills/AppTheme';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 
-const GOLD_HEADER_GRADIENT = COLORS.gradient.champagneGold as [string, string, string];
+const GOLD_HEADER_GRADIENT = COLORS.gradient.brand as [string, string, string];
 
 export interface HomeHeaderRedesignedProps {
   onMenuPress?: () => void;
@@ -74,7 +74,7 @@ const HomeHeaderRedesigned = ({ onLogoPress }: HomeHeaderRedesignedProps) => {
       <View style={styles.topRow}>
         {/* Right: Notification Icon */}
         <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('NotificationScreen')} activeOpacity={0.7}>
-          <Icon name="notifications-none" size={SIZES.icon.lg} color={COLORS.textOnGold} />
+          <Icon name="notifications-none" size={SIZES.icon.lg} color={COLORS.contentOnAccent} />
 
           {unreadCount > 0 && (
             <View style={styles.notificationBadge}>
@@ -85,14 +85,14 @@ const HomeHeaderRedesigned = ({ onLogoPress }: HomeHeaderRedesignedProps) => {
         {/* Center: Logo and Company Name */}
         <TouchableOpacity style={styles.centerContainer} onPress={onLogoPress} activeOpacity={0.7} disabled={companyLoading}>
           {companyLoading ? (
-            <ActivityIndicator size="small" color={COLORS.white} />
+            <ActivityIndicator size="small" color={COLORS.contentOnBrand} />
           ) : company ? (
             <View style={styles.logoWrapper}>
               {company.CompanyLogoUrl ? (
                 <Image source={{ uri: company.CompanyLogoUrl }} style={styles.logo} resizeMode="contain" />
               ) : (
                 <View style={[styles.logo, styles.defaultLogo]}>
-                  <Icon name="business" size={SIZES.icon.lg} color={COLORS.goldPrimary} />
+                  <Icon name="business" size={SIZES.icon.lg} color={COLORS.contentBrand} />
                 </View>
               )}
               <View style={styles.companyTextContainer}>
@@ -103,14 +103,14 @@ const HomeHeaderRedesigned = ({ onLogoPress }: HomeHeaderRedesignedProps) => {
             </View>
           ) : companyError ? (
             <View style={styles.errorContainer}>
-              <Icon name="error-outline" size={SIZES.icon.md} color={COLORS.errorLight} />
+              <Icon name="error-outline" size={SIZES.icon.md} color={COLORS.danger} />
               <Text style={styles.errorText}>Failed to load</Text>
             </View>
           ) : null}
         </TouchableOpacity>
         {/* Left: Menu Icon */}
         <TouchableOpacity style={styles.iconButton} onPress={handleMenuPress} activeOpacity={0.7}>
-          <Icon name="menu" size={SIZES.icon.lg} color={COLORS.textOnGold} />
+          <Icon name="menu" size={SIZES.icon.lg} color={COLORS.contentOnAccent} />
         </TouchableOpacity>
       </View>
 
@@ -119,11 +119,11 @@ const HomeHeaderRedesigned = ({ onLogoPress }: HomeHeaderRedesignedProps) => {
         {/* Gold Rate Card */}
         <View style={styles.rateCard}>
           <View style={styles.rateHeader}>
-            <Icon name="trending-up" size={SIZES.icon.md} color={COLORS.accentDark} />
+            <Icon name="trending-up" size={SIZES.icon.md} color={COLORS.contentBrand} />
             <Text style={styles.rateLabel}>GOLD</Text>
           </View>
           {ratesLoading ? (
-            <ActivityIndicator size="small" color={COLORS.accentDark} />
+            <ActivityIndicator size="small" color={COLORS.contentBrand} />
           ) : ratesError ? (
             <Text style={styles.rateError}>N/A</Text>
           ) : (
@@ -138,11 +138,11 @@ const HomeHeaderRedesigned = ({ onLogoPress }: HomeHeaderRedesignedProps) => {
         {/* Silver Rate Card */}
         <View style={styles.rateCard}>
           <View style={styles.rateHeader}>
-            <Icon name="trending-up" size={SIZES.icon.md} color={COLORS.gray300} />
+            <Icon name="trending-up" size={SIZES.icon.md} color={COLORS.borderStrong} />
             <Text style={styles.rateLabel}>SILVER</Text>
           </View>
           {ratesLoading ? (
-            <ActivityIndicator size="small" color={COLORS.gray300} />
+            <ActivityIndicator size="small" color={COLORS.borderStrong} />
           ) : ratesError ? (
             <Text style={styles.rateError}>N/A</Text>
           ) : (
@@ -155,7 +155,7 @@ const HomeHeaderRedesigned = ({ onLogoPress }: HomeHeaderRedesignedProps) => {
       {/* Last Updated Time */}
       {rates && !ratesLoading && (
         <View style={styles.updateTimeContainer}>
-          <Icon name="schedule" size={moderateScale(12)} color={COLORS.textOnGold} />
+          <Icon name="schedule" size={moderateScale(12)} color={COLORS.contentOnAccent} />
           <Text style={styles.updateTimeText}>Updated: Today {formatTime(currentTime)}</Text>
         </View>
       )}
@@ -165,31 +165,31 @@ const HomeHeaderRedesigned = ({ onLogoPress }: HomeHeaderRedesignedProps) => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: (StatusBar.currentHeight || SIZES.padding.md) + SIZES.padding.sm,
-    paddingBottom: SIZES.padding.lg,
+    paddingTop: (StatusBar.currentHeight || SIZES.space.md) + SIZES.space.sm,
+    paddingBottom: SIZES.space.lg,
     borderBottomLeftRadius: SIZES.radius.xxl,
     borderBottomRightRadius: SIZES.radius.xxl,
-    ...SHADOWS.goldStrong,
-    shadowColor: COLORS.accent,
+    ...ELEVATION.brandGlow,
+    shadowColor: COLORS.shadowBrand,
   },
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: SIZES.padding.lg,
-    marginBottom: SIZES.margin.xs,
+    paddingHorizontal: SIZES.space.lg,
+    marginBottom: SIZES.space.xs,
   },
   iconButton: {
     width: moderateScale(44),
     height: moderateScale(44),
     borderRadius: 22,
-    backgroundColor: COLORS.whiteOpacity50,
+    backgroundColor: COLORS.whiteAlpha50,
     alignItems: 'center',
     justifyContent: 'center',
   },
   centerContainer: {
     flex: 1,
-    marginHorizontal: SIZES.margin.md,
+    marginHorizontal: SIZES.space.md,
     alignItems: 'center',
   },
   logoWrapper: {
@@ -201,27 +201,27 @@ const styles = StyleSheet.create({
     width: moderateScale(50),
     height: moderateScale(50),
     borderRadius: SIZES.radius.md,
-    backgroundColor: COLORS.whiteOpacity70,
+    backgroundColor: COLORS.whiteAlpha70,
     borderWidth: 2,
-    borderColor: COLORS.whiteOpacity80,
+    borderColor: COLORS.whiteAlpha80,
   },
   defaultLogo: {
     alignItems: 'center',
     justifyContent: 'center',
   },
   companyTextContainer: {
-    marginLeft: SIZES.margin.sm,
+    marginLeft: SIZES.space.sm,
     flex: 1,
     alignItems: 'flex-start',
   },
   companyName: {
-    ...FONTS.h5,
-    color: COLORS.textOnGold,
+    ...FONTS.subheading,
+    color: COLORS.contentOnAccent,
     marginBottom: moderateScale(2),
   },
   companyAddress: {
     ...FONTS.caption,
-    color: COLORS.whiteOpacity70,
+    color: COLORS.whiteAlpha70,
   },
   errorContainer: {
     flexDirection: 'row',
@@ -229,40 +229,40 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   errorText: {
-    ...FONTS.bodySmall,
-    color: COLORS.errorLight,
-    marginLeft: SIZES.margin.xs,
+    ...FONTS.bodySm,
+    color: COLORS.danger,
+    marginLeft: SIZES.space.xs,
   },
   notificationBadge: {
     position: 'absolute',
     top: moderateScale(-4),
     right: moderateScale(-4),
-    backgroundColor: COLORS.error,
-    borderRadius: SIZES.radius.full,
+    backgroundColor: COLORS.danger,
+    borderRadius: SIZES.radius.pill,
     width: moderateScale(18),
     height: moderateScale(18),
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: COLORS.accentLight,
+    borderColor: COLORS.accentSoft,
   },
   badgeText: {
     ...FONTS.caption,
-    fontSize: SIZES.font.xxs,
-    color: COLORS.white,
+    fontSize: SIZES.text.xxs,
+    color: COLORS.contentOnBrand,
     fontWeight: FONTS.weight.bold,
   },
   ratesContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginHorizontal: SIZES.margin.lg,
-    backgroundColor: COLORS.whiteOpacity90,
+    marginHorizontal: SIZES.space.lg,
+    backgroundColor: COLORS.whiteAlpha90,
     borderRadius: SIZES.radius.lg,
-    paddingVertical: SIZES.padding.md,
-    paddingHorizontal: SIZES.padding.lg,
+    paddingVertical: SIZES.space.md,
+    paddingHorizontal: SIZES.space.lg,
     borderWidth: 1,
-    borderColor: COLORS.whiteOpacity80,
+    borderColor: COLORS.whiteAlpha80,
   },
   rateCard: {
     flex: 1,
@@ -271,53 +271,53 @@ const styles = StyleSheet.create({
   rateHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SIZES.margin.xs,
+    marginBottom: SIZES.space.xs,
   },
   rateLabel: {
     ...FONTS.caption,
-    color: COLORS.textSecondary,
+    color: COLORS.contentSecondary,
     fontWeight: FONTS.weight.semiBold,
-    marginLeft: SIZES.margin.xs,
+    marginLeft: SIZES.space.xs,
     letterSpacing: 1,
   },
   rateValue: {
-    ...FONTS.h4,
-    color: COLORS.accentDark,
+    ...FONTS.heading,
+    color: COLORS.contentBrand,
     fontWeight: FONTS.weight.bold,
     marginTop: moderateScale(2),
   },
   silverValue: {
-    color: COLORS.textSecondary,
+    color: COLORS.contentSecondary,
   },
   rateUnit: {
     ...FONTS.caption,
-    fontSize: SIZES.font.xxs,
-    color: COLORS.textTertiary,
+    fontSize: SIZES.text.xxs,
+    color: COLORS.contentMuted,
     marginTop: moderateScale(2),
   },
   rateError: {
-    ...FONTS.bodySmall,
-    color: COLORS.errorLight,
+    ...FONTS.bodySm,
+    color: COLORS.danger,
     fontStyle: 'italic',
   },
   divider: {
     width: 1,
     height: moderateScale(50),
-    backgroundColor: COLORS.borderChampagne,
-    marginHorizontal: SIZES.margin.md,
+    backgroundColor: COLORS.accentSubtle,
+    marginHorizontal: SIZES.space.md,
   },
   updateTimeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: SIZES.margin.xs,
-    paddingHorizontal: SIZES.padding.lg,
+    marginTop: SIZES.space.xs,
+    paddingHorizontal: SIZES.space.lg,
   },
   updateTimeText: {
     ...FONTS.caption,
-    fontSize: SIZES.font.xxs,
-    color: COLORS.textOnGold,
-    marginLeft: SIZES.margin.xs,
+    fontSize: SIZES.text.xxs,
+    color: COLORS.contentOnAccent,
+    marginLeft: SIZES.space.xs,
   },
 });
 

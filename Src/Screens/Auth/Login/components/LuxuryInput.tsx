@@ -45,8 +45,8 @@ const LuxuryInput: React.FC<LuxuryInputProps> = ({
 
   const containerStyle = useAnimatedStyle(() => ({
     borderColor: hasError
-      ? COLORS.error
-      : interpolateColor(focus.value, [0, 1], [COLORS.borderChampagne, COLORS.accent]),
+      ? COLORS.danger
+      : interpolateColor(focus.value, [0, 1], [COLORS.accentSubtle, COLORS.accent]),
     shadowOpacity: 0.18 * focus.value,
     shadowRadius: 10 * focus.value,
     elevation: hasError ? 0 : 4 * focus.value,
@@ -58,12 +58,12 @@ const LuxuryInput: React.FC<LuxuryInputProps> = ({
         <MaterialCommunityIcons
           name={icon}
           size={SIZES.icon.md}
-          color={focused && !hasError ? COLORS.accentDark : COLORS.textSecondary}
+          color={focused && !hasError ? COLORS.accent : COLORS.contentSecondary}
           style={styles.leadingIcon}
         />
         <TextInput
           {...inputProps}
-          placeholderTextColor={COLORS.textSecondary}
+          placeholderTextColor={COLORS.contentSecondary}
           style={styles.input}
           onFocus={(e) => {
             setFocused(true);
@@ -84,14 +84,14 @@ const LuxuryInput: React.FC<LuxuryInputProps> = ({
             accessibilityLabel={trailingAccessibilityLabel}
             style={styles.trailingBtn}
           >
-            <MaterialCommunityIcons name={trailingIcon} size={SIZES.icon.md} color={COLORS.textSecondary} />
+            <MaterialCommunityIcons name={trailingIcon} size={SIZES.icon.md} color={COLORS.contentSecondary} />
           </Pressable>
         )}
       </Animated.View>
 
       {hasError && (
         <View style={styles.errorRow}>
-          <MaterialCommunityIcons name="alert-circle-outline" size={SIZES.icon.xs} color={COLORS.error} />
+          <MaterialCommunityIcons name="alert-circle-outline" size={SIZES.icon.xs} color={COLORS.danger} />
           <Text style={styles.errorText}>{error}</Text>
         </View>
       )}
@@ -101,43 +101,43 @@ const LuxuryInput: React.FC<LuxuryInputProps> = ({
 
 const styles = StyleSheet.create({
   field: {
-    marginBottom: SIZES.md,
+    marginBottom: SIZES.space.lg,
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: SIZES.input.height,
+    height: SIZES.field.height,
     borderRadius: SIZES.radius.lg,
     borderWidth: 1.5,
-    paddingHorizontal: SIZES.padding.lg,
-    backgroundColor: COLORS.white,
-    shadowColor: COLORS.accent,
+    paddingHorizontal: SIZES.space.lg,
+    backgroundColor: COLORS.surface,
+    shadowColor: COLORS.shadowBrand,
     shadowOffset: { width: 0, height: 4 },
   },
   leadingIcon: {
-    marginRight: SIZES.sm,
+    marginRight: SIZES.space.sm,
   },
   input: {
     flex: 1,
     fontFamily: FONTS.family.medium,
-    fontSize: SIZES.font.lg,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.lg,
+    color: COLORS.contentPrimary,
     paddingVertical: 0,
   },
   trailingBtn: {
-    paddingLeft: SIZES.sm,
+    paddingLeft: SIZES.space.sm,
   },
   errorRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: SIZES.xs,
-    marginLeft: SIZES.xs,
+    marginTop: SIZES.space.xs,
+    marginLeft: SIZES.space.xs,
   },
   errorText: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.sm,
-    color: COLORS.error,
-    marginLeft: SIZES.xs,
+    fontSize: SIZES.text.sm,
+    color: COLORS.danger,
+    marginLeft: SIZES.space.xs,
   },
 });
 

@@ -8,7 +8,7 @@ import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef,
 import { Animated, StyleSheet, Text, TextInput, View, StyleProp, ViewStyle, Pressable, Vibration } from 'react-native';
 import theme from '../../../Utills/AppTheme';
 
-const { COLORS, FONTS, SIZES, SHADOWS } = theme;
+const { COLORS, FONTS, SIZES, ELEVATION } = theme;
 
 export interface AppPinInputRef {
   focus: () => void;
@@ -129,18 +129,18 @@ const AppPinInput = forwardRef<AppPinInputRef, AppPinInputProps>(
     }));
 
     const dotFillColor = (index: number) => {
-      if (error) return COLORS.error;
+      if (error) return COLORS.danger;
       if (success && pin[index]) return COLORS.success;
       if (pin[index]) return COLORS.accent;
       return 'transparent';
     };
 
     const dotBorderColor = (index: number) => {
-      if (error) return COLORS.error;
+      if (error) return COLORS.danger;
       if (success && pin[index]) return COLORS.success;
       if (focused && pin.filter(Boolean).length === index) return COLORS.accent;
-      if (pin[index]) return COLORS.accentDark;
-      return COLORS.borderChampagne;
+      if (pin[index]) return COLORS.accent;
+      return COLORS.accentSubtle;
     };
 
     return (
@@ -174,7 +174,7 @@ const AppPinInput = forwardRef<AppPinInputRef, AppPinInputProps>(
                     <Animated.Text
                       style={[
                         styles.boxText,
-                        { fontSize: DOT * 0.55, color: error ? COLORS.error : success ? COLORS.success : COLORS.textPrimary, opacity: dotAnims[i] },
+                        { fontSize: DOT * 0.55, color: error ? COLORS.danger : success ? COLORS.success : COLORS.contentPrimary, opacity: dotAnims[i] },
                       ]}
                     >
                       {digit}
@@ -190,7 +190,7 @@ const AppPinInput = forwardRef<AppPinInputRef, AppPinInputProps>(
                       width: DOT,
                       height: DOT,
                       borderColor: dotBorderColor(i),
-                      backgroundColor: digit ? COLORS.accentLight : COLORS.gray50,
+                      backgroundColor: digit ? COLORS.accentSoft : COLORS.surfaceMuted,
                     },
                   ]}
                 >
@@ -198,7 +198,7 @@ const AppPinInput = forwardRef<AppPinInputRef, AppPinInputProps>(
                     style={[
                       styles.boxText,
                       {
-                        color: error ? COLORS.error : success ? COLORS.success : COLORS.textPrimary,
+                        color: error ? COLORS.danger : success ? COLORS.success : COLORS.contentPrimary,
                         transform: [{ scale: dotAnims[i] }],
                         opacity: dotAnims[i],
                       },
@@ -236,20 +236,20 @@ export default AppPinInput;
 
 const styles = StyleSheet.create({
   container: { alignItems: 'center' },
-  label: { ...FONTS.label, color: COLORS.textPrimary, marginBottom: 4 },
-  hint: { ...FONTS.bodySmall, color: COLORS.textSecondary, marginBottom: 16, textAlign: 'center' },
+  label: { ...FONTS.label, color: COLORS.contentPrimary, marginBottom: 4 },
+  hint: { ...FONTS.bodySm, color: COLORS.contentSecondary, marginBottom: 16, textAlign: 'center' },
   row: { flexDirection: 'row', alignItems: 'center' },
-  dot: { borderWidth: 2, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: COLORS.gray50 },
+  dot: { borderWidth: 2, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: COLORS.surfaceMuted },
   dotInner: {},
   box: {
     borderRadius: SIZES.radius.md,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
-    ...SHADOWS.sm,
+    ...ELEVATION.raised,
   },
-  boxText: { ...FONTS.h4, color: COLORS.textPrimary },
+  boxText: { ...FONTS.heading, color: COLORS.contentPrimary },
   hiddenInput: { position: 'absolute', width: 1, height: 1, opacity: 0 },
-  errorMsg: { ...FONTS.caption, color: COLORS.error, marginTop: 10, textAlign: 'center' },
+  errorMsg: { ...FONTS.caption, color: COLORS.danger, marginTop: 10, textAlign: 'center' },
   tapArea: { padding: 12 },
 });

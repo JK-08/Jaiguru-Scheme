@@ -13,7 +13,7 @@ import theme from '../../../../Utills/AppTheme';
 import LuxuryInput from '../../Login/components/LuxuryInput';
 import type { RegisterFormValues } from '../validation/registerSchema';
 
-const { COLORS, SIZES, SHADOWS } = theme;
+const { COLORS, SIZES, ELEVATION } = theme;
 
 export interface RegisterFormProps {
   control: Control<RegisterFormValues>;
@@ -168,16 +168,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
 const styles = StyleSheet.create({
   cardShadow: {
     borderRadius: SIZES.radius.xxl,
-    ...SHADOWS.lg,
-    shadowColor: COLORS.accentDark,
+    ...ELEVATION.floating,
+    shadowColor: COLORS.shadowAccent,
   },
   card: {
     borderRadius: SIZES.radius.xxl,
     overflow: 'hidden',
-    padding: SIZES.padding.xxl,
-    backgroundColor: COLORS.whiteOpacity70,
+    padding: SIZES.space.xxl,
+    backgroundColor: COLORS.whiteAlpha70,
     borderWidth: 1,
-    borderColor: COLORS.accentOpacity30,
+    borderColor: COLORS.brandAlpha32,
   },
 });
 

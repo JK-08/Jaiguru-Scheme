@@ -16,14 +16,14 @@ export default function AppSectionHeader({ title, actionLabel, onActionPress, st
   return (
     <View
       style={[
-        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: SIZES.margin.md },
+        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: SIZES.space.md },
         style,
       ]}
     >
-      <Text style={FONTS.h5}>{title}</Text>
+      <Text style={FONTS.subheading}>{title}</Text>
       {actionLabel ? (
         <TouchableOpacity onPress={onActionPress} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Text style={[FONTS.bodyMedium, { color: COLORS.accentDark }]}>{actionLabel}</Text>
+          <Text style={[FONTS.bodyEmphasis, { color: COLORS.contentBrand }]}>{actionLabel}</Text>
         </TouchableOpacity>
       ) : null}
     </View>

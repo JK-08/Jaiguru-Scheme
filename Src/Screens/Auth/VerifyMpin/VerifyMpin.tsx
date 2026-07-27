@@ -198,7 +198,7 @@ const MpinVerifyScreen = () => {
       >
         {locked && (
           <View style={styles.lockBox}>
-            <MaterialCommunityIcons name="lock-alert-outline" size={SIZES.icon.xl} color={COLORS.error} />
+            <MaterialCommunityIcons name="lock-alert-outline" size={SIZES.icon.xl} color={COLORS.danger} />
             <Text style={styles.lockTitle}>Account Temporarily Locked</Text>
             <Text style={styles.lockText}>Please wait {formatTime(lockTime)} before trying again</Text>
             <View style={styles.timerTrack}>
@@ -219,7 +219,7 @@ const MpinVerifyScreen = () => {
             autoFocus
           />
           <Pressable style={styles.eyeBtn} onPress={() => setShowMpin(!showMpin)} hitSlop={10}>
-            <MaterialCommunityIcons name={showMpin ? 'eye-off' : 'eye'} size={SIZES.icon.md} color={COLORS.accentDark} />
+            <MaterialCommunityIcons name={showMpin ? 'eye-off' : 'eye'} size={SIZES.icon.md} color={COLORS.contentBrand} />
           </Pressable>
         </View>
 
@@ -243,7 +243,7 @@ const MpinVerifyScreen = () => {
           style={[styles.forgotBtn, (locked || blockAutoSubmit) && styles.disabled]}
           hitSlop={8}
         >
-          <MaterialCommunityIcons name="key-outline" size={SIZES.icon.sm} color={COLORS.accentDark} />
+          <MaterialCommunityIcons name="key-outline" size={SIZES.icon.sm} color={COLORS.contentBrand} />
           <Text style={styles.forgotText}>Forgot MPIN?</Text>
         </Pressable>
 
@@ -273,83 +273,83 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   lockBox: {
     alignItems: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     borderRadius: SIZES.radius.lg,
-    padding: SIZES.padding.lg,
-    marginBottom: SIZES.lg,
+    padding: SIZES.space.lg,
+    marginBottom: SIZES.space.xxl,
     borderWidth: 1,
-    borderColor: `${COLORS.error}30`,
+    borderColor: `${COLORS.danger}30`,
   },
   lockTitle: {
     fontFamily: FONTS.family.semiBold,
-    fontSize: SIZES.font.lg,
-    color: COLORS.error,
-    marginTop: SIZES.sm,
+    fontSize: SIZES.text.lg,
+    color: COLORS.danger,
+    marginTop: SIZES.space.sm,
   },
   lockText: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.sm,
-    color: COLORS.textSecondary,
-    marginTop: SIZES.xs,
+    fontSize: SIZES.text.sm,
+    color: COLORS.contentSecondary,
+    marginTop: SIZES.space.xs,
   },
   timerTrack: {
     width: '100%',
     height: 4,
     borderRadius: 2,
-    backgroundColor: COLORS.gray200,
-    marginTop: SIZES.md,
+    backgroundColor: COLORS.border,
+    marginTop: SIZES.space.lg,
     overflow: 'hidden',
   },
-  timerFill: { height: '100%', borderRadius: 2, backgroundColor: COLORS.error },
+  timerFill: { height: '100%', borderRadius: 2, backgroundColor: COLORS.danger },
   pinRow: { alignItems: 'center' },
-  eyeBtn: { marginTop: SIZES.md, padding: SIZES.xs },
+  eyeBtn: { marginTop: SIZES.space.lg, padding: SIZES.space.xs },
   attemptsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: SIZES.md,
+    marginTop: SIZES.space.lg,
   },
   attemptsText: {
     fontFamily: FONTS.family.medium,
-    fontSize: SIZES.font.sm,
-    color: COLORS.warning,
-    marginLeft: SIZES.xs,
-    marginRight: SIZES.sm,
+    fontSize: SIZES.text.sm,
+    color: COLORS.warningText,
+    marginLeft: SIZES.space.xs,
+    marginRight: SIZES.space.sm,
   },
   attemptsDots: { flexDirection: 'row' },
   attemptDot: {
     width: 7,
     height: 7,
     borderRadius: 3.5,
-    backgroundColor: COLORS.gray300,
+    backgroundColor: COLORS.borderStrong,
     marginHorizontal: 2,
   },
-  attemptDotFilled: { backgroundColor: COLORS.error },
+  attemptDotFilled: { backgroundColor: COLORS.danger },
   forgotBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: SIZES.lg,
+    marginTop: SIZES.space.xxl,
   },
   forgotText: {
     fontFamily: FONTS.family.semiBold,
-    fontSize: SIZES.font.md,
-    color: COLORS.accentDark,
-    marginLeft: SIZES.xs,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentBrand,
+    marginLeft: SIZES.space.xs,
   },
   disabled: { opacity: 0.5 },
-  footer: { marginTop: SIZES.xl },
+  footer: { marginTop: SIZES.space.xxxl },
   secureRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: SIZES.lg,
+    marginTop: SIZES.space.xxl,
   },
   secureText: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.xs,
-    color: COLORS.textSecondary,
-    marginLeft: SIZES.xs,
+    fontSize: SIZES.text.xxs,
+    color: COLORS.contentSecondary,
+    marginLeft: SIZES.space.xs,
   },
 });
 

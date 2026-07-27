@@ -58,7 +58,7 @@ const BannerContent = ({ data, onHide }: { data: BannerData; onHide: () => void 
     <Animated.View style={[styles.wrapper, { paddingTop: STATUS_BAR_HEIGHT + 8, transform: [{ translateY }] }]}>
       <TouchableOpacity activeOpacity={0.95} onPress={handlePress} style={styles.card}>
         <View style={styles.appRow}>
-          <MaterialCommunityIcons name="bell-outline" size={12} color={COLORS.textTertiary} />
+          <MaterialCommunityIcons name="bell-outline" size={12} color={COLORS.contentMuted} />
           <Text style={styles.appName}>Jaiguru DigiGold</Text>
           <Text style={styles.timeText}>now</Text>
         </View>
@@ -71,7 +71,7 @@ const BannerContent = ({ data, onHide }: { data: BannerData; onHide: () => void 
             <Image source={{ uri: data.imageUrl }} style={styles.image} resizeMode="cover" />
           ) : (
             <View style={styles.iconFallback}>
-              <MaterialCommunityIcons name="bell" size={26} color={COLORS.accentDark} />
+              <MaterialCommunityIcons name="bell" size={26} color={COLORS.contentBrand} />
             </View>
           )}
         </View>
@@ -126,13 +126,13 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 11,
     fontWeight: '600',
-    color: '#888',
+    color: COLORS.contentMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.3,
   },
   timeText: {
     fontSize: 11,
-    color: '#aaa',
+    color: COLORS.contentMuted,
   },
   contentRow: {
     flexDirection: 'row',
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 10,
-    backgroundColor: COLORS.accentLight,
+    backgroundColor: COLORS.accentSoft,
     justifyContent: 'center',
     alignItems: 'center',
   },

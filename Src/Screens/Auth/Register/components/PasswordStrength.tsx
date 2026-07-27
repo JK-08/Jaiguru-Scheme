@@ -23,7 +23,7 @@ export interface PasswordStrengthProps {
 }
 
 const strengthMeta = (score: number): { label: string; color: string } => {
-  if (score <= 2) return { label: 'Weak', color: COLORS.error };
+  if (score <= 2) return { label: 'Weak', color: COLORS.danger };
   if (score <= 4) return { label: 'Good', color: COLORS.warning };
   return { label: 'Strong', color: COLORS.success };
 };
@@ -61,7 +61,7 @@ const PasswordStrength: React.FC<PasswordStrengthProps> = ({ password }) => {
               <MaterialCommunityIcons
                 name={ok ? 'check-circle' : 'circle-outline'}
                 size={SIZES.icon.sm}
-                color={ok ? COLORS.success : COLORS.textTertiary}
+                color={ok ? COLORS.success : COLORS.contentMuted}
               />
               <Text style={[styles.ruleText, ok && styles.ruleTextOk]}>{rule.label}</Text>
             </View>
@@ -74,8 +74,8 @@ const PasswordStrength: React.FC<PasswordStrengthProps> = ({ password }) => {
 
 const styles = StyleSheet.create({
   wrap: {
-    marginTop: SIZES.xs,
-    marginBottom: SIZES.md,
+    marginTop: SIZES.space.xs,
+    marginBottom: SIZES.space.lg,
   },
   barRow: {
     flexDirection: 'row',
@@ -84,40 +84,40 @@ const styles = StyleSheet.create({
   barTrack: {
     flex: 1,
     height: 6,
-    borderRadius: SIZES.radius.full,
-    backgroundColor: COLORS.borderChampagne,
+    borderRadius: SIZES.radius.pill,
+    backgroundColor: COLORS.accentSubtle,
     overflow: 'hidden',
   },
   barFill: {
     height: '100%',
-    borderRadius: SIZES.radius.full,
+    borderRadius: SIZES.radius.pill,
   },
   strengthLabel: {
     fontFamily: FONTS.family.semiBold,
-    fontSize: SIZES.font.xs,
-    marginLeft: SIZES.sm,
+    fontSize: SIZES.text.xxs,
+    marginLeft: SIZES.space.sm,
     minWidth: 44,
     textAlign: 'right',
   },
   rules: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: SIZES.sm,
+    marginTop: SIZES.space.sm,
   },
   ruleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '50%',
-    paddingVertical: SIZES.xs / 2,
+    paddingVertical: SIZES.space.xs / 2,
   },
   ruleText: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.xs,
-    color: COLORS.textTertiary,
-    marginLeft: SIZES.xs,
+    fontSize: SIZES.text.xxs,
+    color: COLORS.contentMuted,
+    marginLeft: SIZES.space.xs,
   },
   ruleTextOk: {
-    color: COLORS.textPrimary,
+    color: COLORS.contentPrimary,
     fontFamily: FONTS.family.medium,
   },
 });

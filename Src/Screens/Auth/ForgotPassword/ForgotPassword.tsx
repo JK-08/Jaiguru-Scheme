@@ -6,7 +6,7 @@ import PremiumBackground from '../../../Components/PremiumBackground/PremiumBack
 import theme from '../../../Utills/AppTheme';
 import { AppInput, AppButton } from '../../../Components/ui/appcomponents';
 
-const { COLORS, SIZES, FONTS, SHADOWS } = theme;
+const { COLORS, SIZES, FONTS, ELEVATION } = theme;
 
 interface Props {
   navigation: any;
@@ -89,7 +89,7 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
+  container: { flex: 1, backgroundColor: COLORS.surfacePage },
   scrollContent: { flexGrow: 1 },
   goldAccent: {
     position: 'absolute',
@@ -97,28 +97,28 @@ const styles = StyleSheet.create({
     right: 0,
     width: SIZES.screen.width * 0.4,
     height: SIZES.screen.width * 0.4,
-    backgroundColor: COLORS.goldOpacity10,
-    borderBottomLeftRadius: SIZES.radius.xxxl,
+    backgroundColor: COLORS.brandAlpha08,
+    borderBottomLeftRadius: SIZES.radius.xxl,
     zIndex: 0,
   },
-  iconContainer: { alignItems: 'center', marginTop: SIZES.padding.xxxl, marginBottom: SIZES.padding.lg, zIndex: 1 },
+  iconContainer: { alignItems: 'center', marginTop: SIZES.space.xxxl, marginBottom: SIZES.space.lg, zIndex: 1 },
   iconWrapper: {
-    width: SIZES.icon.xxxxl,
-    height: SIZES.icon.xxxxl,
-    borderRadius: SIZES.radius.xxxl,
-    backgroundColor: COLORS.accentLight,
+    width: SIZES.icon.avatarLg,
+    height: SIZES.icon.avatarLg,
+    borderRadius: SIZES.radius.xxl,
+    backgroundColor: COLORS.accentSoft,
     justifyContent: 'center',
     alignItems: 'center',
-    ...SHADOWS.blue,
+    ...ELEVATION.brandGlow,
   },
-  iconText: { fontSize: SIZES.icon.xxxl },
-  content: { flex: 1, paddingHorizontal: SIZES.padding.xl, paddingTop: SIZES.padding.md },
-  title: { ...FONTS.h2, color: COLORS.accentDark, marginBottom: SIZES.margin.sm, textAlign: 'center' },
-  subtitle: { ...FONTS.bodySmall, color: COLORS.textSecondary, textAlign: 'center', marginBottom: SIZES.margin.xl, paddingHorizontal: SIZES.padding.md },
-  inputWrapper: { marginBottom: SIZES.margin.xl },
-  button: { marginTop: SIZES.margin.sm },
-  backToLogin: { marginTop: SIZES.margin.xl, alignItems: 'center', padding: SIZES.padding.md },
-  backToLoginText: { ...FONTS.bodyMedium, color: COLORS.accentDark, textDecorationLine: 'underline' },
+  iconText: { fontSize: SIZES.icon.avatar },
+  content: { flex: 1, paddingHorizontal: SIZES.space.xl, paddingTop: SIZES.space.md },
+  title: { ...FONTS.display, color: COLORS.contentBrand, marginBottom: SIZES.space.sm, textAlign: 'center' },
+  subtitle: { ...FONTS.bodySm, color: COLORS.contentSecondary, textAlign: 'center', marginBottom: SIZES.space.xl, paddingHorizontal: SIZES.space.md },
+  inputWrapper: { marginBottom: SIZES.space.xl },
+  button: { marginTop: SIZES.space.sm },
+  backToLogin: { marginTop: SIZES.space.xl, alignItems: 'center', padding: SIZES.space.md },
+  backToLoginText: { ...FONTS.bodyEmphasis, color: COLORS.contentBrand, textDecorationLine: 'underline' },
 });
 
 export default ForgotPasswordScreen;

@@ -3,239 +3,233 @@ import { Dimensions, PixelRatio, Platform } from "react-native";
 
 const { width, height } = Dimensions.get("window");
 
-// ============================================
-// 📏 RESPONSIVE SCALING SYSTEM
-// ============================================
-const guidelineBaseWidth = 375; // iPhone 11 Pro base
+/* ============================================================
+   RESPONSIVE SCALING
+   ============================================================ */
+const guidelineBaseWidth = 375;
 const guidelineBaseHeight = 812;
 
-// Scale based on device width
 const scale = (size: number): number => (width / guidelineBaseWidth) * size;
+const verticalScale = (size: number): number =>
+  (height / guidelineBaseHeight) * size;
 
-// Scale based on device height
-const verticalScale = (size: number): number => (height / guidelineBaseHeight) * size;
+const moderateScale = (size: number, factor: number = 0.25): number =>
+  size + (scale(size) - size) * factor;
 
-// Moderate scale with configurable factor (prevents extreme scaling)
-const moderateScale = (size: number, factor: number = 0.25): number => {
-  return size + (scale(size) - size) * factor;
-};
+const fontScale = (size: number): number =>
+  Math.round(PixelRatio.roundToNearestPixel(moderateScale(size, 0.2)));
 
-// Font scale with pixel ratio consideration
-const fontScale = (size: number): number => {
-  const scaled = moderateScale(size, 0.2);
-  return Math.round(PixelRatio.roundToNearestPixel(scaled));
-};
+/* ============================================================
+   PALETTE — raw values live here and nowhere else.
+   Change a hex here and the whole app follows.
+   ============================================================ */
+const PALETTE = {
+  // Magenta ramp (brand) — derived from #80004D
+  magenta900: "#46002A",
+  magenta800: "#64003C",
+  magenta700: "#80004D", // ← brand / primary
+  magenta500: "#A4477F",
+  magenta300: "#C68CAF",
+  magenta100: "#EBD6E3",
+  magenta050: "#F9F4F7",
 
-// ============================================
-// 🎨 COLOR PALETTE - BLUE & GOLD THEME
-// ============================================
-export const COLORS = {
-  // ===== PRIMARY BRAND COLORS (INDIGO BLUE & GOLD) =====
-  primary: "#2E3192", // Indigo Blue (Your Brand Color)
-  primaryLight: "#4C4FB0", // Light Indigo
-  primaryDark: "#101374", // Deep Indigo
-  primaryLighter: "#6A6DCE", // Lighter Indigo
-  primaryPale: "#EEEEF6", // Very Light Indigo
+  // Cream ramp (accent) — anchored on #FFF2D8.
+  // NOTE: these are SURFACE colours only. Never use them as text or icon
+  // colours — #FFF2D8 on white is 1.1:1 and effectively invisible.
+  cream050: "#FFF8E1",
+  cream100: "#F8EDC2",
+  cream200: "#ECD98A",
+  cream400: "#D4AF37", // main gold
 
-  secondary: "#FFD700", // Pure Gold
-  secondaryLight: "#FFE44D", // Light Gold
-  secondaryDark: "#CCA900", // Dark Gold
-  secondaryLighter: "#FFF4CC", // Pale Gold
-
-  accent: "#D4AF37", // Rich Gold
-  accentLight: "#F4E5B5", // Champagne Gold
-  accentDark: "#B8860B", // Dark Golden Rod
-  accentOpacity20: "rgba(212, 175, 55, 0.2)", // Rich gold @20%
-  accentOpacity30: "rgba(212, 175, 55, 0.3)", // Rich gold @30%
-
-  // ===== CHAMPAGNE / LUXURY SURFACES =====
-  champagne: "#F7ECD2", // Soft champagne
-  champagneSoft: "#FBF4E4", // Lighter champagne wash
-  textOnGold: "#3A2E05", // Deep brown text for gold buttons
-  borderChampagne: "#EFE8DA", // Soft gold-tinted border
-
-  // ===== NEUTRAL COLORS =====
+  // Neutrals
+  ink: "#14161F",
+  slate700: "#3C4152",
+  slate500: "#6B7280",
+  slate400: "#9CA3AF", // decorative only — fails 4.5:1, never use for text
+  slate450: "#5E6471", // placeholder/muted text that must clear 4.5:1 on tinted fields
+  slate300: "#D2D6DE",
+  slate200: "#E6E9EF",
+  slate100: "#F1F3F7",
+  slate050: "#F8F9FC",
   white: "#FFFFFF",
   black: "#000000",
-  background: "#FFFFFF",
-  backgroundSecondary: "#F8F9FB",
-  backgroundTertiary: "#F5F7FA",
-  backgroundDark: "#0F1419",
-  backgroundBlue: "#EFEFF7", // Light indigo tint background
-  backgroundGold: "#FFFBF0", // Light gold tint background
-  surface: "#FAFBFC",
-  card: "#FFFFFF",
-  overlay: "rgba(46, 49, 146, 0.7)", // Indigo overlay
-  overlayDark: "rgba(0, 0, 0, 0.7)",
-  overlayGold: "rgba(255, 215, 0, 0.1)",
-  overlayBlue: "rgba(46, 49, 146, 0.1)",
 
-  // ===== TEXT COLORS =====
-  textPrimary: "#1A1D23", // Almost black
-  textSecondary: "#5F6368", // Gray text
-  textTertiary: "#9AA0A8", // Light gray text
-  textDisabled: "#D1D5DB", // Disabled text
-  textInverse: "#FFFFFF", // White text on dark
-  textBlue: "#2E3192", // Indigo text
-  textBlueDark: "#101374", // Dark indigo text
-  textGold: "#FFD700", // Gold text
-  textGoldDark: "#CCA900", // Dark gold text
+  // States. The base tone is the FILL colour and is unchanged — it only ever
+  // needs 3:1 (icons, borders, chips). The `*Text` tone is a darker sibling for
+  // when the same state is rendered AS TEXT on a light surface (needs 4.5:1),
+  // and `*OnDark` is the lighter sibling for text on `surfaceInverse`.
+  green: "#128A5E",
+  greenSoft: "#E4F5EE",
+  greenText: "#0F714D",
+  greenOnDark: "#139364",
+  red: "#C62828",
+  redSoft: "#FCEAEA",
+  redText: "#C62828", // already clears 4.5:1 on every light surface
+  redOnDark: "#DD5353",
+  orange: "#B7791F",
+  orangeSoft: "#FDF3E2",
+  orangeText: "#875A17",
+  orangeOnDark: "#B1761E",
+  blue: "#1F6FD0",
+  blueSoft: "#E8F1FC",
+  blueText: "#1C63B9",
+  blueOnDark: "#3381E0",
+};
 
-  // ===== GRAY SCALE =====
-  gray50: "#F9FAFB",
-  gray100: "#F3F4F6",
-  gray200: "#E5E7EB",
-  gray300: "#D1D5DB",
-  gray400: "#9CA3AF",
-  gray500: "#6B7280",
-  gray600: "#4B5563",
-  gray700: "#374151",
-  gray800: "#1F2937",
-  gray900: "#111827",
+/* ============================================================
+   ALPHA HELPER
+   Every translucent colour below is COMPUTED from a PALETTE hex,
+   so changing a hex in PALETTE updates the scrims, shadows and
+   overlays too. Never hand-write an rgba() string in this file.
+   ============================================================ */
+const withAlpha = (hex: string, alpha: number): string => {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
 
-  // ===== BLUE VARIATIONS =====
-  blueLight: "#EEEEF6",
-  blueMedium: "#6A6DCE",
-  blueDark: "#101374",
-  blueVivid: "#4C4FB0",
-  blueIce: "#D8D9F2",
-  blueSky: "#8A8DDB",
-  blueMidnight: "#0A0C4A",
+/* ============================================================
+   COLORS — semantic roles. Use these in components.
+   ============================================================ */
+export const COLORS = {
+  /* --- Brand (main identity, headers, primary actions, ALL text & icons) --- */
+  brand: PALETTE.magenta700,
+  brandStrong: PALETTE.magenta800, // pressed / hover state
+  brandDeep: PALETTE.magenta900, // dark hero sections
+  brandMuted: PALETTE.magenta500, // secondary brand elements
+  brandSoft: PALETTE.magenta300, // disabled brand, illustrations
+  brandSubtle: PALETTE.magenta100, // chips, selected rows
+  brandTint: PALETTE.magenta050, // section backgrounds
 
-  // ===== BORDER & DIVIDER =====
-  border: "#E5E7EB",
-  borderLight: "#F3F4F6",
-  borderMedium: "#D1D5DB",
-  borderDark: "#4B5563",
-  borderBlue: "#2E3192",
-  borderGold: "#FFD700",
-  divider: "#E5E7EB",
+  /* --- Accent (cream SURFACES only — never text; see PALETTE note) --- */
+  accent: PALETTE.cream050, // filled cream panels, badges
+  accentStrong: PALETTE.cream200, // pressed state
+  accentDeep: PALETTE.cream400, // deepest cream, borders on cream
+  accentSoft: PALETTE.cream100,
+  accentSubtle: PALETTE.cream200, // borders, dividers
+  accentTint: PALETTE.cream050, // callout backgrounds
 
-  // ===== INPUT COLORS =====
-  inputBackground: "#F9FAFB",
-  inputBorder: "#E5E7EB",
-  inputPlaceholder: "rgba(107, 114, 128, 0.6)",
-  inputFocused: "#2E3192", // Indigo blue for focus
-  inputFocusedAlt: "#FFD700", // Gold alternative
+  /* --- Surfaces (anything you place content on) --- */
+  surface: PALETTE.white, // cards, sheets
+  surfacePage: PALETTE.white, // screen background
+  surfaceMuted: PALETTE.slate050, // grouped list background
+  surfaceSunken: PALETTE.slate100, // input wells, skeletons
+  surfaceBrand: PALETTE.magenta700, // filled brand panels
+  surfaceInverse: PALETTE.ink, // dark panels, toasts
 
-  // ===== STATUS COLORS =====
-  success: "#10B981",
-  successLight: "#6EE7B7",
-  successDark: "#047857",
-  error: "#DC2626",
-  errorLight: "#EF4444",
-  errorDark: "#991B1B",
-  warning: "#F59E0B",
-  warningLight: "#FBBF24",
-  warningDark: "#B45309",
-  info: "#3B82F6",
-  infoLight: "#60A5FA",
-  infoDark: "#1E40AF",
-  disabled: "#F3F4F6",
+  /* --- Content (text & icons) --- */
+  contentPrimary: PALETTE.ink,
+  contentSecondary: PALETTE.slate700,
+  contentMuted: PALETTE.slate500,
+  contentPlaceholder: PALETTE.slate450, // slate400 fails 4.5:1; placeholders are text
+  contentDisabled: PALETTE.slate300,
+  contentOnBrand: PALETTE.white, // text sitting on `brand` — 10.4:1
+  contentOnAccent: PALETTE.magenta700, // text sitting on cream — 9.4:1
+  contentOnInverse: PALETTE.white,
+  contentBrand: PALETTE.magenta700, // links, active tab labels
+  contentAccent: PALETTE.magenta700, // cream can't be text; accent text = brand
 
-  // ===== GOLD VARIATIONS =====
-  goldPrimary: "#FFD700", // Pure Gold
-  goldSecondary: "#D4AF37", // Rich Gold
-  goldTertiary: "#F4E5B5", // Champagne
-  goldBronze: "#CD7F32", // Bronze
-  goldRose: "#B76E79", // Rose Gold
-  goldLight: "#FFF9E6", // Very light gold
-  goldMedium: "#E6C200", // Medium gold
-  goldDark: "#B8860B", // Dark gold
+  /* --- Lines --- */
+  border: PALETTE.slate200,
+  borderSubtle: PALETTE.slate100,
+  borderStrong: PALETTE.slate300,
+  borderBrand: PALETTE.magenta700,
+  borderAccent: PALETTE.cream400,
+  divider: PALETTE.slate200,
 
-  // ===== TRANSPARENT COLORS =====
+  /* --- Fields --- */
+  fieldBackground: PALETTE.slate050,
+  fieldBorder: PALETTE.slate200,
+  fieldBorderFocused: PALETTE.magenta700,
+  fieldBorderError: PALETTE.red,
+
+  /* --- Feedback states --- */
+  success: PALETTE.green,
+  successSurface: PALETTE.greenSoft,
+  danger: PALETTE.red,
+  dangerSurface: PALETTE.redSoft,
+  warning: PALETTE.orange,
+  warningSurface: PALETTE.orangeSoft,
+  info: PALETTE.blue,
+  infoSurface: PALETTE.blueSoft,
+
+  /* --- State colours rendered AS TEXT on a light surface. Use these instead
+         of `success`/`danger`/`warning`/`info` whenever the colour lands on a
+         Text node; the base tones are fills and only guarantee 3:1. --- */
+  successText: PALETTE.greenText,
+  dangerText: PALETTE.redText,
+  warningText: PALETTE.orangeText,
+  infoText: PALETTE.blueText,
+
+  /* --- State colours on dark surfaces (toasts, inverse panels). --- */
+  successOnInverse: PALETTE.greenOnDark,
+  dangerOnInverse: PALETTE.redOnDark,
+  warningOnInverse: PALETTE.orangeOnDark,
+  infoOnInverse: PALETTE.blueOnDark,
+
+  /* --- Absolute neutrals (use sparingly; prefer surface/content roles) --- */
+  white: PALETTE.white,
+  black: PALETTE.black,
+
+  /* --- Scrims & transparency --- */
+  scrim: withAlpha(PALETTE.ink, 0.55), // behind modals
+  scrimHeavy: withAlpha(PALETTE.ink, 0.78), // scrims that carry white text/spinners
+  scrimBrand: withAlpha(PALETTE.magenta700, 0.72), // brand-tinted image overlay
+  scrimLight: withAlpha(PALETTE.white, 0.85),
   transparent: "transparent",
-  // Blue opacity
-  blueOpacity10: "rgba(46, 49, 146, 0.1)",
-  blueOpacity20: "rgba(46, 49, 146, 0.2)",
-  blueOpacity30: "rgba(46, 49, 146, 0.3)",
-  blueOpacity40: "rgba(46, 49, 146, 0.4)",
-  blueOpacity50: "rgba(46, 49, 146, 0.5)",
-  blueOpacity60: "rgba(46, 49, 146, 0.6)",
-  blueOpacity70: "rgba(46, 49, 146, 0.7)",
-  blueOpacity80: "rgba(46, 49, 146, 0.8)",
-  blueOpacity90: "rgba(46, 49, 146, 0.9)",
-  // Black opacity
-  blackOpacity10: "rgba(0, 0, 0, 0.1)",
-  blackOpacity20: "rgba(0, 0, 0, 0.2)",
-  blackOpacity30: "rgba(0, 0, 0, 0.3)",
-  blackOpacity40: "rgba(0, 0, 0, 0.4)",
-  blackOpacity50: "rgba(0, 0, 0, 0.5)",
-  blackOpacity60: "rgba(0, 0, 0, 0.6)",
-  blackOpacity70: "rgba(0, 0, 0, 0.7)",
-  blackOpacity80: "rgba(0, 0, 0, 0.8)",
-  blackOpacity90: "rgba(0, 0, 0, 0.9)",
-  // White opacity
-  whiteOpacity10: "rgba(255, 255, 255, 0.1)",
-  whiteOpacity20: "rgba(255, 255, 255, 0.2)",
-  whiteOpacity30: "rgba(255, 255, 255, 0.3)",
-  whiteOpacity50: "rgba(255, 255, 255, 0.5)",
-  whiteOpacity70: "rgba(255, 255, 255, 0.7)",
-  whiteOpacity80: "rgba(255, 255, 255, 0.8)",
-  whiteOpacity90: "rgba(255, 255, 255, 0.9)",
-  // Gold opacity
-  goldOpacity10: "rgba(255, 215, 0, 0.1)",
-  goldOpacity20: "rgba(255, 215, 0, 0.2)",
-  goldOpacity30: "rgba(255, 215, 0, 0.3)",
-  goldOpacity50: "rgba(255, 215, 0, 0.5)",
 
-  // ===== SHADOW & EFFECTS =====
-  shadow: "rgba(0, 0, 0, 0.1)",
-  shadowMedium: "rgba(0, 0, 0, 0.2)",
-  shadowStrong: "rgba(0, 0, 0, 0.3)",
-  shadowBlue: "rgba(46, 49, 146, 0.25)",
-  shadowGold: "rgba(255, 215, 0, 0.3)",
+  whiteAlpha10: withAlpha(PALETTE.white, 0.1),
+  whiteAlpha20: withAlpha(PALETTE.white, 0.2),
+  whiteAlpha50: withAlpha(PALETTE.white, 0.5),
+  whiteAlpha70: withAlpha(PALETTE.white, 0.7),
+  whiteAlpha80: withAlpha(PALETTE.white, 0.8),
+  whiteAlpha90: withAlpha(PALETTE.white, 0.9),
 
-  // ===== GRADIENT COLORS =====
+  brandAlpha08: withAlpha(PALETTE.magenta700, 0.08),
+  brandAlpha16: withAlpha(PALETTE.magenta700, 0.16),
+  brandAlpha32: withAlpha(PALETTE.magenta700, 0.32),
+  // Warm tan alphas taken from the deep end of the cream ramp — the cream
+  // itself is too light to register as an overlay.
+  accentAlpha08: withAlpha(PALETTE.cream400, 0.14),
+  accentAlpha16: withAlpha(PALETTE.cream400, 0.26),
+  accentAlpha32: withAlpha(PALETTE.cream400, 0.45),
+  inkAlpha08: withAlpha(PALETTE.ink, 0.08),
+  inkAlpha16: withAlpha(PALETTE.ink, 0.16),
+  inkAlpha40: withAlpha(PALETTE.ink, 0.4),
+
+  /* --- Shadow tints --- */
+  shadowNeutral: withAlpha(PALETTE.ink, 0.18),
+  shadowBrand: withAlpha(PALETTE.magenta700, 0.28),
+  shadowAccent: withAlpha(PALETTE.magenta700, 0.18), // cream casts no usable shadow
+
+  /* --- Gradients --- */
   gradient: {
-    // Blue gradients
-    bluePrimary: ["#2E3192", "#4C4FB0"], // Indigo to light indigo
-    blueDeep: ["#101374", "#2E3192"], // Deep to indigo
-    blueLight: ["#6A6DCE", "#8A8DDB"], // Light indigo gradient
-    blueSky: ["#4C4FB0", "#8A8DDB"], // Vivid to sky indigo
-    blueToWhite: ["#2E3192", "#FFFFFF"], // Indigo to white
-
-    // Gold gradients
-    goldLight: ["#FFD700", "#FFE44D"], // Gold gradient
-    goldDark: ["#CCA900", "#FFD700"], // Dark to light gold
-    luxuryGold: ["#D4AF37", "#FFD700", "#F4E5B5"], // Luxury gold
-    shimmer: ["#FFD700", "#FFF4CC", "#FFD700"], // Gold shimmer
-    champagneGold: ["#F4E5B5", "#D4AF37", "#B8860B"], // Champagne → rich → deep gold (CTAs, medallions)
-    champagneSurface: ["#FFFFFF", "#FFFBF0", "#F7ECD2"], // Soft luxury page wash
-    shine: ["rgba(255,255,255,0)", "rgba(255,255,255,0.85)", "rgba(255,255,255,0)"], // Highlight sweep
-
-    // Blue & Gold combinations
-    blueToGold: ["#2E3192", "#FFD700"], // Indigo to Gold
-    goldToBlue: ["#FFD700", "#2E3192"], // Gold to Indigo
-    elegance: ["#101374", "#D4AF37"], // Deep indigo to rich gold
-    luxury: ["#2E3192", "#FFD700", "#4C4FB0"], // Indigo-Gold-Light Indigo
-    premium: ["#101374", "#2E3192", "#D4AF37"], // Deep indigo to gold
-
-    // Neutral surfaces
-    surface: ["#FAFBFC", "#FFFFFF"], // Neutral surface
-    surfaceBlue: ["#EEEEF6", "#FFFFFF"], // Indigo tint surface
-    darkSurface: ["#0A0C4A", "#101374"], // Dark indigo surface
+    brand: [PALETTE.magenta700, PALETTE.magenta500],
+    brandDeep: [PALETTE.magenta900, PALETTE.magenta700],
+    accent: [PALETTE.cream050, PALETTE.cream200],
+    accentDeep: [PALETTE.cream100, PALETTE.cream400],
+    signature: [PALETTE.magenta700, PALETTE.cream050], // the brand pairing
+    signatureDeep: [PALETTE.magenta900, PALETTE.magenta700, PALETTE.cream050],
+    pageWash: [PALETTE.white, PALETTE.magenta050],
+    accentWash: [PALETTE.white, PALETTE.cream050],
+    fadeToDark: [withAlpha(PALETTE.ink, 0), withAlpha(PALETTE.ink, 0.85)], // image captions
+    shine: [
+      withAlpha(PALETTE.white, 0),
+      withAlpha(PALETTE.white, 0.7),
+      withAlpha(PALETTE.white, 0),
+    ],
   } as Record<string, string[]>,
 };
 
-// ============================================
-// 📐 SIZING SYSTEM
-// ============================================
+/* ============================================================
+   SIZES
+   ============================================================ */
 export const SIZES = {
-  // ===== BASE SIZE =====
   base: 16,
 
-  // ===== SPACING SCALE =====
-  xs: moderateScale(4),
-  sm: moderateScale(8),
-  md: moderateScale(16),
-  lg: moderateScale(24),
-  xl: moderateScale(32),
-  xxl: moderateScale(48),
-  xxxl: moderateScale(64),
-
-  // ===== PADDING & MARGIN =====
-  padding: {
+  space: {
     xs: moderateScale(4),
     sm: moderateScale(8),
     md: moderateScale(12),
@@ -243,57 +237,36 @@ export const SIZES = {
     xl: moderateScale(20),
     xxl: moderateScale(24),
     xxxl: moderateScale(32),
-    container: moderateScale(20), // Standard container padding
+    huge: moderateScale(48),
+    gutter: moderateScale(20), // screen edge padding
   },
 
-  margin: {
-    xs: moderateScale(4),
-    sm: moderateScale(8),
-    md: moderateScale(12),
-    lg: moderateScale(16),
-    xl: moderateScale(20),
-    xxl: moderateScale(24),
-    xxxl: moderateScale(32),
-  },
-
-  // ===== BORDER RADIUS =====
   radius: {
     xs: moderateScale(4),
     sm: moderateScale(8),
     md: moderateScale(12),
     lg: moderateScale(16),
     xl: moderateScale(20),
-    xxl: moderateScale(24),
-    xxxl: moderateScale(32),
-    full: 9999,
+    xxl: moderateScale(28),
+    pill: 9999,
     card: moderateScale(16),
-    button: moderateScale(12),
-    input: moderateScale(10),
+    control: moderateScale(12),
+    field: moderateScale(10),
   },
 
-  // ===== FONT SIZES =====
-  font: {
-    xxs: fontScale(8),
-    xs: fontScale(10),
+  text: {
+    xxs: fontScale(10),
+    xs: fontScale(11),
     sm: fontScale(12),
     md: fontScale(14),
     lg: fontScale(16),
     xl: fontScale(18),
     xxl: fontScale(20),
-    xxxl: fontScale(24),
+    display1: fontScale(32),
+    display2: fontScale(28),
+    display3: fontScale(24),
   },
 
-  // ===== HEADING SIZES =====
-  heading: {
-    h1: fontScale(32),
-    h2: fontScale(28),
-    h3: fontScale(24),
-    h4: fontScale(20),
-    h5: fontScale(18),
-    h6: fontScale(16),
-  },
-
-  // ===== ICON SIZES =====
   icon: {
     xs: moderateScale(12),
     sm: moderateScale(16),
@@ -301,242 +274,164 @@ export const SIZES = {
     lg: moderateScale(24),
     xl: moderateScale(28),
     xxl: moderateScale(32),
-    xxxl: moderateScale(48),
-    xxxxl: moderateScale(64),
+    avatar: moderateScale(48),
+    avatarLg: moderateScale(64),
   },
 
-  // ===== DIMENSIONS =====
-  screen: {
-    width,
-    height,
-    isSmallDevice: width < 375,
-    isMediumDevice: width >= 375 && width < 414,
-    isLargeDevice: width >= 414,
-    isTablet: width >= 768,
+  control: {
+    heightSm: moderateScale(36),
+    heightMd: moderateScale(48),
+    heightLg: moderateScale(56),
   },
 
-  // ===== COMPONENT SIZES =====
-  button: {
-    sm: moderateScale(36),
-    md: moderateScale(44),
-    lg: moderateScale(52),
-    xl: moderateScale(60),
-    height: {
-      sm: moderateScale(36),
-      md: moderateScale(48),
-      lg: moderateScale(56),
-    },
-  },
-
-  input: {
-    sm: moderateScale(36),
-    md: moderateScale(44),
-    lg: moderateScale(52),
+  field: {
     height: moderateScale(48),
   },
 
-  card: {
-    padding: moderateScale(16),
-    paddingLg: moderateScale(20),
+  screen: {
+    width,
+    height,
+    isCompact: width < 375,
+    isRegular: width >= 375 && width < 768,
+    isTablet: width >= 768,
   },
 
-  header: {
-    height: Platform.OS === "ios" ? moderateScale(88) : moderateScale(56),
-  },
-
-  tabBar: {
-    height: Platform.OS === "ios" ? moderateScale(84) : moderateScale(60),
-  },
+  appBarHeight: Platform.OS === "ios" ? moderateScale(88) : moderateScale(56),
+  tabBarHeight: Platform.OS === "ios" ? moderateScale(84) : moderateScale(60),
 };
 
-// ============================================
-// 🔤 TYPOGRAPHY SYSTEM (POPPINS)
-// ============================================
+/* ============================================================
+   TYPOGRAPHY (Poppins)
+   ============================================================ */
 export const FONTS: Record<string, any> = {
-  // ===== FONT FAMILIES =====
   family: {
-    thin: "Poppins-Thin",
     light: "Poppins-Light",
     regular: "Poppins-Regular",
     medium: "Poppins-Medium",
     semiBold: "Poppins-SemiBold",
     bold: "Poppins-Bold",
-    extraBold: "Poppins-ExtraBold",
-
-    // Aliases
-    heading: "Poppins-Bold",
-    body: "Poppins-Regular",
-    bodyBold: "Poppins-SemiBold",
   },
 
-  // ===== FONT WEIGHTS =====
   weight: {
-    thin: "100",
     light: "300",
     regular: "400",
     medium: "500",
     semiBold: "600",
     bold: "700",
-    extraBold: "800",
   },
 
-  // ===== HEADING STYLES =====
-  h1: {
+  display: {
     fontFamily: "Poppins-Bold",
-    fontSize: SIZES.heading.h1,
-    lineHeight: SIZES.heading.h1 * 1.2,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.display1,
+    lineHeight: SIZES.text.display1 * 1.2,
+    color: COLORS.contentPrimary,
     letterSpacing: -0.5,
   },
-  h2: {
+  title: {
     fontFamily: "Poppins-Bold",
-    fontSize: SIZES.heading.h2,
-    lineHeight: SIZES.heading.h2 * 1.25,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.display3,
+    lineHeight: SIZES.text.display3 * 1.28,
+    color: COLORS.contentPrimary,
     letterSpacing: -0.3,
   },
-  h3: {
+  heading: {
     fontFamily: "Poppins-SemiBold",
-    fontSize: SIZES.heading.h3,
-    lineHeight: SIZES.heading.h3 * 1.3,
-    color: COLORS.textPrimary,
-    letterSpacing: -0.2,
+    fontSize: SIZES.text.xxl,
+    lineHeight: SIZES.text.xxl * 1.3,
+    color: COLORS.contentPrimary,
   },
-  h4: {
+  subheading: {
     fontFamily: "Poppins-SemiBold",
-    fontSize: SIZES.heading.h4,
-    lineHeight: SIZES.heading.h4 * 1.3,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.lg,
+    lineHeight: SIZES.text.lg * 1.4,
+    color: COLORS.contentPrimary,
   },
-  h5: {
-    fontFamily: "Poppins-Medium",
-    fontSize: SIZES.heading.h5,
-    lineHeight: SIZES.heading.h5 * 1.4,
-    color: COLORS.textPrimary,
+  // Restores the pre-migration h2 / h5 steps of the heading scale.
+  display2: {
+    fontFamily: "Poppins-Bold",
+    fontSize: SIZES.text.display2,
+    lineHeight: SIZES.text.display2 * 1.25,
+    color: COLORS.contentPrimary,
+    letterSpacing: -0.3,
   },
-  h6: {
+  subheadingLg: {
     fontFamily: "Poppins-Medium",
-    fontSize: SIZES.heading.h6,
-    lineHeight: SIZES.heading.h6 * 1.4,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.xl,
+    lineHeight: SIZES.text.xl * 1.4,
+    color: COLORS.contentPrimary,
   },
 
-  // ===== BODY TEXT STYLES =====
-  bodyLarge: {
+  bodyLg: {
     fontFamily: "Poppins-Regular",
-    fontSize: SIZES.font.lg,
-    lineHeight: SIZES.font.lg * 1.5,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.lg,
+    lineHeight: SIZES.text.lg * 1.5,
+    color: COLORS.contentPrimary,
   },
   body: {
     fontFamily: "Poppins-Regular",
-    fontSize: SIZES.font.md,
-    lineHeight: SIZES.font.md * 1.5,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.md,
+    lineHeight: SIZES.text.md * 1.5,
+    color: COLORS.contentPrimary,
   },
-  bodyMedium: {
+  bodyEmphasis: {
     fontFamily: "Poppins-Medium",
-    fontSize: SIZES.font.md,
-    lineHeight: SIZES.font.md * 1.5,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.md,
+    lineHeight: SIZES.text.md * 1.5,
+    color: COLORS.contentPrimary,
   },
-  bodySmall: {
-    fontFamily: "Poppins-Regular",
-    fontSize: SIZES.font.sm,
-    lineHeight: SIZES.font.sm * 1.5,
-    color: COLORS.textSecondary,
-  },
-  bodyBold: {
+  // Genuinely bold body copy — `bodyEmphasis` is only Medium.
+  bodyStrong: {
     fontFamily: "Poppins-Bold",
-    fontSize: SIZES.font.md,
-    lineHeight: SIZES.font.md * 1.5,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.md,
+    lineHeight: SIZES.text.md * 1.5,
+    color: COLORS.contentPrimary,
+  },
+  bodySm: {
+    fontFamily: "Poppins-Regular",
+    fontSize: SIZES.text.sm,
+    lineHeight: SIZES.text.sm * 1.5,
+    color: COLORS.contentSecondary,
   },
 
-  // ===== LABEL & CAPTION =====
   label: {
     fontFamily: "Poppins-SemiBold",
-    fontSize: SIZES.font.sm,
-    lineHeight: SIZES.font.sm * 1.4,
-    color: COLORS.textPrimary,
-    letterSpacing: 0.5,
+    fontSize: SIZES.text.sm,
+    lineHeight: SIZES.text.sm * 1.4,
+    color: COLORS.contentPrimary,
+    letterSpacing: 0.3,
   },
-  labelUppercase: {
+  eyebrow: {
     fontFamily: "Poppins-SemiBold",
-    fontSize: SIZES.font.sm,
-    lineHeight: SIZES.font.sm * 1.4,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.xs,
+    lineHeight: SIZES.text.xs * 1.4,
+    color: COLORS.contentAccent,
     textTransform: "uppercase",
-    letterSpacing: 1,
+    letterSpacing: 1.2,
   },
   caption: {
     fontFamily: "Poppins-Regular",
-    fontSize: SIZES.font.xs,
-    lineHeight: SIZES.font.xs * 1.4,
-    color: COLORS.textSecondary,
-  },
-  captionBold: {
-    fontFamily: "Poppins-SemiBold",
-    fontSize: SIZES.font.xs,
-    lineHeight: SIZES.font.xs * 1.4,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.xs,
+    lineHeight: SIZES.text.xs * 1.4,
+    color: COLORS.contentMuted,
   },
 
-  // ===== BUTTON TEXT =====
-  button: {
+  action: {
     fontFamily: "Poppins-SemiBold",
-    fontSize: SIZES.font.md,
-    lineHeight: SIZES.font.md * 1.3,
-    color: COLORS.white,
-    letterSpacing: 0.5,
+    fontSize: SIZES.text.md,
+    lineHeight: SIZES.text.md * 1.3,
+    letterSpacing: 0.3,
   },
-  buttonLarge: {
-    fontFamily: "Poppins-Bold",
-    fontSize: SIZES.font.lg,
-    lineHeight: SIZES.font.lg * 1.3,
-    color: COLORS.white,
-    letterSpacing: 0.5,
-  },
-  buttonSmall: {
+  actionSm: {
     fontFamily: "Poppins-Medium",
-    fontSize: SIZES.font.sm,
-    lineHeight: SIZES.font.sm * 1.3,
-    color: COLORS.white,
-  },
-
-  // ===== SPECIAL STYLES (BLUE & GOLD TEXT) =====
-  blueHeading: {
-    fontFamily: "Poppins-Bold",
-    fontSize: SIZES.heading.h2,
-    lineHeight: SIZES.heading.h2 * 1.25,
-    color: COLORS.primary,
-    letterSpacing: -0.3,
-  },
-  blueText: {
-    fontFamily: "Poppins-SemiBold",
-    fontSize: SIZES.font.md,
-    lineHeight: SIZES.font.md * 1.5,
-    color: COLORS.primary,
-  },
-  goldHeading: {
-    fontFamily: "Poppins-Bold",
-    fontSize: SIZES.heading.h2,
-    lineHeight: SIZES.heading.h2 * 1.25,
-    color: COLORS.goldPrimary,
-    letterSpacing: -0.3,
-  },
-  goldText: {
-    fontFamily: "Poppins-SemiBold",
-    fontSize: SIZES.font.md,
-    lineHeight: SIZES.font.md * 1.5,
-    color: COLORS.goldPrimary,
+    fontSize: SIZES.text.sm,
+    lineHeight: SIZES.text.sm * 1.3,
   },
 };
 
-// ============================================
-// 🎭 SHADOWS
-// ============================================
-export const SHADOWS: Record<string, any> = {
+/* ============================================================
+   ELEVATION
+   ============================================================ */
+export const ELEVATION: Record<string, any> = {
   none: {
     shadowColor: "transparent",
     shadowOffset: { width: 0, height: 0 },
@@ -544,256 +439,310 @@ export const SHADOWS: Record<string, any> = {
     shadowRadius: 0,
     elevation: 0,
   },
-  xs: {
-    shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  sm: {
-    shadowColor: COLORS.black,
+  raised: {
+    shadowColor: COLORS.shadowNeutral,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
-  md: {
-    shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 4,
+  floating: {
+    shadowColor: COLORS.shadowNeutral,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.14,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  lg: {
-    shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.16,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  xl: {
-    shadowColor: COLORS.black,
+  overlay: {
+    shadowColor: COLORS.shadowNeutral,
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.2,
     shadowRadius: 24,
     elevation: 12,
   },
-  // Blue shadow for premium feel
-  blue: {
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
+  brandGlow: {
+    shadowColor: COLORS.brand,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.28,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  blueStrong: {
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  // Gold shadow for accents
-  gold: {
-    shadowColor: COLORS.goldPrimary,
-    shadowOffset: { width: 0, height: 4 },
+  accentGlow: {
+    shadowColor: COLORS.shadowAccent,
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  goldStrong: {
-    shadowColor: COLORS.goldPrimary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowRadius: 12,
+    elevation: 6,
   },
 };
 
-// ============================================
-// 📱 DEVICE BREAKPOINTS
-// ============================================
-export const BREAKPOINTS = {
-  small: width < 375,
-  medium: width >= 375 && width < 768,
-  large: width >= 768,
-  tablet: width >= 768,
-  isSmallDevice: width < 375,
-  isMediumDevice: width >= 375 && width < 768,
-  isLargeDevice: width >= 768,
-  isTablet: width >= 768,
-};
-
-// ============================================
-// 🎨 COMMON STYLES
-// ============================================
-export const COMMON_STYLES: Record<string, any> = {
-  // ===== CONTAINER STYLES =====
-  container: {
+/* ============================================================
+   COMPONENT STYLES
+   ============================================================ */
+export const STYLES: Record<string, any> = {
+  screen: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.surfacePage,
   },
-  containerCentered: {
+  screenPadded: {
     flex: 1,
-    backgroundColor: COLORS.background,
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: COLORS.surfacePage,
+    paddingHorizontal: SIZES.space.gutter,
   },
-  containerPadded: {
+  screenMuted: {
     flex: 1,
-    backgroundColor: COLORS.background,
-    padding: SIZES.padding.container,
-  },
-  containerBlue: {
-    flex: 1,
-    backgroundColor: COLORS.backgroundBlue,
+    backgroundColor: COLORS.surfaceMuted,
   },
 
-  // ===== BUTTON STYLES =====
-  button: {
-    // Primary navy blue button
+  /* --- Buttons --- */
+  action: {
+    // Filled indigo — the main call to action
     primary: {
-      backgroundColor: COLORS.primary,
-      borderRadius: SIZES.radius.button,
-      paddingVertical: SIZES.padding.md,
-      paddingHorizontal: SIZES.padding.xl,
+      backgroundColor: COLORS.brand,
+      borderRadius: SIZES.radius.control,
+      height: SIZES.control.heightMd,
+      paddingHorizontal: SIZES.space.xxl,
       alignItems: "center",
       justifyContent: "center",
-      ...SHADOWS.md,
+      flexDirection: "row",
+      ...ELEVATION.raised,
     },
-    // Gold button
-    gold: {
-      backgroundColor: COLORS.goldDark,
-      borderRadius: SIZES.radius.button,
-      paddingVertical: SIZES.padding.md,
-      paddingHorizontal: SIZES.padding.xl,
+    // Filled amber — secondary emphasis / highlight actions
+    accent: {
+      backgroundColor: COLORS.accent,
+      borderRadius: SIZES.radius.control,
+      height: SIZES.control.heightMd,
+      paddingHorizontal: SIZES.space.xxl,
       alignItems: "center",
       justifyContent: "center",
-      ...SHADOWS.gold,
+      flexDirection: "row",
+      ...ELEVATION.accentGlow,
     },
-    // Outline blue button
+    // Indigo outline
     outline: {
       backgroundColor: COLORS.transparent,
-      borderRadius: SIZES.radius.button,
-      paddingVertical: SIZES.padding.md,
-      paddingHorizontal: SIZES.padding.xl,
+      borderRadius: SIZES.radius.control,
+      height: SIZES.control.heightMd,
+      paddingHorizontal: SIZES.space.xxl,
       borderWidth: 1.5,
-      borderColor: COLORS.primary,
+      borderColor: COLORS.borderBrand,
       alignItems: "center",
       justifyContent: "center",
+      flexDirection: "row",
     },
-    // Outline gold button
-    outlineGold: {
+    // Tinted, low emphasis
+    subtle: {
+      backgroundColor: COLORS.brandTint,
+      borderRadius: SIZES.radius.control,
+      height: SIZES.control.heightMd,
+      paddingHorizontal: SIZES.space.xxl,
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
+    },
+    // Text only
+    ghost: {
       backgroundColor: COLORS.transparent,
-      borderRadius: SIZES.radius.button,
-      paddingVertical: SIZES.padding.md,
-      paddingHorizontal: SIZES.padding.xl,
-      borderWidth: 1.5,
-      borderColor: COLORS.goldPrimary,
+      height: SIZES.control.heightSm,
+      paddingHorizontal: SIZES.space.md,
       alignItems: "center",
       justifyContent: "center",
+      flexDirection: "row",
     },
-    // Secondary white button
-    secondary: {
-      backgroundColor: COLORS.white,
-      borderRadius: SIZES.radius.button,
-      paddingVertical: SIZES.padding.md,
-      paddingHorizontal: SIZES.padding.xl,
-      borderWidth: 1,
-      borderColor: COLORS.border,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    // Light blue button
-    light: {
-      backgroundColor: COLORS.primaryPale,
-      borderRadius: SIZES.radius.button,
-      paddingVertical: SIZES.padding.md,
-      paddingHorizontal: SIZES.padding.xl,
+    disabled: {
+      backgroundColor: COLORS.surfaceSunken,
+      borderRadius: SIZES.radius.control,
+      height: SIZES.control.heightMd,
+      paddingHorizontal: SIZES.space.xxl,
       alignItems: "center",
       justifyContent: "center",
     },
   },
 
-  // ===== INPUT STYLES =====
-  input: {
-    default: {
+  /* --- Fields --- */
+  field: {
+    base: {
+      height: SIZES.field.height,
       borderWidth: 1,
-      borderColor: COLORS.inputBorder,
-      borderRadius: SIZES.radius.input,
-      paddingHorizontal: SIZES.padding.md,
-      paddingVertical: SIZES.padding.sm,
-      fontSize: SIZES.font.md,
+      borderColor: COLORS.fieldBorder,
+      borderRadius: SIZES.radius.field,
+      paddingHorizontal: SIZES.space.lg,
+      fontSize: SIZES.text.md,
       fontFamily: FONTS.family.regular,
-      color: COLORS.textPrimary,
-      backgroundColor: COLORS.inputBackground,
-      height: SIZES.input.height,
+      color: COLORS.contentPrimary,
+      backgroundColor: COLORS.fieldBackground,
     },
     focused: {
-      borderColor: COLORS.primary,
-      backgroundColor: COLORS.white,
-      ...SHADOWS.sm,
+      borderColor: COLORS.fieldBorderFocused,
+      borderWidth: 1.5,
+      backgroundColor: COLORS.surface,
     },
-    focusedGold: {
-      borderColor: COLORS.goldPrimary,
-      backgroundColor: COLORS.white,
-      ...SHADOWS.sm,
-    },
-    error: {
-      borderColor: COLORS.error,
+    invalid: {
+      borderColor: COLORS.fieldBorderError,
+      backgroundColor: COLORS.surface,
     },
   },
 
-  // ===== CARD STYLES =====
+  /* --- Cards --- */
   card: {
-    default: {
-      backgroundColor: COLORS.white,
+    base: {
+      backgroundColor: COLORS.surface,
       borderRadius: SIZES.radius.card,
-      padding: SIZES.card.padding,
-      ...SHADOWS.sm,
-    },
-    elevated: {
-      backgroundColor: COLORS.white,
-      borderRadius: SIZES.radius.card,
-      padding: SIZES.card.padding,
-      ...SHADOWS.md,
-    },
-    premium: {
-      backgroundColor: COLORS.white,
-      borderRadius: SIZES.radius.card,
-      padding: SIZES.card.paddingLg,
+      padding: SIZES.space.lg,
       borderWidth: 1,
-      borderColor: COLORS.goldPrimary,
-      ...SHADOWS.gold,
+      borderColor: COLORS.borderSubtle,
     },
-    blue: {
-      backgroundColor: COLORS.primary,
+    raised: {
+      backgroundColor: COLORS.surface,
       borderRadius: SIZES.radius.card,
-      padding: SIZES.card.padding,
-      ...SHADOWS.blue,
+      padding: SIZES.space.lg,
+      ...ELEVATION.floating,
     },
-    blueLight: {
-      backgroundColor: COLORS.primaryPale,
+    brand: {
+      backgroundColor: COLORS.surfaceBrand,
       borderRadius: SIZES.radius.card,
-      padding: SIZES.card.padding,
-      ...SHADOWS.sm,
+      padding: SIZES.space.xl,
+      ...ELEVATION.brandGlow,
     },
-    blueBorder: {
-      backgroundColor: COLORS.white,
+    highlight: {
+      backgroundColor: COLORS.accentTint,
       borderRadius: SIZES.radius.card,
-      padding: SIZES.card.padding,
+      padding: SIZES.space.lg,
       borderWidth: 1,
-      borderColor: COLORS.primary,
-      ...SHADOWS.sm,
+      borderColor: COLORS.accentSubtle,
+    },
+    brandSoft: {
+      backgroundColor: COLORS.brandTint,
+      borderRadius: SIZES.radius.card,
+      padding: SIZES.space.lg,
+      borderWidth: 1,
+      borderColor: COLORS.brandSubtle,
     },
   },
 
-  // ===== ROW & FLEX STYLES =====
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
+  /* --- Badges --- */
+  badge: {
+    brand: {
+      backgroundColor: COLORS.brand,
+      borderRadius: SIZES.radius.pill,
+      paddingHorizontal: SIZES.space.md,
+      paddingVertical: SIZES.space.xs,
+      alignSelf: "flex-start",
+    },
+    accent: {
+      backgroundColor: COLORS.accent,
+      borderRadius: SIZES.radius.pill,
+      paddingHorizontal: SIZES.space.md,
+      paddingVertical: SIZES.space.xs,
+      alignSelf: "flex-start",
+    },
+    neutral: {
+      backgroundColor: COLORS.surfaceSunken,
+      borderRadius: SIZES.radius.pill,
+      paddingHorizontal: SIZES.space.md,
+      paddingVertical: SIZES.space.xs,
+      alignSelf: "flex-start",
+    },
+    success: {
+      backgroundColor: COLORS.successSurface,
+      borderRadius: SIZES.radius.pill,
+      paddingHorizontal: SIZES.space.md,
+      paddingVertical: SIZES.space.xs,
+      alignSelf: "flex-start",
+    },
+    danger: {
+      backgroundColor: COLORS.dangerSurface,
+      borderRadius: SIZES.radius.pill,
+      paddingHorizontal: SIZES.space.md,
+      paddingVertical: SIZES.space.xs,
+      alignSelf: "flex-start",
+    },
   },
+
+  /* --- Chips --- */
+  chip: {
+    base: {
+      backgroundColor: COLORS.surfaceSunken,
+      borderRadius: SIZES.radius.pill,
+      paddingHorizontal: SIZES.space.lg,
+      paddingVertical: SIZES.space.sm,
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    selected: {
+      backgroundColor: COLORS.brandSubtle,
+      borderWidth: 1,
+      borderColor: COLORS.borderBrand,
+    },
+    // Standalone brand-tinted chip (base + selected, pre-merged)
+    brand: {
+      backgroundColor: COLORS.brandSubtle,
+      borderRadius: SIZES.radius.pill,
+      paddingHorizontal: SIZES.space.lg,
+      paddingVertical: SIZES.space.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: COLORS.borderBrand,
+    },
+  },
+
+  /* --- Media & icons --- */
+  avatar: {
+    sm: {
+      width: SIZES.icon.xl,
+      height: SIZES.icon.xl,
+      borderRadius: SIZES.radius.pill,
+      backgroundColor: COLORS.surfaceSunken,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    md: {
+      width: SIZES.icon.avatar,
+      height: SIZES.icon.avatar,
+      borderRadius: SIZES.radius.pill,
+      backgroundColor: COLORS.surfaceSunken,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    lg: {
+      width: SIZES.icon.avatarLg,
+      height: SIZES.icon.avatarLg,
+      borderRadius: SIZES.radius.pill,
+      backgroundColor: COLORS.surfaceSunken,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+  },
+  iconTile: {
+    subtle: {
+      width: SIZES.icon.avatar,
+      height: SIZES.icon.avatar,
+      borderRadius: SIZES.radius.md,
+      backgroundColor: COLORS.brandTint,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    brand: {
+      width: SIZES.icon.avatar,
+      height: SIZES.icon.avatar,
+      borderRadius: SIZES.radius.md,
+      backgroundColor: COLORS.brand,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    accent: {
+      width: SIZES.icon.avatar,
+      height: SIZES.icon.avatar,
+      borderRadius: SIZES.radius.md,
+      backgroundColor: COLORS.accentTint,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+  },
+
+  /* --- Rows & layout --- */
+  row: { flexDirection: "row", alignItems: "center" },
   rowBetween: {
     flexDirection: "row",
     alignItems: "center",
@@ -804,574 +753,243 @@ export const COMMON_STYLES: Record<string, any> = {
     alignItems: "center",
     justifyContent: "center",
   },
-  rowStart: {
+  center: { alignItems: "center", justifyContent: "center" },
+
+  listRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-start",
-  },
-  rowEnd: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-end",
-  },
-  column: {
-    flexDirection: "column",
-  },
-  columnCenter: {
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  columnBetween: {
-    flexDirection: "column",
-    justifyContent: "space-between",
+    paddingVertical: SIZES.space.lg,
+    paddingHorizontal: SIZES.space.gutter,
+    backgroundColor: COLORS.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.divider,
   },
 
-  // ===== DIVIDER =====
-  divider: {
-    height: 1,
-    backgroundColor: COLORS.divider,
-  },
-  dividerThick: {
+  divider: { height: 1, backgroundColor: COLORS.divider },
+  dividerAccent: {
     height: 2,
-    backgroundColor: COLORS.divider,
-  },
-  dividerBlue: {
-    height: 1,
-    backgroundColor: COLORS.primary,
-  },
-  dividerGold: {
-    height: 1,
-    backgroundColor: COLORS.goldPrimary,
-  },
-  dividerVertical: {
-    width: 1,
-    backgroundColor: COLORS.divider,
+    backgroundColor: COLORS.accentDeep,
+    width: moderateScale(40),
   },
 
-  // ===== BADGE STYLES =====
-  badge: {
-    primary: {
-      backgroundColor: COLORS.primary,
-      borderRadius: SIZES.radius.full,
-      paddingHorizontal: SIZES.padding.sm,
-      paddingVertical: SIZES.padding.xs,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    gold: {
-      backgroundColor: COLORS.goldPrimary,
-      borderRadius: SIZES.radius.full,
-      paddingHorizontal: SIZES.padding.sm,
-      paddingVertical: SIZES.padding.xs,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    success: {
-      backgroundColor: COLORS.success,
-      borderRadius: SIZES.radius.full,
-      paddingHorizontal: SIZES.padding.sm,
-      paddingVertical: SIZES.padding.xs,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    error: {
-      backgroundColor: COLORS.error,
-      borderRadius: SIZES.radius.full,
-      paddingHorizontal: SIZES.padding.sm,
-      paddingVertical: SIZES.padding.xs,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    warning: {
-      backgroundColor: COLORS.warning,
-      borderRadius: SIZES.radius.full,
-      paddingHorizontal: SIZES.padding.sm,
-      paddingVertical: SIZES.padding.xs,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    outline: {
-      backgroundColor: COLORS.transparent,
-      borderRadius: SIZES.radius.full,
-      paddingHorizontal: SIZES.padding.sm,
-      paddingVertical: SIZES.padding.xs,
-      borderWidth: 1,
-      borderColor: COLORS.primary,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-  },
-
-  // ===== CHIP STYLES =====
-  chip: {
-    default: {
-      backgroundColor: COLORS.gray100,
-      borderRadius: SIZES.radius.full,
-      paddingHorizontal: SIZES.padding.md,
-      paddingVertical: SIZES.padding.xs,
+  /* --- Chrome --- */
+  appBar: {
+    base: {
+      height: SIZES.appBarHeight,
+      backgroundColor: COLORS.surface,
       flexDirection: "row",
       alignItems: "center",
-    },
-    blue: {
-      backgroundColor: COLORS.blueOpacity10,
-      borderRadius: SIZES.radius.full,
-      paddingHorizontal: SIZES.padding.md,
-      paddingVertical: SIZES.padding.xs,
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    gold: {
-      backgroundColor: COLORS.goldOpacity10,
-      borderRadius: SIZES.radius.full,
-      paddingHorizontal: SIZES.padding.md,
-      paddingVertical: SIZES.padding.xs,
-      flexDirection: "row",
-      alignItems: "center",
-    },
-  },
-
-  // ===== AVATAR STYLES =====
-  avatar: {
-    small: {
-      width: SIZES.icon.lg,
-      height: SIZES.icon.lg,
-      borderRadius: SIZES.radius.full,
-      backgroundColor: COLORS.gray200,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    medium: {
-      width: SIZES.icon.xxl,
-      height: SIZES.icon.xxl,
-      borderRadius: SIZES.radius.full,
-      backgroundColor: COLORS.gray200,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    large: {
-      width: SIZES.icon.xxxl,
-      height: SIZES.icon.xxxl,
-      borderRadius: SIZES.radius.full,
-      backgroundColor: COLORS.gray200,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    xlarge: {
-      width: SIZES.icon.xxxxl,
-      height: SIZES.icon.xxxxl,
-      borderRadius: SIZES.radius.full,
-      backgroundColor: COLORS.gray200,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-  },
-
-  // ===== ICON CONTAINER STYLES =====
-  iconContainer: {
-    small: {
-      width: SIZES.icon.lg,
-      height: SIZES.icon.lg,
-      borderRadius: SIZES.radius.sm,
-      backgroundColor: COLORS.primaryPale,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    medium: {
-      width: SIZES.icon.xl,
-      height: SIZES.icon.xl,
-      borderRadius: SIZES.radius.md,
-      backgroundColor: COLORS.primaryPale,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    large: {
-      width: SIZES.icon.xxl,
-      height: SIZES.icon.xxl,
-      borderRadius: SIZES.radius.lg,
-      backgroundColor: COLORS.primaryPale,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    blue: {
-      width: SIZES.icon.xl,
-      height: SIZES.icon.xl,
-      borderRadius: SIZES.radius.md,
-      backgroundColor: COLORS.primary,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    gold: {
-      width: SIZES.icon.xl,
-      height: SIZES.icon.xl,
-      borderRadius: SIZES.radius.md,
-      backgroundColor: COLORS.goldPrimary,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-  },
-
-  // ===== LIST ITEM STYLES =====
-  listItem: {
-    default: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingVertical: SIZES.padding.md,
-      paddingHorizontal: SIZES.padding.lg,
-      backgroundColor: COLORS.white,
-      borderBottomWidth: 1,
-      borderBottomColor: COLORS.divider,
-    },
-    card: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: SIZES.padding.md,
-      backgroundColor: COLORS.white,
-      borderRadius: SIZES.radius.md,
-      marginBottom: SIZES.margin.sm,
-      ...SHADOWS.sm,
-    },
-  },
-
-  // ===== SEPARATOR STYLES =====
-  separator: {
-    horizontal: {
-      height: 1,
-      backgroundColor: COLORS.divider,
-      marginVertical: SIZES.margin.md,
-    },
-    vertical: {
-      width: 1,
-      backgroundColor: COLORS.divider,
-      marginHorizontal: SIZES.margin.md,
-    },
-  },
-
-  // ===== OVERLAY STYLES =====
-  overlay: {
-    default: {
-      ...Platform.select({
-        ios: {
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-        },
-        android: {
-          flex: 1,
-        },
-      }),
-      backgroundColor: COLORS.overlay,
-    },
-    dark: {
-      ...Platform.select({
-        ios: {
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-        },
-        android: {
-          flex: 1,
-        },
-      }),
-      backgroundColor: COLORS.overlayDark,
-    },
-    blue: {
-      ...Platform.select({
-        ios: {
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-        },
-        android: {
-          flex: 1,
-        },
-      }),
-      backgroundColor: COLORS.overlayBlue,
-    },
-  },
-
-  // ===== HEADER STYLES =====
-  header: {
-    default: {
-      height: SIZES.header.height,
-      backgroundColor: COLORS.white,
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: SIZES.padding.lg,
+      paddingHorizontal: SIZES.space.gutter,
       borderBottomWidth: 1,
       borderBottomColor: COLORS.border,
-      ...SHADOWS.sm,
+    },
+    brand: {
+      height: SIZES.appBarHeight,
+      backgroundColor: COLORS.brand,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: SIZES.space.gutter,
     },
     transparent: {
-      height: SIZES.header.height,
+      height: SIZES.appBarHeight,
       backgroundColor: COLORS.transparent,
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: SIZES.padding.lg,
-    },
-    blue: {
-      height: SIZES.header.height,
-      backgroundColor: COLORS.primary,
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: SIZES.padding.lg,
-      ...SHADOWS.md,
+      paddingHorizontal: SIZES.space.gutter,
     },
   },
 
-  // ===== TAB BAR STYLES =====
   tabBar: {
-    default: {
-      height: SIZES.tabBar.height,
-      backgroundColor: COLORS.white,
-      flexDirection: "row",
-      borderTopWidth: 1,
-      borderTopColor: COLORS.border,
-      ...SHADOWS.md,
-    },
-    elevated: {
-      height: SIZES.tabBar.height,
-      backgroundColor: COLORS.white,
-      flexDirection: "row",
-      ...SHADOWS.lg,
-    },
+    height: SIZES.tabBarHeight,
+    backgroundColor: COLORS.surface,
+    flexDirection: "row",
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    ...ELEVATION.floating,
   },
 
-  // ===== MODAL STYLES =====
+  /* --- Modals & sheets --- */
   modal: {
-    container: {
+    scrim: {
       flex: 1,
-      backgroundColor: COLORS.overlay,
+      backgroundColor: COLORS.scrim,
       justifyContent: "center",
       alignItems: "center",
-      padding: SIZES.padding.lg,
+      padding: SIZES.space.xl,
     },
-    content: {
-      backgroundColor: COLORS.white,
+    panel: {
+      backgroundColor: COLORS.surface,
       borderRadius: SIZES.radius.xl,
-      padding: SIZES.padding.xl,
+      padding: SIZES.space.xxl,
       width: "90%",
-      maxWidth: 400,
-      ...SHADOWS.xl,
-    },
-    fullScreen: {
-      flex: 1,
-      backgroundColor: COLORS.white,
+      maxWidth: 420,
+      ...ELEVATION.overlay,
     },
   },
-
-  // ===== BOTTOM SHEET STYLES =====
-  bottomSheet: {
-    container: {
-      backgroundColor: COLORS.white,
-      borderTopLeftRadius: SIZES.radius.xl,
-      borderTopRightRadius: SIZES.radius.xl,
-      paddingTop: SIZES.padding.sm,
-      paddingHorizontal: SIZES.padding.lg,
-      paddingBottom: SIZES.padding.xl,
-      ...SHADOWS.xl,
+  sheet: {
+    panel: {
+      backgroundColor: COLORS.surface,
+      borderTopLeftRadius: SIZES.radius.xxl,
+      borderTopRightRadius: SIZES.radius.xxl,
+      paddingTop: SIZES.space.sm,
+      paddingHorizontal: SIZES.space.gutter,
+      paddingBottom: SIZES.space.xxxl,
+      ...ELEVATION.overlay,
     },
-    handle: {
+    grabber: {
       width: moderateScale(40),
       height: moderateScale(4),
-      backgroundColor: COLORS.gray300,
-      borderRadius: SIZES.radius.full,
+      backgroundColor: COLORS.borderStrong,
+      borderRadius: SIZES.radius.pill,
       alignSelf: "center",
-      marginBottom: SIZES.margin.md,
+      marginBottom: SIZES.space.lg,
     },
   },
 
-  // ===== TOAST/SNACKBAR STYLES =====
+  /* --- Feedback --- */
   toast: {
-    default: {
-      backgroundColor: COLORS.black,
+    base: {
+      backgroundColor: COLORS.surfaceInverse,
       borderRadius: SIZES.radius.md,
-      padding: SIZES.padding.md,
+      padding: SIZES.space.lg,
       flexDirection: "row",
       alignItems: "center",
-      ...SHADOWS.lg,
+      ...ELEVATION.floating,
     },
-    success: {
-      backgroundColor: COLORS.success,
-      borderRadius: SIZES.radius.md,
-      padding: SIZES.padding.md,
-      flexDirection: "row",
-      alignItems: "center",
-      ...SHADOWS.lg,
-    },
-    error: {
-      backgroundColor: COLORS.error,
-      borderRadius: SIZES.radius.md,
-      padding: SIZES.padding.md,
-      flexDirection: "row",
-      alignItems: "center",
-      ...SHADOWS.lg,
-    },
-    warning: {
-      backgroundColor: COLORS.warning,
-      borderRadius: SIZES.radius.md,
-      padding: SIZES.padding.md,
-      flexDirection: "row",
-      alignItems: "center",
-      ...SHADOWS.lg,
-    },
-    info: {
-      backgroundColor: COLORS.info,
-      borderRadius: SIZES.radius.md,
-      padding: SIZES.padding.md,
-      flexDirection: "row",
-      alignItems: "center",
-      ...SHADOWS.lg,
-    },
+    success: { backgroundColor: COLORS.success },
+    danger: { backgroundColor: COLORS.danger },
+    warning: { backgroundColor: COLORS.warning },
+    info: { backgroundColor: COLORS.info },
   },
 
-  // ===== SKELETON LOADER STYLES =====
-  skeleton: {
-    default: {
-      backgroundColor: COLORS.gray200,
-      borderRadius: SIZES.radius.sm,
-    },
-    circle: {
-      backgroundColor: COLORS.gray200,
-      borderRadius: SIZES.radius.full,
-    },
-  },
-
-  // ===== FLOATING ACTION BUTTON =====
-  fab: {
-    default: {
-      width: SIZES.button.lg,
-      height: SIZES.button.lg,
-      borderRadius: SIZES.radius.full,
-      backgroundColor: COLORS.primary,
-      alignItems: "center",
-      justifyContent: "center",
-      position: "absolute",
-      bottom: SIZES.padding.xl,
-      right: SIZES.padding.xl,
-      ...SHADOWS.lg,
-    },
-    gold: {
-      width: SIZES.button.lg,
-      height: SIZES.button.lg,
-      borderRadius: SIZES.radius.full,
-      backgroundColor: COLORS.goldDark,
-      alignItems: "center",
-      justifyContent: "center",
-      position: "absolute",
-      bottom: SIZES.padding.xl,
-      right: SIZES.padding.xl,
-      ...SHADOWS.goldStrong,
-    },
-    small: {
-      width: SIZES.button.md,
-      height: SIZES.button.md,
-      borderRadius: SIZES.radius.full,
-      backgroundColor: COLORS.primary,
-      alignItems: "center",
-      justifyContent: "center",
-      position: "absolute",
-      bottom: SIZES.padding.lg,
-      right: SIZES.padding.lg,
-      ...SHADOWS.md,
-    },
-  },
-
-  // ===== PROGRESS BAR =====
-  progressBar: {
-    container: {
+  /* --- Progress & controls --- */
+  progress: {
+    track: {
       height: moderateScale(8),
-      backgroundColor: COLORS.gray200,
-      borderRadius: SIZES.radius.full,
+      backgroundColor: COLORS.surfaceSunken,
+      borderRadius: SIZES.radius.pill,
       overflow: "hidden",
     },
-    fill: {
+    bar: {
       height: "100%",
-      backgroundColor: COLORS.primary,
-      borderRadius: SIZES.radius.full,
+      backgroundColor: COLORS.brand,
+      borderRadius: SIZES.radius.pill,
     },
-    fillGold: {
+    barAccent: {
       height: "100%",
-      backgroundColor: COLORS.goldPrimary,
-      borderRadius: SIZES.radius.full,
+      backgroundColor: COLORS.accent,
+      borderRadius: SIZES.radius.pill,
     },
   },
 
-  // ===== SWITCH STYLES =====
-  switch: {
+  toggle: {
     track: {
       width: moderateScale(50),
       height: moderateScale(28),
-      borderRadius: SIZES.radius.full,
-      backgroundColor: COLORS.gray300,
+      borderRadius: SIZES.radius.pill,
+      backgroundColor: COLORS.borderStrong,
+      justifyContent: "center",
+      padding: moderateScale(2),
     },
-    trackActive: {
-      backgroundColor: COLORS.primary,
-    },
-    thumb: {
+    trackOn: { backgroundColor: COLORS.brand },
+    knob: {
       width: moderateScale(24),
       height: moderateScale(24),
-      borderRadius: SIZES.radius.full,
-      backgroundColor: COLORS.white,
-      ...SHADOWS.sm,
+      borderRadius: SIZES.radius.pill,
+      backgroundColor: COLORS.surface,
+      ...ELEVATION.raised,
     },
   },
 
-  // ===== CHECKBOX & RADIO =====
   checkbox: {
-    default: {
+    base: {
       width: moderateScale(20),
       height: moderateScale(20),
       borderRadius: SIZES.radius.xs,
       borderWidth: 2,
-      borderColor: COLORS.gray400,
+      borderColor: COLORS.borderStrong,
       alignItems: "center",
       justifyContent: "center",
     },
-    checked: {
-      backgroundColor: COLORS.primary,
-      borderColor: COLORS.primary,
-    },
+    checked: { backgroundColor: COLORS.brand, borderColor: COLORS.brand },
   },
   radio: {
-    default: {
+    base: {
       width: moderateScale(20),
       height: moderateScale(20),
-      borderRadius: SIZES.radius.full,
+      borderRadius: SIZES.radius.pill,
       borderWidth: 2,
-      borderColor: COLORS.gray400,
+      borderColor: COLORS.borderStrong,
       alignItems: "center",
       justifyContent: "center",
     },
-    checked: {
-      borderColor: COLORS.primary,
-    },
-    innerCircle: {
+    checked: { borderColor: COLORS.brand },
+    dot: {
       width: moderateScale(10),
       height: moderateScale(10),
-      borderRadius: SIZES.radius.full,
-      backgroundColor: COLORS.primary,
+      borderRadius: SIZES.radius.pill,
+      backgroundColor: COLORS.brand,
+    },
+  },
+
+  skeleton: {
+    block: {
+      backgroundColor: COLORS.surfaceSunken,
+      borderRadius: SIZES.radius.sm,
+    },
+    circle: {
+      backgroundColor: COLORS.surfaceSunken,
+      borderRadius: SIZES.radius.pill,
+    },
+  },
+
+  floatingAction: {
+    base: {
+      width: SIZES.control.heightLg,
+      height: SIZES.control.heightLg,
+      borderRadius: SIZES.radius.pill,
+      backgroundColor: COLORS.brand,
+      alignItems: "center",
+      justifyContent: "center",
+      position: "absolute",
+      right: SIZES.space.gutter,
+      bottom: SIZES.space.xxxl,
+      ...ELEVATION.brandGlow,
+    },
+    accent: {
+      width: SIZES.control.heightLg,
+      height: SIZES.control.heightLg,
+      borderRadius: SIZES.radius.pill,
+      backgroundColor: COLORS.accent,
+      alignItems: "center",
+      justifyContent: "center",
+      position: "absolute",
+      right: SIZES.space.gutter,
+      bottom: SIZES.space.xxxl,
+      ...ELEVATION.accentGlow,
     },
   },
 };
 
-// ============================================
-// 🎯 EXPORT DEFAULT THEME
-// ============================================
+/* ============================================================
+   BREAKPOINTS
+   ============================================================ */
+export const BREAKPOINTS = {
+  isCompact: width < 375,
+  isRegular: width >= 375 && width < 768,
+  isTablet: width >= 768,
+};
+
+/* ============================================================
+   DEFAULT EXPORT
+   ============================================================ */
 const theme = {
   COLORS,
   SIZES,
   FONTS,
-  SHADOWS,
+  ELEVATION,
+  STYLES,
   BREAKPOINTS,
-  COMMON_STYLES,
-  // Utility functions
   scale,
   verticalScale,
   moderateScale,
@@ -1380,5 +998,4 @@ const theme = {
 
 export default theme;
 
-// Export individual utilities
-export { scale, verticalScale, moderateScale, fontScale };
+export { scale, verticalScale, moderateScale, fontScale, PALETTE };

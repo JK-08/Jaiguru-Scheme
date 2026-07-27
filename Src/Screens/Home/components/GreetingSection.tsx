@@ -43,7 +43,7 @@ const GreetingSection: React.FC<GreetingSectionProps> = ({ greeting, name,  }) =
         {name}
       </Text>
       {/* <View style={styles.memberRow}>
-        <MaterialCommunityIcons name="shield-check" size={SIZES.icon.xs} color={COLORS.textOnGold} />
+        <MaterialCommunityIcons name="shield-check" size={SIZES.icon.xs} color={COLORS.contentOnAccent} />
         <Text style={styles.memberId}>Member ID : {memberId}</Text>
       </View> */}
     </Animated.View>
@@ -53,34 +53,34 @@ const GreetingSection: React.FC<GreetingSectionProps> = ({ greeting, name,  }) =
 const styles = StyleSheet.create({
   greeting: {
     fontFamily: FONTS.family.medium,
-    fontSize: SIZES.font.sm,
-    color: COLORS.textOnGold,
+    fontSize: SIZES.text.sm,
+    color: COLORS.contentOnAccent,
     opacity: 0.9,
   },
   welcome: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.xs,
-    color: COLORS.textOnGold,
+    fontSize: SIZES.text.xxs,
+    color: COLORS.contentOnAccent,
     opacity: 0.8,
-    marginTop: SIZES.xs,
+    marginTop: SIZES.space.xs,
   },
   name: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.heading.h4,
-    color: COLORS.textOnGold,
+    fontSize: SIZES.text.xxl,
+    color: COLORS.contentOnAccent,
     marginTop: 2,
   },
   memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: SIZES.xs,
+    marginTop: SIZES.space.xs,
   },
   memberId: {
     fontFamily: FONTS.family.medium,
-    fontSize: SIZES.font.xs,
-    color: COLORS.textOnGold,
+    fontSize: SIZES.text.xxs,
+    color: COLORS.contentOnAccent,
     opacity: 0.85,
-    marginLeft: SIZES.xs,
+    marginLeft: SIZES.space.xs,
     letterSpacing: 0.3,
   },
 });

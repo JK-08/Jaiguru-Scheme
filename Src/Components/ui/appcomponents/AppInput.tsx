@@ -96,7 +96,7 @@ const AppInput = forwardRef<AppInputRef, AppInputProps>(
 
     const borderColor = borderAnim.interpolate({
       inputRange: [0, 1],
-      outputRange: [error ? COLORS.error : COLORS.border, error ? COLORS.error : COLORS.accentDark],
+      outputRange: [error ? COLORS.danger : COLORS.border, error ? COLORS.danger : COLORS.accent],
     });
 
     const hasError = !!error;
@@ -110,13 +110,13 @@ const AppInput = forwardRef<AppInputRef, AppInputProps>(
               styles.label,
               {
                 fontFamily: FONTS.family.medium,
-                fontSize: SIZES.font.sm,
-                color: hasError ? COLORS.error : focused ? COLORS.accentDark : COLORS.textSecondary,
+                fontSize: SIZES.text.sm,
+                color: hasError ? COLORS.danger : focused ? COLORS.accent : COLORS.contentSecondary,
               },
             ]}
           >
             {label}
-            {required && <Text style={{ color: COLORS.error }}> *</Text>}
+            {required && <Text style={{ color: COLORS.danger }}> *</Text>}
           </Text>
         )}
 
@@ -126,7 +126,7 @@ const AppInput = forwardRef<AppInputRef, AppInputProps>(
             {
               borderColor,
               borderWidth: focused ? 1.5 : 1,
-              backgroundColor: focused ? COLORS.white : COLORS.inputBackground,
+              backgroundColor: focused ? COLORS.surface : COLORS.fieldBackground,
               minHeight: size === 'sm' ? moderateScale(42) : moderateScale(50),
             },
           ]}
@@ -135,7 +135,7 @@ const AppInput = forwardRef<AppInputRef, AppInputProps>(
             <Icon
               name={leftIcon}
               size={iSize}
-              color={hasError ? COLORS.error : focused ? COLORS.accentDark : COLORS.textTertiary}
+              color={hasError ? COLORS.danger : focused ? COLORS.accent : COLORS.contentMuted}
               style={styles.leftIcon}
             />
           )}
@@ -146,29 +146,29 @@ const AppInput = forwardRef<AppInputRef, AppInputProps>(
             secureTextEntry={isPassword && !showPass}
             onFocus={onFocus}
             onBlur={onBlur}
-            placeholderTextColor={COLORS.inputPlaceholder}
+            placeholderTextColor={COLORS.contentPlaceholder}
             style={[
               styles.input,
-              { fontFamily: FONTS.family.regular, fontSize: SIZES.font.md, color: COLORS.textPrimary },
+              { fontFamily: FONTS.family.regular, fontSize: SIZES.text.md, color: COLORS.contentPrimary },
               rest.style,
             ]}
           />
 
           {isPassword ? (
             <TouchableOpacity onPress={() => setShowPass((p) => !p)} style={styles.rightIcon}>
-              <Icon name={showPass ? 'eye-off-outline' : 'eye-outline'} size={iSize} color={COLORS.textTertiary} />
+              <Icon name={showPass ? 'eye-off-outline' : 'eye-outline'} size={iSize} color={COLORS.contentMuted} />
             </TouchableOpacity>
           ) : rightIcon ? (
             <TouchableOpacity onPress={onRightIconPress} style={styles.rightIcon}>
-              <Icon name={rightIcon} size={iSize} color={focused ? COLORS.accentDark : COLORS.textTertiary} />
+              <Icon name={rightIcon} size={iSize} color={focused ? COLORS.accent : COLORS.contentMuted} />
             </TouchableOpacity>
           ) : null}
         </Animated.View>
 
         {hasError ? (
           <View style={styles.helperRow}>
-            <Icon name="alert-circle-outline" size={12} color={COLORS.error} />
-            <Text style={[styles.helperText, { color: COLORS.error, fontFamily: FONTS.family.regular, fontSize: SIZES.font.xs }]}>
+            <Icon name="alert-circle-outline" size={12} color={COLORS.danger} />
+            <Text style={[styles.helperText, { color: COLORS.danger, fontFamily: FONTS.family.regular, fontSize: SIZES.text.xxs }]}>
               {'  '}
               {error}
             </Text>
@@ -177,7 +177,7 @@ const AppInput = forwardRef<AppInputRef, AppInputProps>(
           <Text
             style={[
               styles.helperText,
-              { color: COLORS.textTertiary, fontFamily: FONTS.family.regular, fontSize: SIZES.font.xs, marginTop: 4 },
+              { color: COLORS.contentMuted, fontFamily: FONTS.family.regular, fontSize: SIZES.text.xxs, marginTop: 4 },
             ]}
           >
             {hint}
@@ -197,8 +197,8 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: SIZES.radius.input,
-    paddingHorizontal: SIZES.padding.md,
+    borderRadius: SIZES.radius.field,
+    paddingHorizontal: SIZES.space.md,
   },
   leftIcon: { marginRight: 10 },
   rightIcon: { marginLeft: 8, padding: 4 },

@@ -91,7 +91,7 @@ const NextButton: React.FC<NextButtonProps> = ({
             <MaterialCommunityIcons
               name="arrow-right"
               size={20}
-              color={COLORS.textOnGold}
+              color={COLORS.contentOnAccent}
               style={styles.arrow}
             />
           )}
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   wrap: {
     width: '100%',
     borderRadius: 26,
-    ...theme.SHADOWS.goldStrong,
+    ...theme.ELEVATION.brandGlow,
     shadowColor: GOLD,
   },
   pressable: {
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     fontFamily: theme.FONTS.family.bold,
     fontSize: 16,
     letterSpacing: 0.5,
-    color: COLORS.textOnGold,
+    color: COLORS.contentOnAccent,
   },
   arrow: {
     marginLeft: 8,

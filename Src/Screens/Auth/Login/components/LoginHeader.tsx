@@ -20,11 +20,11 @@ import Animated, {
 
 import theme from '../../../../Utills/AppTheme';
 
-const { COLORS, SIZES, FONTS, SHADOWS } = theme;
+const { COLORS, SIZES, FONTS, ELEVATION } = theme;
 const AnimatedGradient = Animated.createAnimatedComponent(LinearGradient);
-const MEDALLION = SIZES.icon.xxxxl + SIZES.xl; // ~96 from theme scale
+const MEDALLION = SIZES.icon.avatarLg + SIZES.space.xxxl; // ~96 from theme scale
 
-const MEDALLION_GRADIENT = COLORS.gradient.champagneGold as [string, string, string];
+const MEDALLION_GRADIENT = COLORS.gradient.brand as [string, string, string];
 const SHINE_GRADIENT = COLORS.gradient.shine as [string, string, string];
 
 export interface LoginHeaderProps {
@@ -83,7 +83,7 @@ const LoginHeader: React.FC<LoginHeaderProps> = ({
             {logoUrl ? (
               <Image source={{ uri: logoUrl }} style={styles.logoImg} resizeMode="contain" />
             ) : (
-              <MaterialCommunityIcons name="gold" size={SIZES.icon.xxxl} color={COLORS.accentDark} />
+              <MaterialCommunityIcons name="gold" size={SIZES.icon.avatar} color={COLORS.contentBrand} />
             )}
           </View>
 
@@ -104,7 +104,7 @@ const LoginHeader: React.FC<LoginHeaderProps> = ({
           {brand}
         </Text>
         {/* <View style={styles.subtitleRow}>
-          <MaterialCommunityIcons name="shield-check" size={SIZES.icon.xs} color={COLORS.accentDark} />
+          <MaterialCommunityIcons name="shield-check" size={SIZES.icon.xs} color={COLORS.contentBrand} />
           <Text style={styles.subtitle}>{subtitle}</Text>
         </View> */}
       </Animated.View>
@@ -120,8 +120,8 @@ const styles = StyleSheet.create({
   },
   medallionShadow: {
     borderRadius: MEDALLION / 2,
-    ...SHADOWS.goldStrong,
-    shadowColor: COLORS.accent,
+    ...ELEVATION.brandGlow,
+    shadowColor: COLORS.shadowBrand,
   },
   medallion: {
     width: MEDALLION,
@@ -132,19 +132,19 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   logoInner: {
-    width: MEDALLION - SIZES.md,
-    height: MEDALLION - SIZES.md,
-    borderRadius: (MEDALLION - SIZES.md) / 2,
-    backgroundColor: COLORS.whiteOpacity80,
+    width: MEDALLION - SIZES.space.lg,
+    height: MEDALLION - SIZES.space.lg,
+    borderRadius: (MEDALLION - SIZES.space.lg) / 2,
+    backgroundColor: COLORS.whiteAlpha80,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: COLORS.whiteOpacity90,
+    borderColor: COLORS.whiteAlpha90,
   },
   logoImg: {
-    width: MEDALLION - SIZES.xl,
-    height: MEDALLION - SIZES.xl,
-    borderRadius: (MEDALLION - SIZES.xl) / 2,
+    width: MEDALLION - SIZES.space.xxxl,
+    height: MEDALLION - SIZES.space.xxxl,
+    borderRadius: (MEDALLION - SIZES.space.xxxl) / 2,
   },
   shineClip: {
     ...StyleSheet.absoluteFillObject,
@@ -153,31 +153,31 @@ const styles = StyleSheet.create({
   },
   shine: {
     position: 'absolute',
-    top: -SIZES.lg,
-    bottom: -SIZES.lg,
-    width: SIZES.xl,
+    top: -SIZES.space.xxl,
+    bottom: -SIZES.space.xxl,
+    width: SIZES.space.xxxl,
   },
   textBlock: {
     alignItems: 'center',
-    marginTop: SIZES.md,
+    marginTop: SIZES.space.lg,
   },
   brand: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.font.xxxl,
+    fontSize: SIZES.text.display3,
     letterSpacing: 0.3,
-    color: COLORS.textPrimary,
+    color: COLORS.contentPrimary,
   },
   subtitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: SIZES.xs,
+    marginTop: SIZES.space.xs,
   },
   subtitle: {
     fontFamily: FONTS.family.medium,
-    fontSize: SIZES.font.sm,
+    fontSize: SIZES.text.sm,
     letterSpacing: 0.4,
-    color: COLORS.textSecondary,
-    marginLeft: SIZES.xs,
+    color: COLORS.contentSecondary,
+    marginLeft: SIZES.space.xs,
   },
 });
 

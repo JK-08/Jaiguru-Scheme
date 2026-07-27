@@ -253,7 +253,7 @@ const OnboardingScreen: React.FC = () => {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: theme.COLORS.white,
+    backgroundColor: theme.COLORS.surface,
 
   },
   blob: {
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     fontFamily: theme.FONTS.family.bold,
     fontSize: 16,
     letterSpacing: 0.5,
-    color: theme.COLORS.textPrimary,
+    color: theme.COLORS.contentPrimary,
   },
   brandAccent: {
     color: GOLD_DEEP,

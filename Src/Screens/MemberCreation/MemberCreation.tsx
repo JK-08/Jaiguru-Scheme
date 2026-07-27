@@ -16,7 +16,7 @@ import { CreateMemberPayload } from '../../types/Member/Member';
 import { AppButton, AppText } from '../../Components/ui/appcomponents';
 import theme from '../../Utills/AppTheme';
 
-const { COLORS, SIZES, FONTS, SHADOWS } = theme;
+const { COLORS, SIZES, FONTS, ELEVATION } = theme;
 
 // Constants
 const STEPS = {
@@ -351,7 +351,7 @@ const MemberCreation = () => {
 //       {[1, 2].map((step) => (
 //         <React.Fragment key={step}>
 //           <View style={[styles.stepCircle, currentStep >= step && styles.activeStep]}>
-//             <AppText variant="bodyBold" color={currentStep >= step ? COLORS.white : COLORS.textSecondary}>
+//             <AppText variant="bodyBold" color={currentStep >= step ? COLORS.surface : COLORS.contentSecondary}>
 //               {step}
 //             </AppText>
 //           </View>
@@ -360,10 +360,10 @@ const MemberCreation = () => {
 //       ))}
 //     </View>
 //     <View style={styles.stepLabels}>
-//       <AppText variant="caption" color={currentStep >= 1 ? COLORS.accentDark : COLORS.textSecondary} align="center" style={styles.stepLabelFlex}>
+//       <AppText variant="caption" color={currentStep >= 1 ? COLORS.accent : COLORS.contentSecondary} align="center" style={styles.stepLabelFlex}>
 //         Registration
 //       </AppText>
-//       <AppText variant="caption" color={currentStep >= 2 ? COLORS.accentDark : COLORS.textSecondary} align="center" style={styles.stepLabelFlex}>
+//       <AppText variant="caption" color={currentStep >= 2 ? COLORS.accent : COLORS.contentSecondary} align="center" style={styles.stepLabelFlex}>
 //         Scheme Joining
 //       </AppText>
 //     </View>
@@ -372,8 +372,8 @@ const MemberCreation = () => {
 
 const LoadingOverlay = ({ message }: { message: string }) => (
   <View style={styles.loadingOverlay}>
-    <ActivityIndicator size="large" color={COLORS.accentDark} />
-    <AppText variant="bodyBold" color={COLORS.white} style={{ marginTop: SIZES.sm }}>
+    <ActivityIndicator size="large" color={COLORS.contentOnInverse} />
+    <AppText variant="bodyBold" color={COLORS.contentOnBrand} style={{ marginTop: SIZES.space.sm }}>
       {message}
     </AppText>
   </View>
@@ -390,7 +390,7 @@ interface NavigationButtonsProps {
 const NavigationButtons = ({ currentStep, onBack, onNext, onSubmit, isLoading }: NavigationButtonsProps) => {
   const insets = useSafeAreaInsets();
   return (
-  <View style={[styles.navigationContainer, { paddingBottom: Math.max(insets.bottom, SIZES.padding.md) }]}>
+  <View style={[styles.navigationContainer, { paddingBottom: Math.max(insets.bottom, SIZES.space.md) }]}>
     <AppButton
       label={currentStep === 1 ? 'Cancel' : 'Back'}
       variant="outline"
@@ -427,24 +427,24 @@ const NavigationButtons = ({ currentStep, onBack, onNext, onSubmit, isLoading }:
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.backgroundSecondary,
+    backgroundColor: COLORS.surfaceMuted,
   },
   scrollView: {
     flex: 1,
   },
   stepIndicator: {
-    backgroundColor: COLORS.white,
-    paddingVertical: SIZES.padding.lg,
-    paddingHorizontal: SIZES.padding.lg,
+    backgroundColor: COLORS.surface,
+    paddingVertical: SIZES.space.lg,
+    paddingHorizontal: SIZES.space.lg,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
-    ...SHADOWS.xs,
+    ...ELEVATION.raised,
   },
   stepRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: SIZES.sm,
+    marginBottom: SIZES.space.sm,
   },
   stepCircle: {
     width: 30,
@@ -455,33 +455,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeStep: {
-    backgroundColor: COLORS.accentDark,
+    backgroundColor: COLORS.brand,
   },
   stepLine: {
     flex: 1,
     height: 2,
     backgroundColor: COLORS.border,
-    marginHorizontal: SIZES.sm,
+    marginHorizontal: SIZES.space.sm,
   },
   activeStepLine: {
-    backgroundColor: COLORS.accentDark,
+    backgroundColor: COLORS.brand,
   },
   stepLabels: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: SIZES.sm,
+    paddingHorizontal: SIZES.space.sm,
   },
   stepLabelFlex: {
     flex: 1,
   },
   navigationContainer: {
     flexDirection: 'row',
-    paddingTop: SIZES.padding.xl,
-    paddingHorizontal: SIZES.padding.md,
-    backgroundColor: COLORS.white,
+    paddingTop: SIZES.space.xl,
+    paddingHorizontal: SIZES.space.md,
+    backgroundColor: COLORS.surface,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
-    gap: SIZES.sm,
+    gap: SIZES.space.sm,
   },
   navButtonFlex: {
     flex: 1,
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: COLORS.scrimHeavy,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,

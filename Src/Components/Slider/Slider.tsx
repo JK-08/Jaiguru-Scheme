@@ -6,7 +6,7 @@ import { useSchemeSliders } from '../../api/hooks/HomeBanner/useSchemeSliders';
 import { useSchemeCatalog } from '../../api/hooks/Schemes/useSchemeCatalog';
 import { SchemeSlider } from '../../types/HomeBanner/HomeBanner';
 import { IMAGE_BASE_URL } from '../../Config/BaseUrl';
-import { COLORS, SIZES, FONTS, SHADOWS, moderateScale } from '../../Utills/AppTheme';
+import { COLORS, SIZES, FONTS, ELEVATION, moderateScale } from '../../Utills/AppTheme';
 
 // index 0 → MemberCreation, rest → WebView URLs in order
 const SLIDE_LINKS: Array<{ type: 'screen'; screen: string } | { type: 'web'; url: string; title: string }> = [
@@ -23,7 +23,7 @@ const SlideItem = React.memo(({ item, index, onPress }: { item: SchemeSlider; in
   const onLoad = () => Animated.timing(opacity, { toValue: 1, duration: 300, useNativeDriver: true }).start();
   return (
     <TouchableOpacity style={styles.slide} activeOpacity={0.9} onPress={() => onPress(index)}>
-      <View style={[styles.image, { backgroundColor: COLORS.backgroundSecondary, overflow: 'hidden' }]}>
+      <View style={[styles.image, { backgroundColor: COLORS.surfaceMuted, overflow: 'hidden' }]}>
         <Animated.Image
           source={{ uri: `${IMAGE_BASE_URL}${item.image_path}` }}
           style={[styles.image, { opacity }]}
@@ -137,72 +137,72 @@ const SliderComponentSimple = () => {
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    marginBottom: SIZES.margin.md,
-    marginTop: SIZES.margin.md,
+    marginBottom: SIZES.space.md,
+    marginTop: SIZES.space.md,
   },
   slide: {
     width: width,
-    paddingHorizontal: SIZES.padding.container,
+    paddingHorizontal: SIZES.space.gutter,
   },
   image: {
     width: '100%',
-    height: (width - SIZES.padding.container * 2) * (9 / 16),
+    height: (width - SIZES.space.gutter * 2) * (9 / 16),
     borderRadius: SIZES.radius.lg,
-    backgroundColor: COLORS.backgroundSecondary,
-    ...SHADOWS.md,
+    backgroundColor: COLORS.surfaceMuted,
+    ...ELEVATION.floating,
   },
   pagination: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: SIZES.margin.md,
+    marginTop: SIZES.space.md,
   },
   dot: {
     width: moderateScale(8),
     height: moderateScale(8),
-    borderRadius: SIZES.radius.full,
-    backgroundColor: COLORS.gray300,
-    marginHorizontal: SIZES.margin.xs / 2,
+    borderRadius: SIZES.radius.pill,
+    backgroundColor: COLORS.borderStrong,
+    marginHorizontal: SIZES.space.xs / 2,
   },
   activeDot: {
     width: moderateScale(24),
-    backgroundColor: COLORS.accentDark,
+    backgroundColor: COLORS.brand,
   },
   skeletonWrap: {
     width: '100%',
-    paddingHorizontal: SIZES.padding.container,
-    marginBottom: SIZES.margin.md,
-    marginTop: SIZES.margin.md,
+    paddingHorizontal: SIZES.space.gutter,
+    marginBottom: SIZES.space.md,
+    marginTop: SIZES.space.md,
   },
   skeleton: {
     width: '100%',
-    height: (width - SIZES.padding.container * 2) * (9 / 16),
+    height: (width - SIZES.space.gutter * 2) * (9 / 16),
     borderRadius: SIZES.radius.lg,
-    backgroundColor: COLORS.backgroundSecondary,
+    backgroundColor: COLORS.surfaceMuted,
   },
   loadingContainer: {
     width: '100%',
     height: moderateScale(180),
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.backgroundSecondary,
-    marginHorizontal: SIZES.padding.container,
+    backgroundColor: COLORS.surfaceMuted,
+    marginHorizontal: SIZES.space.gutter,
     borderRadius: SIZES.radius.lg,
-    marginBottom: SIZES.margin.md,
+    marginBottom: SIZES.space.md,
   },
   errorContainer: {
     width: '100%',
     height: moderateScale(100),
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.errorLight,
-    marginHorizontal: SIZES.padding.container,
+    backgroundColor: COLORS.danger,
+    marginHorizontal: SIZES.space.gutter,
     borderRadius: SIZES.radius.lg,
-    marginBottom: SIZES.margin.md,
+    marginBottom: SIZES.space.md,
   },
   errorText: {
-    ...FONTS.bodySmall,
-    color: COLORS.white,
+    ...FONTS.bodySm,
+    color: COLORS.contentOnBrand,
   },
 });
 

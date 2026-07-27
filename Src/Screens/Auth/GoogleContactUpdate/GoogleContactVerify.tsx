@@ -37,12 +37,12 @@ import CommonHeader from '../../../Components/CommonHeader/CommonHeader';
 import LoginButton from '../Login/components/LoginButton';
 import GoldParticles from '../Login/components/GoldParticles';
 
-const { COLORS, SIZES, FONTS, SHADOWS } = theme;
+const { COLORS, SIZES, FONTS, ELEVATION } = theme;
 const { width, height } = Dimensions.get('window');
 
-const BG_GRADIENT = COLORS.gradient.champagneSurface as [string, string, string];
-const MEDALLION_GRADIENT = COLORS.gradient.champagneGold as [string, string, string];
-const MEDALLION = SIZES.icon.xxxxl + SIZES.md;
+const BG_GRADIENT = COLORS.gradient.accentWash as [string, string, string];
+const MEDALLION_GRADIENT = COLORS.gradient.brand as [string, string, string];
+const MEDALLION = SIZES.icon.avatarLg + SIZES.space.lg;
 const RESEND_SECONDS = 30;
 
 interface Props {
@@ -193,7 +193,7 @@ const GoogleContactOtpScreen = ({ route, navigation }: Props) => {
               <View style={styles.medallionWrap}>
                 <LinearGradient colors={MEDALLION_GRADIENT} style={styles.medallion} start={{ x: 0.1, y: 0.1 }} end={{ x: 0.9, y: 0.9 }}>
                   <View style={styles.medallionInner}>
-                    <MaterialCommunityIcons name="shield-lock" size={SIZES.icon.xxl} color={COLORS.accentDark} />
+                    <MaterialCommunityIcons name="shield-lock" size={SIZES.icon.xxl} color={COLORS.contentBrand} />
                   </View>
                 </LinearGradient>
               </View>
@@ -201,7 +201,7 @@ const GoogleContactOtpScreen = ({ route, navigation }: Props) => {
               <Text style={styles.title}>Enter Verification Code</Text>
               <Text style={styles.subtitle}>We&apos;ve sent a 6-digit code to</Text>
               <View style={styles.phoneChip}>
-                <MaterialCommunityIcons name="cellphone" size={SIZES.icon.xs} color={COLORS.accentDark} />
+                <MaterialCommunityIcons name="cellphone" size={SIZES.icon.xs} color={COLORS.contentBrand} />
                 <Text style={styles.phoneNumber}>{mobile}</Text>
               </View>
 
@@ -247,21 +247,21 @@ const GoogleContactOtpScreen = ({ route, navigation }: Props) => {
 export default GoogleContactOtpScreen;
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.background },
+  root: { flex: 1, backgroundColor: COLORS.surfacePage },
   safe: { flex: 1 },
   flex: { flex: 1 },
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: SIZES.padding.container,
-    paddingTop: SIZES.xl,
-    paddingBottom: SIZES.xl,
+    paddingHorizontal: SIZES.space.gutter,
+    paddingTop: SIZES.space.xxxl,
+    paddingBottom: SIZES.space.xxxl,
   },
   medallionWrap: {
     alignSelf: 'center',
     borderRadius: MEDALLION / 2,
-    ...SHADOWS.goldStrong,
-    shadowColor: COLORS.accent,
-    marginBottom: SIZES.lg,
+    ...ELEVATION.brandGlow,
+    shadowColor: COLORS.shadowBrand,
+    marginBottom: SIZES.space.xxl,
   },
   medallion: {
     width: MEDALLION,
@@ -271,59 +271,59 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   medallionInner: {
-    width: MEDALLION - SIZES.md,
-    height: MEDALLION - SIZES.md,
-    borderRadius: (MEDALLION - SIZES.md) / 2,
-    backgroundColor: COLORS.whiteOpacity80,
+    width: MEDALLION - SIZES.space.lg,
+    height: MEDALLION - SIZES.space.lg,
+    borderRadius: (MEDALLION - SIZES.space.lg) / 2,
+    backgroundColor: COLORS.whiteAlpha80,
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.heading.h3,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.display3,
+    color: COLORS.contentPrimary,
     textAlign: 'center',
   },
   subtitle: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.md,
-    color: COLORS.textSecondary,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentSecondary,
     textAlign: 'center',
-    marginTop: SIZES.sm,
+    marginTop: SIZES.space.sm,
   },
   phoneChip: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'center',
-    backgroundColor: COLORS.accentOpacity20,
-    paddingVertical: SIZES.xs,
-    paddingHorizontal: SIZES.md,
-    borderRadius: SIZES.radius.full,
-    marginTop: SIZES.sm,
-    marginBottom: SIZES.xl,
+    backgroundColor: COLORS.brandAlpha16,
+    paddingVertical: SIZES.space.xs,
+    paddingHorizontal: SIZES.space.lg,
+    borderRadius: SIZES.radius.pill,
+    marginTop: SIZES.space.sm,
+    marginBottom: SIZES.space.xxxl,
   },
   phoneNumber: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.font.md,
-    color: COLORS.textPrimary,
-    marginLeft: SIZES.xs,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentPrimary,
+    marginLeft: SIZES.space.xs,
   },
   otpContainer: {
     alignItems: 'center',
-    marginBottom: SIZES.xl,
+    marginBottom: SIZES.space.xxxl,
   },
   resendRow: {
     alignItems: 'center',
-    marginTop: SIZES.lg,
+    marginTop: SIZES.space.xxl,
   },
   resendLink: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.font.md,
-    color: COLORS.accentDark,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentBrand,
   },
   resendMuted: {
     fontFamily: FONTS.family.medium,
-    fontSize: SIZES.font.md,
-    color: COLORS.textSecondary,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentSecondary,
   },
 });

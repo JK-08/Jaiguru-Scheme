@@ -36,7 +36,7 @@ import {
 const { COLORS, SIZES } = theme;
 const { width } = Dimensions.get('window');
 
-const HEADER_GRADIENT = COLORS.gradient.champagneGold as [string, string, string];
+const HEADER_GRADIENT = COLORS.gradient.brand as [string, string, string];
 const SHINE_GRADIENT = COLORS.gradient.shine as [string, string, string];
 const AnimatedGradient = Animated.createAnimatedComponent(LinearGradient);
 
@@ -94,7 +94,7 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({
         colors={HEADER_GRADIENT}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[styles.curve, { paddingTop: insets.top + SIZES.md }]}
+        style={[styles.curve, { paddingTop: insets.top + SIZES.space.lg }]}
       >
         {/* particles + shimmer */}
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
@@ -145,10 +145,10 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   curve: {
-    borderBottomLeftRadius: SIZES.radius.xxxl,
-    borderBottomRightRadius: SIZES.radius.xxxl,
-    paddingHorizontal: SIZES.padding.container,
-    paddingBottom: SIZES.xxl + SIZES.lg,
+    borderBottomLeftRadius: SIZES.radius.xxl,
+    borderBottomRightRadius: SIZES.radius.xxl,
+    paddingHorizontal: SIZES.space.gutter,
+    paddingBottom: SIZES.space.huge + SIZES.space.xxl,
     overflow: 'hidden',
   },
   shineClip: {
@@ -157,24 +157,24 @@ const styles = StyleSheet.create({
   },
   shine: {
     position: 'absolute',
-    top: -SIZES.xxl,
-    bottom: -SIZES.xxl,
-    width: SIZES.xxl,
+    top: -SIZES.space.huge,
+    bottom: -SIZES.space.huge,
+    width: SIZES.space.huge,
   },
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
-  greetingWrap: { flex: 1, paddingRight: SIZES.md },
+  greetingWrap: { flex: 1, paddingRight: SIZES.space.lg },
   actionsCol: { alignItems: 'flex-end' },
-  avatarRow: { flexDirection: 'row', alignItems: 'center', gap: SIZES.sm },
-  quickWrap: { marginTop: SIZES.md },
+  avatarRow: { flexDirection: 'row', alignItems: 'center', gap: SIZES.space.sm },
+  quickWrap: { marginTop: SIZES.space.lg },
   cards: {
-    marginTop: -SIZES.xxl,
-    paddingHorizontal: SIZES.padding.container,
+    marginTop: -SIZES.space.huge,
+    paddingHorizontal: SIZES.space.gutter,
   },
-  cardGap: { marginTop: SIZES.md },
+  cardGap: { marginTop: SIZES.space.lg },
 });
 
 export default React.memo(HomeHeader);

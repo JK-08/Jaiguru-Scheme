@@ -35,12 +35,12 @@ import theme from '../../../Utills/AppTheme';
 import CommonHeader from '../../../Components/CommonHeader/CommonHeader';
 import GoldParticles from '../Login/components/GoldParticles';
 
-const { COLORS, SIZES, FONTS, SHADOWS } = theme;
+const { COLORS, SIZES, FONTS, ELEVATION } = theme;
 const { width, height } = Dimensions.get('window');
 
-const BG_GRADIENT = COLORS.gradient.champagneSurface as [string, string, string];
-const MEDALLION_GRADIENT = COLORS.gradient.champagneGold as [string, string, string];
-const MEDALLION = SIZES.icon.xxxxl + SIZES.md;
+const BG_GRADIENT = COLORS.gradient.accentWash as [string, string, string];
+const MEDALLION_GRADIENT = COLORS.gradient.brand as [string, string, string];
+const MEDALLION = SIZES.icon.avatarLg + SIZES.space.lg;
 
 type MCName = keyof typeof MaterialCommunityIcons.glyphMap;
 
@@ -117,7 +117,7 @@ const MpinScaffold: React.FC<MpinScaffoldProps> = ({
                   end={{ x: 0.9, y: 0.9 }}
                 >
                   <View style={styles.medallionInner}>
-                    <MaterialCommunityIcons name={icon} size={SIZES.icon.xxl} color={COLORS.accentDark} />
+                    <MaterialCommunityIcons name={icon} size={SIZES.icon.xxl} color={COLORS.contentBrand} />
                   </View>
                 </LinearGradient>
               </View>
@@ -137,21 +137,21 @@ const MpinScaffold: React.FC<MpinScaffoldProps> = ({
 };
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.background },
+  root: { flex: 1, backgroundColor: COLORS.surfacePage },
   safe: { flex: 1 },
   flex: { flex: 1 },
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: SIZES.padding.container,
-    paddingTop: SIZES.md,
-    paddingBottom: SIZES.xl,
+    paddingHorizontal: SIZES.space.gutter,
+    paddingTop: SIZES.space.lg,
+    paddingBottom: SIZES.space.xxxl,
   },
   medallionWrap: {
     alignSelf: 'center',
     borderRadius: MEDALLION / 2,
-    ...SHADOWS.goldStrong,
-    shadowColor: COLORS.accent,
-    marginBottom: SIZES.lg,
+    ...ELEVATION.brandGlow,
+    shadowColor: COLORS.shadowBrand,
+    marginBottom: SIZES.space.xxl,
   },
   medallion: {
     width: MEDALLION,
@@ -161,31 +161,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   medallionInner: {
-    width: MEDALLION - SIZES.md,
-    height: MEDALLION - SIZES.md,
-    borderRadius: (MEDALLION - SIZES.md) / 2,
-    backgroundColor: COLORS.whiteOpacity80,
+    width: MEDALLION - SIZES.space.lg,
+    height: MEDALLION - SIZES.space.lg,
+    borderRadius: (MEDALLION - SIZES.space.lg) / 2,
+    backgroundColor: COLORS.whiteAlpha80,
     alignItems: 'center',
     justifyContent: 'center',
   },
   heading: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.heading.h3,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.display3,
+    color: COLORS.contentPrimary,
     textAlign: 'center',
     letterSpacing: -0.3,
   },
   subtitle: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.md,
-    lineHeight: SIZES.font.md * 1.5,
-    color: COLORS.textSecondary,
+    fontSize: SIZES.text.md,
+    lineHeight: SIZES.text.md * 1.5,
+    color: COLORS.contentSecondary,
     textAlign: 'center',
-    marginTop: SIZES.sm,
-    paddingHorizontal: SIZES.md,
+    marginTop: SIZES.space.sm,
+    paddingHorizontal: SIZES.space.lg,
   },
   content: {
-    marginTop: SIZES.xl,
+    marginTop: SIZES.space.xxxl,
   },
 });
 

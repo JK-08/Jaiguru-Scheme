@@ -59,21 +59,21 @@ const styles = StyleSheet.create({
   },
   textBlock: {
     alignItems: 'center',
-    marginTop: SIZES.xs,
+    marginTop: SIZES.space.xs,
   },
   title: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.heading.h3,
+    fontSize: SIZES.text.display3,
     letterSpacing: -0.3,
-    color: COLORS.textPrimary,
+    color: COLORS.contentPrimary,
   },
   subtitle: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.md,
-    lineHeight: SIZES.font.md * 1.5,
+    fontSize: SIZES.text.md,
+    lineHeight: SIZES.text.md * 1.5,
     textAlign: 'center',
-    color: COLORS.textSecondary,
-    marginTop: SIZES.xs,
+    color: COLORS.contentSecondary,
+    marginTop: SIZES.space.xs,
     maxWidth: 300,
   },
 });

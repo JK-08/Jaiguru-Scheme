@@ -39,7 +39,7 @@ const TermsSection: React.FC<TermsSectionProps> = ({
         accessibilityLabel="Accept Terms and Conditions and Privacy Policy"
         style={[styles.checkbox, value && styles.checkboxChecked, !!error && styles.checkboxError]}
       >
-        {value && <MaterialCommunityIcons name="check" size={SIZES.icon.xs} color={COLORS.white} />}
+        {value && <MaterialCommunityIcons name="check" size={SIZES.icon.xs} color={COLORS.contentOnBrand} />}
       </Pressable>
 
       <Text style={styles.text}>
@@ -61,7 +61,7 @@ const TermsSection: React.FC<TermsSectionProps> = ({
 
 const styles = StyleSheet.create({
   wrap: {
-    marginTop: SIZES.sm,
+    marginTop: SIZES.space.sm,
   },
   row: {
     flexDirection: 'row',
@@ -72,37 +72,37 @@ const styles = StyleSheet.create({
     height: SIZES.icon.md,
     borderRadius: SIZES.radius.xs,
     borderWidth: 1.5,
-    borderColor: COLORS.accentDark,
+    borderColor: COLORS.borderAccent,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: SIZES.sm,
+    marginRight: SIZES.space.sm,
     marginTop: 2,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
   },
   checkboxChecked: {
-    backgroundColor: COLORS.accent,
-    borderColor: COLORS.accent,
+    backgroundColor: COLORS.brand,
+    borderColor: COLORS.borderBrand,
   },
   checkboxError: {
-    borderColor: COLORS.error,
+    borderColor: COLORS.danger,
   },
   text: {
     flex: 1,
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.sm,
-    lineHeight: SIZES.font.sm * 1.5,
-    color: COLORS.textSecondary,
+    fontSize: SIZES.text.sm,
+    lineHeight: SIZES.text.sm * 1.5,
+    color: COLORS.contentSecondary,
   },
   link: {
     fontFamily: FONTS.family.semiBold,
-    color: COLORS.accentDark,
+    color: COLORS.contentBrand,
   },
   error: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.xs,
-    color: COLORS.error,
-    marginTop: SIZES.xs,
-    marginLeft: SIZES.icon.md + SIZES.sm,
+    fontSize: SIZES.text.xxs,
+    color: COLORS.danger,
+    marginTop: SIZES.space.xs,
+    marginLeft: SIZES.icon.md + SIZES.space.sm,
   },
 });
 

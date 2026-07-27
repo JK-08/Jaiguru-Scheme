@@ -83,11 +83,11 @@ const NotificationScreen = () => {
     if (title?.toLowerCase().includes('welcome')) {
       return { name: 'hand-wave', color: COLORS.success, bg: COLORS.success + '18' };
     } else if (title?.toLowerCase().includes('gold') || title?.toLowerCase().includes('silver')) {
-      return { name: 'gold', color: COLORS.goldDark, bg: COLORS.goldOpacity10 };
+      return { name: 'gold', color: COLORS.contentBrand, bg: COLORS.brandAlpha08 };
     } else if (title?.toLowerCase().includes('scheme')) {
-      return { name: 'account-cash', color: COLORS.accent, bg: COLORS.accentOpacity20 };
+      return { name: 'account-cash', color: COLORS.contentBrand, bg: COLORS.brandAlpha16 };
     }
-    return { name: 'bell-outline', color: COLORS.accentDark, bg: COLORS.accentLight };
+    return { name: 'bell-outline', color: COLORS.contentBrand, bg: COLORS.brandSubtle };
   };
 
   interface NotificationItemProps {
@@ -191,7 +191,7 @@ const NotificationScreen = () => {
         <PremiumBackground />
         <CommonHeader title="Notifications" transparent borderBottom={false} shadow={false} />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.accentDark} />
+          <ActivityIndicator size="large" color={COLORS.contentBrand} />
           <Text style={styles.loadingText}>Loading notifications...</Text>
         </View>
       </View>
@@ -207,12 +207,12 @@ const NotificationScreen = () => {
         style={[styles.headerIconBtn, unreadCount === 0 && styles.disabledBtn]}
       >
         <View style={styles.headerIconCircle}>
-          <Ionicons name="checkmark-done-outline" size={20} color={COLORS.white} />
+          <Ionicons name="checkmark-done-outline" size={20} color={COLORS.contentOnBrand} />
         </View>
       </TouchableOpacity>
       <TouchableOpacity onPress={handleDeleteAll} activeOpacity={0.7} style={styles.headerIconBtn}>
         <View style={styles.headerIconCircle}>
-          <Ionicons name="trash-outline" size={20} color={COLORS.white} />
+          <Ionicons name="trash-outline" size={20} color={COLORS.contentOnBrand} />
         </View>
       </TouchableOpacity>
     </View>
@@ -230,12 +230,12 @@ const NotificationScreen = () => {
         renderSectionHeader={renderSectionHeader}
         stickySectionHeadersEnabled={false}
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={refresh} colors={[COLORS.accentDark]} tintColor={COLORS.accentDark} progressBackgroundColor="#fff" />
+          <RefreshControl refreshing={loading} onRefresh={refresh} colors={[COLORS.brand]} tintColor={COLORS.contentBrand} progressBackgroundColor="#fff" />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <LinearGradient colors={[COLORS.accentLight, COLORS.accentLight]} style={styles.emptyIconContainer}>
-              <MaterialCommunityIcons name="bell-off-outline" size={64} color={COLORS.accentDark} />
+            <LinearGradient colors={[COLORS.accentSoft, COLORS.accentSoft]} style={styles.emptyIconContainer}>
+              <MaterialCommunityIcons name="bell-off-outline" size={64} color={COLORS.contentBrand} />
             </LinearGradient>
             <Text style={styles.emptyText}>All Caught Up!</Text>
             <Text style={styles.emptySubText}>You have no notifications at the moment</Text>
@@ -257,9 +257,9 @@ const NotificationScreen = () => {
 export default NotificationScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.backgroundSecondary },
+  container: { flex: 1, backgroundColor: COLORS.surfaceMuted },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  loadingText: { marginTop: 12, fontSize: 14, color: COLORS.textSecondary, fontWeight: '500' },
+  loadingText: { marginTop: 12, fontSize: 14, color: COLORS.contentSecondary, fontWeight: '500' },
 
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   headerIconBtn: { padding: 2 },
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: COLORS.accentDark,
+    backgroundColor: COLORS.brand,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: COLORS.textTertiary,
+    color: COLORS.contentMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginHorizontal: 20,
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 16,
     padding: 14,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     flexDirection: 'row',
     overflow: 'hidden',
     ...Platform.select({
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
       android: { elevation: 2 },
     }),
   },
-  accentBar: { width: 4, borderRadius: 2, backgroundColor: COLORS.accentDark, marginRight: 10 },
+  accentBar: { width: 4, borderRadius: 2, backgroundColor: COLORS.brand, marginRight: 10 },
   cardContent: { flex: 1, flexDirection: 'row', gap: 12 },
 
   iconContainer: {
@@ -313,18 +313,18 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: COLORS.error,
+    backgroundColor: COLORS.danger,
     borderWidth: 1.5,
     borderColor: '#fff',
   },
 
   textContainer: { flex: 1 },
   titleContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  title: { fontSize: 15, fontWeight: '600', color: COLORS.textPrimary, flex: 1, marginRight: 8 },
+  title: { fontSize: 15, fontWeight: '600', color: COLORS.contentPrimary, flex: 1, marginRight: 8 },
   unreadTitle: { fontWeight: '700' },
-  message: { fontSize: 13, color: COLORS.textSecondary, lineHeight: 18 },
-  date: { fontSize: 11, color: COLORS.textTertiary, fontWeight: '500' },
-  expandHint: { fontSize: 11, color: COLORS.accentDark, fontWeight: '600', marginTop: 4 },
+  message: { fontSize: 13, color: COLORS.contentSecondary, lineHeight: 18 },
+  date: { fontSize: 11, color: COLORS.contentMuted, fontWeight: '500' },
+  expandHint: { fontSize: 11, color: COLORS.contentBrand, fontWeight: '600', marginTop: 4 },
 
   deleteSwipe: { width: 84 },
 
@@ -332,6 +332,6 @@ const styles = StyleSheet.create({
   emptyListContent: { flexGrow: 1, justifyContent: 'center' },
   emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
   emptyIconContainer: { width: 120, height: 120, borderRadius: 60, justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
-  emptyText: { fontSize: 24, fontWeight: 'bold', color: COLORS.textPrimary, marginBottom: 12 },
-  emptySubText: { fontSize: 16, color: COLORS.textTertiary, textAlign: 'center', lineHeight: 24 },
+  emptyText: { fontSize: 24, fontWeight: 'bold', color: COLORS.contentPrimary, marginBottom: 12 },
+  emptySubText: { fontSize: 16, color: COLORS.contentMuted, textAlign: 'center', lineHeight: 24 },
 });

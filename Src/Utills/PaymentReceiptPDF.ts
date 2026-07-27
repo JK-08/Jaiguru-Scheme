@@ -6,6 +6,7 @@ import { Alert, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { companyService } from '../api/services/companyService';
+import { COLORS } from './AppTheme';
 
 export interface ReceiptPaymentInfo {
   amount: string | number;
@@ -343,7 +344,7 @@ class PaymentReceiptPDF {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   }
   body {
-    background-color: #f5f5f5;
+    background-color: ${COLORS.surfaceSunken};
     padding: 20px;
   }
   @page {
@@ -351,7 +352,7 @@ class PaymentReceiptPDF {
     margin: 20mm;
   }
   .receipt-container {
-    background-color: #ffffff;
+    background-color: ${COLORS.surface};
     border-radius: 8px;
     padding: 24px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -376,7 +377,7 @@ class PaymentReceiptPDF {
     width: 60px;
     height: 60px;
     border-radius: 30px;
-    background-color: #4C0B0B;
+    background-color: ${COLORS.brand};
     justify-content: center;
     align-items: center;
     margin-right: 12px;
@@ -385,48 +386,48 @@ class PaymentReceiptPDF {
   .logo-placeholder-text {
     font-size: 20px;
     font-weight: bold;
-    color: #ffffff;
+    color: ${COLORS.surface};
   }
   .company-info {
     flex: 1;
   }
   .company-name {
-    color: #4C0B0B;
+    color: ${COLORS.brand};
     font-size: 18px;
     font-weight: bold;
     letter-spacing: 0.5px;
   }
   .contact-section {
-    background-color: #FFF9F0;
+    background-color: ${COLORS.accentTint};
     padding: 12px;
     border-radius: 6px;
     margin-bottom: 16px;
   }
   .contact-text {
-    color: #333;
+    color: ${COLORS.contentPrimary};
     font-size: 11px;
     line-height: 18px;
     margin-bottom: 2px;
   }
   .divider {
     height: 2px;
-    background-color: #4C0B0B;
+    background-color: ${COLORS.brand};
     margin: 16px 0;
   }
   .receipt-title {
     font-size: 20px;
     font-weight: bold;
-    color: #4C0B0B;
+    color: ${COLORS.brand};
     text-align: center;
     margin-bottom: 20px;
     letter-spacing: 1px;
   }
   .info-section {
-    background-color: #F8F9FA;
+    background-color: ${COLORS.surfaceMuted};
     padding: 14px;
     border-radius: 6px;
     margin-bottom: 16px;
-    border-left: 4px solid #4C0B0B;
+    border-left: 4px solid ${COLORS.brand};
   }
   .info-row {
     display: flex;
@@ -439,14 +440,14 @@ class PaymentReceiptPDF {
   }
   .info-label {
     font-size: 11px;
-    color: #666;
+    color: ${COLORS.contentMuted};
     margin-bottom: 4px;
     font-weight: 600;
     text-transform: uppercase;
   }
   .info-value {
     font-size: 13px;
-    color: #000;
+    color: ${COLORS.contentPrimary};
     font-weight: bold;
   }
   .receipt-to-section {
@@ -455,15 +456,15 @@ class PaymentReceiptPDF {
   .section-title {
     font-size: 13px;
     font-weight: bold;
-    color: #4C0B0B;
+    color: ${COLORS.brand};
     margin-bottom: 10px;
     text-transform: uppercase;
   }
   .customer-box {
-    border: 1px solid #DDD;
+    border: 1px solid ${COLORS.border};
     border-radius: 6px;
     padding: 12px;
-    background-color: #FAFAFA;
+    background-color: ${COLORS.surfaceMuted};
   }
   .customer-row {
     display: flex;
@@ -478,16 +479,16 @@ class PaymentReceiptPDF {
   .customer-label {
     font-size: 11px;
     font-weight: 600;
-    color: #555;
+    color: ${COLORS.contentSecondary};
     margin-bottom: 4px;
   }
   .customer-value {
     font-size: 12px;
-    color: #000;
+    color: ${COLORS.contentPrimary};
     font-weight: 500;
   }
   .table-container {
-    border: 1px solid #DDD;
+    border: 1px solid ${COLORS.border};
     border-radius: 6px;
     overflow: hidden;
     margin-bottom: 16px;
@@ -495,11 +496,11 @@ class PaymentReceiptPDF {
   .table-header {
     display: flex;
     flex-direction: row;
-    background-color: #4C0B0B;
+    background-color: ${COLORS.brand};
     padding: 10px 8px;
   }
   .th {
-    color: #ffffff;
+    color: ${COLORS.surface};
     text-align: center;
     font-weight: bold;
     font-size: 11px;
@@ -508,13 +509,13 @@ class PaymentReceiptPDF {
   .table-row {
     display: flex;
     flex-direction: row;
-    background-color: #ffffff;
+    background-color: ${COLORS.surface};
     padding: 12px 8px;
-    border-top: 1px solid #E0E0E0;
+    border-top: 1px solid ${COLORS.border};
   }
   .td {
     text-align: center;
-    color: #333;
+    color: ${COLORS.contentPrimary};
     font-size: 12px;
     font-weight: 500;
   }
@@ -523,25 +524,25 @@ class PaymentReceiptPDF {
     flex-direction: row;
     justify-content: flex-end;
     align-items: center;
-    background-color: #FFF9F0;
+    background-color: ${COLORS.accentTint};
     padding: 14px;
     border-radius: 6px;
     margin-bottom: 20px;
-    border: 1px solid #FFD700;
+    border: 1px solid ${COLORS.accent};
   }
   .total-label {
     font-size: 14px;
     font-weight: 600;
-    color: #333;
+    color: ${COLORS.contentPrimary};
     margin-right: 12px;
   }
   .total-amount {
     font-size: 18px;
     font-weight: bold;
-    color: #4C0B0B;
+    color: ${COLORS.brand};
   }
   .payment-mode-section {
-    background-color: #F8F9FA;
+    background-color: ${COLORS.surfaceMuted};
     padding: 14px;
     border-radius: 6px;
     margin-bottom: 16px;
@@ -549,7 +550,7 @@ class PaymentReceiptPDF {
   .payment-mode-title {
     font-size: 12px;
     font-weight: bold;
-    color: #4C0B0B;
+    color: ${COLORS.brand};
     margin-bottom: 8px;
   }
   .payment-mode-row {
@@ -560,29 +561,29 @@ class PaymentReceiptPDF {
   .payment-mode-label {
     font-size: 11px;
     font-weight: 600;
-    color: #666;
+    color: ${COLORS.contentMuted};
     width: 70px;
   }
   .payment-mode-value {
     font-size: 11px;
-    color: #333;
+    color: ${COLORS.contentPrimary};
     flex: 1;
   }
   .footer {
     margin-top: 30px;
     padding-top: 16px;
-    border-top: 1px solid #E0E0E0;
+    border-top: 1px solid ${COLORS.border};
     text-align: center;
   }
   .footer-text {
     font-size: 12px;
-    color: #555;
+    color: ${COLORS.contentSecondary};
     font-weight: 600;
     margin-bottom: 6px;
   }
   .footer-sub-text {
     font-size: 10px;
-    color: #999;
+    color: ${COLORS.contentPlaceholder};
     font-style: italic;
   }
 </style>

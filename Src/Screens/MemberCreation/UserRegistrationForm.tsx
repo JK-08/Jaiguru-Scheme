@@ -19,7 +19,7 @@ import authStorage from '../../Utills/AsynchStorageHelper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { AppButton } from '../../Components/ui/appcomponents';
 
-const { COLORS, SIZES, FONTS, SHADOWS } = theme;
+const { COLORS, SIZES, FONTS, ELEVATION } = theme;
 
 // Storage key for saving form data
 const FORM_STORAGE_KEY = '@user_registration_form_data';
@@ -755,7 +755,7 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
           <TextInput
             style={[styles.input, hasError && styles.inputError, !editable && styles.inputDisabled]}
             placeholder={placeholder}
-            placeholderTextColor={COLORS.inputPlaceholder}
+            placeholderTextColor={COLORS.contentPlaceholder}
             value={formData[field]}
             onChangeText={(text) => {
               if (field === 'aadharNumber') {
@@ -954,7 +954,7 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
                     maxLength: 6,
                   })}
                   {isFetchingLocation && (
-                    <ActivityIndicator size="small" color={COLORS.accentDark} style={styles.pincodeLoader} />
+                    <ActivityIndicator size="small" color={COLORS.contentBrand} style={styles.pincodeLoader} />
                   )}
                 </View>
               </View>
@@ -1015,121 +1015,121 @@ UserRegistrationForm.displayName = 'UserRegistrationForm';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.surfacePage,
   },
   customHeader: {
-    paddingHorizontal: SIZES.padding.container,
-    paddingVertical: SIZES.padding.lg,
-    backgroundColor: COLORS.white,
+    paddingHorizontal: SIZES.space.gutter,
+    paddingVertical: SIZES.space.lg,
+    backgroundColor: COLORS.surface,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
-    ...SHADOWS.sm,
+    ...ELEVATION.raised,
   },
   headerLeft: {
     flex: 1,
   },
   headerTitle: {
-    ...FONTS.h3,
-    color: COLORS.accentDark,
+    ...FONTS.title,
+    color: COLORS.contentBrand,
     marginBottom: 2,
   },
   headerSubtitle: {
-    ...FONTS.bodySmall,
-    color: COLORS.textSecondary,
+    ...FONTS.bodySm,
+    color: COLORS.contentSecondary,
   },
   clearFormButton: {
-    backgroundColor: COLORS.error,
-    paddingHorizontal: SIZES.padding.md,
-    paddingVertical: SIZES.padding.sm,
+    backgroundColor: COLORS.danger,
+    paddingHorizontal: SIZES.space.md,
+    paddingVertical: SIZES.space.sm,
     borderRadius: SIZES.radius.sm,
-    ...SHADOWS.xs,
+    ...ELEVATION.raised,
   },
   clearFormButtonText: {
-    color: COLORS.white,
-    ...FONTS.bodySmall,
+    color: COLORS.contentOnBrand,
+    ...FONTS.bodySm,
     fontWeight: '600',
   },
   scrollContent: {
-    padding: SIZES.padding.container,
+    padding: SIZES.space.gutter,
   },
   section: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     borderRadius: SIZES.radius.card,
-    padding: SIZES.padding.lg,
-    marginBottom: SIZES.padding.lg,
-    ...SHADOWS.sm,
+    padding: SIZES.space.lg,
+    marginBottom: SIZES.space.lg,
+    ...ELEVATION.raised,
     borderWidth: 1,
-    borderColor: COLORS.borderLight,
+    borderColor: COLORS.borderSubtle,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SIZES.padding.lg,
+    marginBottom: SIZES.space.lg,
   },
   sectionIconContainer: {
     width: SIZES.icon.lg,
     height: SIZES.icon.lg,
     borderRadius: SIZES.radius.sm,
-    backgroundColor: COLORS.accentOpacity20,
+    backgroundColor: COLORS.brandAlpha16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: SIZES.padding.sm,
+    marginRight: SIZES.space.sm,
   },
   sectionIcon: {
-    fontSize: SIZES.font.md,
+    fontSize: SIZES.text.md,
   },
   sectionTitle: {
-    ...FONTS.h4,
-    color: COLORS.accentDark,
+    ...FONTS.heading,
+    color: COLORS.contentBrand,
   },
   inputContainer: {
-    marginBottom: SIZES.padding.md,
+    marginBottom: SIZES.space.md,
   },
   labelRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SIZES.padding.xs,
+    marginBottom: SIZES.space.xs,
   },
   label: {
-    ...FONTS.bodyMedium,
-    color: COLORS.textPrimary,
+    ...FONTS.bodyEmphasis,
+    color: COLORS.contentPrimary,
   },
   mandatory: {
-    color: COLORS.error,
+    color: COLORS.danger,
   },
   clearFieldButton: {
-    paddingHorizontal: SIZES.padding.sm,
-    paddingVertical: SIZES.padding.xs,
+    paddingHorizontal: SIZES.space.sm,
+    paddingVertical: SIZES.space.xs,
   },
   clearFieldText: {
-    ...FONTS.captionBold,
-    color: COLORS.accentDark,
+    ...FONTS.label,
+    color: COLORS.contentBrand,
   },
   input: {
     borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    borderRadius: SIZES.radius.input,
-    paddingHorizontal: SIZES.padding.md,
-    paddingVertical: Platform.OS === 'ios' ? SIZES.padding.sm : SIZES.padding.xs,
+    borderColor: COLORS.fieldBorder,
+    borderRadius: SIZES.radius.field,
+    paddingHorizontal: SIZES.space.md,
+    paddingVertical: Platform.OS === 'ios' ? SIZES.space.sm : SIZES.space.xs,
     ...FONTS.body,
-    color: COLORS.textPrimary,
-    backgroundColor: COLORS.inputBackground,
-    minHeight: SIZES.input.height,
+    color: COLORS.contentPrimary,
+    backgroundColor: COLORS.fieldBackground,
+    minHeight: SIZES.field.height,
   },
   inputError: {
-    borderColor: COLORS.error,
+    borderColor: COLORS.danger,
   },
   inputDisabled: {
-    backgroundColor: COLORS.disabled,
-    color: COLORS.textTertiary,
+    backgroundColor: COLORS.surfaceSunken,
+    color: COLORS.contentMuted,
   },
   errorText: {
-    marginTop: SIZES.padding.xs,
-    color: COLORS.error,
+    marginTop: SIZES.space.xs,
+    color: COLORS.danger,
     ...FONTS.caption,
   },
   dateInput: {
@@ -1139,45 +1139,45 @@ const styles = StyleSheet.create({
   },
   dateText: {
     ...FONTS.body,
-    color: COLORS.textPrimary,
+    color: COLORS.contentPrimary,
   },
   placeholderText: {
     ...FONTS.body,
-    color: COLORS.inputPlaceholder,
+    color: COLORS.contentPlaceholder,
   },
   dateIcon: {
-    fontSize: SIZES.font.md,
+    fontSize: SIZES.text.md,
   },
   maritalStatusContainer: {
     flexDirection: 'row',
-    marginTop: SIZES.padding.xs,
-    gap: SIZES.padding.sm,
+    marginTop: SIZES.space.xs,
+    gap: SIZES.space.sm,
   },
   maritalStatusButton: {
     flex: 1,
-    paddingVertical: SIZES.padding.sm,
+    paddingVertical: SIZES.space.sm,
     borderWidth: 1.5,
     borderColor: COLORS.border,
-    borderRadius: SIZES.radius.input,
+    borderRadius: SIZES.radius.field,
     alignItems: 'center',
     justifyContent: 'center',
   },
   maritalStatusButtonActive: {
-    backgroundColor: COLORS.accentDark,
-    borderColor: COLORS.accentDark,
+    backgroundColor: COLORS.brand,
+    borderColor: COLORS.borderAccent,
   },
   maritalStatusText: {
     ...FONTS.body,
-    color: COLORS.textSecondary,
+    color: COLORS.contentSecondary,
   },
   maritalStatusTextActive: {
-    color: COLORS.white,
-    ...FONTS.bodyMedium,
+    color: COLORS.contentOnBrand,
+    ...FONTS.bodyEmphasis,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: SIZES.padding.md,
+    gap: SIZES.space.md,
   },
   halfWidth: {
     flex: 1,
@@ -1191,23 +1191,23 @@ const styles = StyleSheet.create({
     top: Platform.OS === 'ios' ? 35 : 40,
   },
   actionButtonsContainer: {
-    marginTop: SIZES.padding.lg,
-    gap: SIZES.padding.sm,
+    marginTop: SIZES.space.lg,
+    gap: SIZES.space.sm,
   },
   navButtonFlex: {
     flex: 1,
   },
   clearAllButton: {
     alignItems: 'center',
-    paddingVertical: SIZES.padding.sm,
-    marginBottom: SIZES.padding.xs,
+    paddingVertical: SIZES.space.sm,
+    marginBottom: SIZES.space.xs,
   },
   clearAllButtonText: {
-    color: COLORS.textTertiary,
-    ...FONTS.bodySmall,
+    color: COLORS.contentMuted,
+    ...FONTS.bodySm,
   },
   bottomSpacing: {
-    height: SIZES.padding.xxxl,
+    height: SIZES.space.xxxl,
   },
 
   // Modal Styles
@@ -1218,49 +1218,49 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     borderRadius: SIZES.radius.card,
-    padding: SIZES.padding.lg,
+    padding: SIZES.space.lg,
     width: '90%',
     maxHeight: '80%',
-    ...SHADOWS.lg,
+    ...ELEVATION.floating,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SIZES.padding.md,
+    marginBottom: SIZES.space.md,
   },
   modalTitle: {
-    ...FONTS.h4,
-    color: COLORS.accentDark,
+    ...FONTS.heading,
+    color: COLORS.contentBrand,
   },
   closeButton: {
-    fontSize: SIZES.font.xl,
-    color: COLORS.textSecondary,
-    padding: SIZES.padding.xs,
+    fontSize: SIZES.text.xl,
+    color: COLORS.contentSecondary,
+    padding: SIZES.space.xs,
   },
   selectedDatePreview: {
     ...FONTS.body,
-    color: COLORS.accentDark,
-    marginBottom: SIZES.padding.md,
+    color: COLORS.contentBrand,
+    marginBottom: SIZES.space.md,
     textAlign: 'center',
     fontWeight: '600',
   },
   pickerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: SIZES.padding.lg,
+    marginBottom: SIZES.space.lg,
   },
   pickerColumn: {
     flex: 1,
     alignItems: 'center',
-    marginHorizontal: SIZES.padding.xs,
+    marginHorizontal: SIZES.space.xs,
   },
   pickerLabel: {
     ...FONTS.caption,
-    color: COLORS.textSecondary,
-    marginBottom: SIZES.padding.xs,
+    color: COLORS.contentSecondary,
+    marginBottom: SIZES.space.xs,
   },
   pickerScrollView: {
     width: '100%',
@@ -1271,11 +1271,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 44,
-    backgroundColor: COLORS.accentDark + '15',
+    backgroundColor: COLORS.brand + '15',
     borderRadius: 8,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: COLORS.accentDark + '40',
+    borderColor: COLORS.borderAccent + '40',
     zIndex: 1,
   },
   pickerItem: {
@@ -1285,12 +1285,12 @@ const styles = StyleSheet.create({
   pickerItemSelected: {},
   pickerItemText: {
     ...FONTS.body,
-    color: COLORS.textSecondary,
+    color: COLORS.contentSecondary,
     textAlign: 'center',
     fontSize: 13,
   },
   pickerItemTextSelected: {
-    color: COLORS.accentDark,
+    color: COLORS.contentBrand,
     fontWeight: '700',
     fontSize: 16,
     textAlign: 'center',
@@ -1298,30 +1298,30 @@ const styles = StyleSheet.create({
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: SIZES.padding.md,
-    marginTop: SIZES.padding.md,
+    gap: SIZES.space.md,
+    marginTop: SIZES.space.md,
   },
   cancelButton: {
     flex: 1,
-    paddingVertical: SIZES.padding.sm,
-    borderRadius: SIZES.radius.input,
+    paddingVertical: SIZES.space.sm,
+    borderRadius: SIZES.radius.field,
     backgroundColor: COLORS.border,
     alignItems: 'center',
   },
   cancelButtonText: {
     ...FONTS.body,
-    color: COLORS.textPrimary,
+    color: COLORS.contentPrimary,
   },
   confirmButton: {
     flex: 1,
-    paddingVertical: SIZES.padding.sm,
-    borderRadius: SIZES.radius.input,
-    backgroundColor: COLORS.accentDark,
+    paddingVertical: SIZES.space.sm,
+    borderRadius: SIZES.radius.field,
+    backgroundColor: COLORS.brand,
     alignItems: 'center',
   },
   confirmButtonText: {
     ...FONTS.body,
-    color: COLORS.white,
+    color: COLORS.contentOnBrand,
     fontWeight: '600',
   },
 });

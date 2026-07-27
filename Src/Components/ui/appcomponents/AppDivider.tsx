@@ -26,7 +26,7 @@ export default function AppDivider({
     return (
       <View
         style={[
-          { width: thickness, backgroundColor: color, marginHorizontal: spacing ?? SIZES.margin.md },
+          { width: thickness, backgroundColor: color, marginHorizontal: spacing ?? SIZES.space.md },
           style,
         ]}
       />
@@ -35,9 +35,9 @@ export default function AppDivider({
 
   if (label) {
     return (
-      <View style={[{ flexDirection: 'row', alignItems: 'center', marginVertical: spacing ?? SIZES.margin.md }, style]}>
+      <View style={[{ flexDirection: 'row', alignItems: 'center', marginVertical: spacing ?? SIZES.space.md }, style]}>
         <View style={{ flex: 1, height: thickness, backgroundColor: color }} />
-        <Text style={[FONTS.caption, { marginHorizontal: SIZES.padding.sm }]}>{label}</Text>
+        <Text style={[FONTS.caption, { marginHorizontal: SIZES.space.sm }]}>{label}</Text>
         <View style={{ flex: 1, height: thickness, backgroundColor: color }} />
       </View>
     );
@@ -45,7 +45,7 @@ export default function AppDivider({
 
   return (
     <View
-      style={[{ height: thickness, backgroundColor: color, marginVertical: spacing ?? SIZES.margin.md }, style]}
+      style={[{ height: thickness, backgroundColor: color, marginVertical: spacing ?? SIZES.space.md }, style]}
     />
   );
 }

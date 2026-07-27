@@ -14,7 +14,7 @@ import GoldParticles from '../../Screens/Auth/Login/components/GoldParticles';
 
 const { COLORS } = theme;
 const { width, height } = Dimensions.get('window');
-const BG_GRADIENT = COLORS.gradient.champagneSurface as [string, string, string];
+const BG_GRADIENT = COLORS.gradient.accentWash as [string, string, string];
 
 export interface PremiumBackgroundProps {
   /** Show floating gold particles (default true). */

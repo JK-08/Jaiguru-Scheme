@@ -10,7 +10,7 @@ import { getUserId } from '../../Utills/AsynchStorageHelper';
 import { useDeleteAccount } from '../../api/hooks/User/useDeleteAccount';
 import { AppButton } from '../../Components/ui/appcomponents';
 
-const { COLORS, SIZES, FONTS, SHADOWS, verticalScale, moderateScale } = theme;
+const { COLORS, SIZES, FONTS, ELEVATION, verticalScale, moderateScale } = theme;
 
 const CONSEQUENCES = [
   'Your profile will be permanently removed',
@@ -80,7 +80,7 @@ function DeleteAccount() {
         {/* Warning Banner */}
         <View style={styles.warningBanner}>
           <View style={styles.warningIconWrap}>
-            <Icon name="warning" size={moderateScale(36)} color={COLORS.error} />
+            <Icon name="warning" size={moderateScale(36)} color={COLORS.danger} />
           </View>
           <Text style={styles.warningTitle}>Delete Your Account</Text>
           <Text style={styles.warningSubtitle}>This action is permanent and cannot be undone</Text>
@@ -89,12 +89,12 @@ function DeleteAccount() {
         {/* What Happens */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Icon name="info-outline" size={SIZES.icon.md} color={COLORS.error} />
+            <Icon name="info-outline" size={SIZES.icon.md} color={COLORS.danger} />
             <Text style={styles.cardTitle}>What happens when you delete?</Text>
           </View>
           {CONSEQUENCES.map((item, i) => (
             <View key={i} style={styles.listRow}>
-              <Icon name="remove-circle-outline" size={SIZES.icon.sm} color={COLORS.error} />
+              <Icon name="remove-circle-outline" size={SIZES.icon.sm} color={COLORS.danger} />
               <Text style={styles.listText}>{item}</Text>
             </View>
           ))}
@@ -116,7 +116,7 @@ function DeleteAccount() {
 
         {/* Final Warning */}
         <View style={styles.finalWarning}>
-          <Icon name="error-outline" size={SIZES.icon.lg} color={COLORS.error} />
+          <Icon name="error-outline" size={SIZES.icon.lg} color={COLORS.danger} />
           <Text style={styles.finalWarningText}>Once deleted, your account and all data cannot be recovered.</Text>
         </View>
 
@@ -128,7 +128,7 @@ function DeleteAccount() {
           loading={loading}
           onPress={confirmDelete}
           leftIcon="trash"
-          style={{ marginBottom: SIZES.margin.sm }}
+          style={{ marginBottom: SIZES.space.sm }}
         />
 
         <AppButton label="Cancel" variant="outline" size="lg" onPress={() => navigation.goBack()} disabled={loading} />
@@ -140,55 +140,55 @@ function DeleteAccount() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.backgroundSecondary,
+    backgroundColor: COLORS.surfaceMuted,
   },
   content: {
-    padding: SIZES.padding.lg,
+    padding: SIZES.space.lg,
     paddingBottom: verticalScale(40),
   },
 
   // Warning Banner
   warningBanner: {
     alignItems: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     borderRadius: SIZES.radius.lg,
-    padding: SIZES.padding.xl,
-    marginBottom: SIZES.margin.md,
+    padding: SIZES.space.xl,
+    marginBottom: SIZES.space.md,
     borderWidth: 1.5,
-    borderColor: COLORS.error + '40',
-    ...SHADOWS.sm,
+    borderColor: COLORS.danger + '40',
+    ...ELEVATION.raised,
   },
   warningIconWrap: {
     width: moderateScale(72),
     height: moderateScale(72),
-    borderRadius: SIZES.radius.full,
-    backgroundColor: COLORS.error + '12',
+    borderRadius: SIZES.radius.pill,
+    backgroundColor: COLORS.danger + '12',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: SIZES.margin.sm,
+    marginBottom: SIZES.space.sm,
   },
   warningTitle: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.font.xxl,
-    color: COLORS.error,
-    marginBottom: SIZES.xs,
+    fontSize: SIZES.text.xxl,
+    color: COLORS.danger,
+    marginBottom: SIZES.space.xs,
   },
   warningSubtitle: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.md,
-    color: COLORS.textSecondary,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentSecondary,
     textAlign: 'center',
   },
 
   // Card
   card: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     borderRadius: SIZES.radius.md,
-    padding: SIZES.padding.lg,
-    marginBottom: SIZES.margin.md,
+    padding: SIZES.space.lg,
+    marginBottom: SIZES.space.md,
     borderLeftWidth: 4,
-    borderLeftColor: COLORS.error,
-    ...SHADOWS.sm,
+    borderLeftColor: COLORS.danger,
+    ...ELEVATION.raised,
   },
   cardWarning: {
     borderLeftColor: COLORS.warning,
@@ -196,47 +196,47 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SIZES.margin.sm,
-    gap: SIZES.sm,
+    marginBottom: SIZES.space.sm,
+    gap: SIZES.space.sm,
   },
   cardTitle: {
     fontFamily: FONTS.family.semiBold,
-    fontSize: SIZES.font.lg,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.lg,
+    color: COLORS.contentPrimary,
     flex: 1,
   },
   listRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: SIZES.sm,
-    gap: SIZES.sm,
+    marginBottom: SIZES.space.sm,
+    gap: SIZES.space.sm,
   },
   listText: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.md,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentPrimary,
     flex: 1,
-    lineHeight: SIZES.font.md * 1.5,
+    lineHeight: SIZES.text.md * 1.5,
   },
 
   // Final Warning
   finalWarning: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.error + '10',
+    backgroundColor: COLORS.danger + '10',
     borderRadius: SIZES.radius.md,
-    padding: SIZES.padding.lg,
-    marginBottom: SIZES.margin.lg,
+    padding: SIZES.space.lg,
+    marginBottom: SIZES.space.lg,
     borderWidth: 1,
-    borderColor: COLORS.error + '30',
-    gap: SIZES.sm,
+    borderColor: COLORS.danger + '30',
+    gap: SIZES.space.sm,
   },
   finalWarningText: {
     fontFamily: FONTS.family.semiBold,
-    fontSize: SIZES.font.md,
-    color: COLORS.error,
+    fontSize: SIZES.text.md,
+    color: COLORS.danger,
     flex: 1,
-    lineHeight: SIZES.font.md * 1.5,
+    lineHeight: SIZES.text.md * 1.5,
   },
 
   // Buttons
@@ -244,34 +244,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.error,
-    borderRadius: SIZES.radius.button,
-    paddingVertical: SIZES.padding.lg,
-    marginBottom: SIZES.margin.sm,
-    gap: SIZES.sm,
-    ...SHADOWS.md,
+    backgroundColor: COLORS.danger,
+    borderRadius: SIZES.radius.control,
+    paddingVertical: SIZES.space.lg,
+    marginBottom: SIZES.space.sm,
+    gap: SIZES.space.sm,
+    ...ELEVATION.floating,
   },
   btnDisabled: {
     opacity: 0.6,
   },
   deleteBtnText: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.font.lg,
-    color: COLORS.white,
+    fontSize: SIZES.text.lg,
+    color: COLORS.contentOnBrand,
   },
   cancelBtn: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: SIZES.radius.button,
-    paddingVertical: SIZES.padding.lg,
+    borderRadius: SIZES.radius.control,
+    paddingVertical: SIZES.space.lg,
     borderWidth: 1.5,
     borderColor: COLORS.border,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
   },
   cancelBtnText: {
     fontFamily: FONTS.family.semiBold,
-    fontSize: SIZES.font.lg,
-    color: COLORS.textSecondary,
+    fontSize: SIZES.text.lg,
+    color: COLORS.contentSecondary,
   },
 });
 

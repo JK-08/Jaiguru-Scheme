@@ -24,7 +24,7 @@ import {
   debugAsyncStorage,
 } from "../../Utills/AsynchStorageHelper";
 import { clearFCMToken } from "../../Helpers/NotificationHelper";
-import { COLORS, FONTS, SIZES, SHADOWS } from "../../Utills/AppTheme";
+import { COLORS, FONTS, SIZES, ELEVATION } from "../../Utills/AppTheme";
 
 interface MenuItem {
   key: string;
@@ -158,7 +158,7 @@ const DrawerItem = memo(
               <Icon
                 name={item.icon}
                 size={SIZES.icon.md}
-                color={isActive ? COLORS.white : COLORS.accentDark}
+                color={isActive ? COLORS.surface : COLORS.accent}
               />
               <Badge count={item.badge} />
             </View>
@@ -171,7 +171,7 @@ const DrawerItem = memo(
               <Icon
                 name={showSubItems ? "expand-less" : "expand-more"}
                 size={SIZES.icon.md}
-                color={isActive ? COLORS.white : COLORS.gray500}
+                color={isActive ? COLORS.surface : COLORS.contentMuted}
                 style={styles.arrowIcon}
               />
             )}
@@ -269,7 +269,7 @@ const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }: SideBar
     picture: "",
     referralCode: "",
     loginType: "",
-    avatarColor: "#4A90E2",
+    avatarColor: "#2274D4",
     isLoading: true,
   });
 
@@ -383,7 +383,7 @@ const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }: SideBar
           picture: "",
           referralCode: "",
           loginType: "unknown",
-          avatarColor: "#4A90E2",
+          avatarColor: "#2274D4",
           isLoading: false,
         });
       }
@@ -395,15 +395,15 @@ const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }: SideBar
   // Function to generate avatar color based on name
   const getAvatarColor = useCallback((name: string): string => {
     const colors = [
-      "#4A90E2", // Blue
-      "#50C878", // Green
-      "#FF6B6B", // Red
-      "#FFA500", // Orange
+      "#2274D4", // Blue
+      "#2A8448", // Green
+      "#EB0000", // Red
+      "#A16800", // Orange
       "#9B59B6", // Purple
-      "#1ABC9C", // Teal
-      "#E74C3C", // Alizarin
-      "#3498DB", // Peter River
-      "#2ECC71", // Emerald
+      "#12846D", // Teal
+      "#DF2E1B", // Alizarin
+      "#207AB6", // Peter River
+      "#1E8549", // Emerald
     ];
 
     if (!name) return colors[0];
@@ -501,7 +501,7 @@ const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }: SideBar
         ]}
       >
         <StatusBar
-          backgroundColor={COLORS.accentDark}
+          backgroundColor={COLORS.brand}
           barStyle="light-content"
           translucent={Platform.OS === "android"}
         />
@@ -515,14 +515,14 @@ const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }: SideBar
         {/* User Profile Section */}
         <View style={styles.profileSection}>
           <LinearGradient
-            colors={[COLORS.accentDark, COLORS.secondary]}
+            colors={[COLORS.brand, COLORS.brandStrong]}
             style={styles.profileGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
             {user.isLoading ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={COLORS.white} />
+                <ActivityIndicator size="large" color={COLORS.contentOnBrand} />
                 <Text style={styles.loadingText}>Loading user data...</Text>
               </View>
             ) : (
@@ -538,7 +538,7 @@ const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }: SideBar
                       <Icon
                         name="verified"
                         size={16}
-                        color={COLORS.success}
+                        color={COLORS.contentOnBrand}
                         style={styles.verifiedIcon}
                       />
                     )}
@@ -593,7 +593,7 @@ const SideBar = ({ navigation, activeRoute, onClose, isVisible = true }: SideBar
             onPress={handleLogout}
             activeOpacity={0.7}
           >
-            <Icon name="logout" size={SIZES.icon.md} color={COLORS.error} />
+            <Icon name="logout" size={SIZES.icon.md} color={COLORS.danger} />
             <Text style={styles.footerButtonText}>Logout</Text>
           </TouchableOpacity>
 
@@ -628,8 +628,8 @@ const styles = StyleSheet.create({
     top: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: COLORS.white,
-    ...SHADOWS.lg,
+    backgroundColor: COLORS.surface,
+    ...ELEVATION.floating,
     zIndex: 1000,
     elevation: 5,
   },
@@ -637,11 +637,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: SIZES.padding.lg,
-    paddingVertical: SIZES.padding.md,
+    paddingHorizontal: SIZES.space.lg,
+    paddingVertical: SIZES.space.md,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
   },
   headerButton: {
     width: 40,
@@ -649,11 +649,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: COLORS.gray200,
+    backgroundColor: COLORS.border,
   },
   profileSection: {
-    marginHorizontal: SIZES.margin.lg,
-    marginVertical: SIZES.margin.lg,
+    marginHorizontal: SIZES.space.lg,
+    marginVertical: SIZES.space.lg,
     borderRadius: SIZES.radius.lg,
     overflow: "hidden",
     elevation: 4,
@@ -664,7 +664,7 @@ const styles = StyleSheet.create({
     minHeight: 160,
   },
   profileGradient: {
-    padding: SIZES.padding.lg,
+    padding: SIZES.space.lg,
     flex: 1,
   },
   profileContent: {
@@ -678,8 +678,8 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...FONTS.body,
-    color: COLORS.white,
-    marginTop: SIZES.margin.sm,
+    color: COLORS.contentOnBrand,
+    marginTop: SIZES.space.sm,
   },
   avatarImage: {
     borderRadius: 35,
@@ -690,13 +690,13 @@ const styles = StyleSheet.create({
     borderRadius: 35,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: SIZES.margin.lg,
+    marginRight: SIZES.space.lg,
     borderWidth: 3,
     borderColor: "rgba(255, 255, 255, 0.3)",
   },
   avatarText: {
-    ...FONTS.h2,
-    color: COLORS.white,
+    ...FONTS.display,
+    color: COLORS.contentOnBrand,
     fontWeight: "bold",
   },
   profileInfo: {
@@ -708,8 +708,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   profileName: {
-    ...FONTS.h3,
-    color: COLORS.white,
+    ...FONTS.title,
+    color: COLORS.contentOnBrand,
     fontWeight: "600",
     flex: 1,
   },
@@ -737,7 +737,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuContentContainer: {
-    paddingVertical: SIZES.padding.sm,
+    paddingVertical: SIZES.space.sm,
   },
   itemContainer: {
     marginBottom: 2,
@@ -745,20 +745,20 @@ const styles = StyleSheet.create({
   item: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: SIZES.padding.md,
-    paddingHorizontal: SIZES.padding.lg,
-    marginHorizontal: SIZES.margin.md,
+    paddingVertical: SIZES.space.md,
+    paddingHorizontal: SIZES.space.lg,
+    marginHorizontal: SIZES.space.md,
     borderRadius: SIZES.radius.md,
     backgroundColor: "transparent",
     minHeight: 48,
   },
   activeItem: {
-    backgroundColor: COLORS.accentDark,
-    ...SHADOWS.sm,
+    backgroundColor: COLORS.brand,
+    ...ELEVATION.raised,
   },
   iconContainer: {
     position: "relative",
-    marginRight: SIZES.margin.lg,
+    marginRight: SIZES.space.lg,
     width: 28,
     height: 28,
     justifyContent: "center",
@@ -768,7 +768,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: -8,
     right: -8,
-    backgroundColor: COLORS.error,
+    backgroundColor: COLORS.danger,
     borderRadius: 10,
     minWidth: 18,
     height: 18,
@@ -776,86 +776,86 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 4,
     borderWidth: 2,
-    borderColor: COLORS.white,
+    borderColor: COLORS.surface,
   },
   badgeText: {
-    ...FONTS.captionBold,
-    color: COLORS.white,
+    ...FONTS.label,
+    color: COLORS.contentOnBrand,
     fontSize: 9,
     fontWeight: "bold",
   },
   label: {
     ...FONTS.body,
-    color: COLORS.textPrimary,
+    color: COLORS.contentPrimary,
     flex: 1,
     fontSize: 15,
   },
   activeLabel: {
-    ...FONTS.bodyBold,
-    color: COLORS.white,
+    ...FONTS.bodyEmphasis,
+    color: COLORS.contentOnBrand,
     fontWeight: "600",
   },
   arrowIcon: {
     marginLeft: "auto",
   },
   subItemsContainer: {
-    marginLeft: SIZES.margin.xl * 2,
-    marginTop: SIZES.margin.xs,
-    marginBottom: SIZES.margin.sm,
-    paddingLeft: SIZES.padding.sm,
+    marginLeft: SIZES.space.xl * 2,
+    marginTop: SIZES.space.xs,
+    marginBottom: SIZES.space.sm,
+    paddingLeft: SIZES.space.sm,
     borderLeftWidth: 2,
     borderLeftColor: COLORS.border,
   },
   subItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: SIZES.padding.sm,
-    paddingHorizontal: SIZES.padding.md,
+    paddingVertical: SIZES.space.sm,
+    paddingHorizontal: SIZES.space.md,
     minHeight: 40,
   },
   subItemDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: COLORS.gray500,
-    marginRight: SIZES.margin.md,
+    backgroundColor: COLORS.contentMuted,
+    marginRight: SIZES.space.md,
   },
   subItemLabel: {
     ...FONTS.body,
-    color: COLORS.gray500,
+    color: COLORS.contentMuted,
     fontSize: 14,
   },
   footer: {
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
-    paddingHorizontal: SIZES.padding.lg,
-    paddingVertical: SIZES.padding.md,
-    backgroundColor: COLORS.white,
+    paddingHorizontal: SIZES.space.lg,
+    paddingVertical: SIZES.space.md,
+    backgroundColor: COLORS.surface,
   },
   footerButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: SIZES.padding.md,
-    paddingHorizontal: SIZES.padding.sm,
-    marginBottom: SIZES.margin.md,
+    paddingVertical: SIZES.space.md,
+    paddingHorizontal: SIZES.space.sm,
+    marginBottom: SIZES.space.md,
     borderRadius: SIZES.radius.md,
     backgroundColor: "rgba(255, 0, 0, 0.05)",
   },
   footerButtonText: {
     ...FONTS.body,
-    marginLeft: SIZES.margin.md,
-    color: COLORS.error,
+    marginLeft: SIZES.space.md,
+    color: COLORS.danger,
     fontWeight: "600",
   },
   versionContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: SIZES.padding.xs,
+    paddingVertical: SIZES.space.xs,
   },
   versionText: {
     ...FONTS.caption,
-    color: COLORS.gray500,
+    color: COLORS.contentMuted,
     fontSize: 12,
   },
   statusDot: {
@@ -863,6 +863,6 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: COLORS.success,
-    marginHorizontal: SIZES.margin.sm,
+    marginHorizontal: SIZES.space.sm,
   },
 });

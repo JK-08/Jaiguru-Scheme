@@ -23,7 +23,7 @@ const WebViewScreen = () => {
       <WebView
         source={{ uri: url ?? '' }}
         startInLoadingState
-        renderLoading={() => <ActivityIndicator style={StyleSheet.absoluteFill} size="large" color={COLORS.accentDark} />}
+        renderLoading={() => <ActivityIndicator style={StyleSheet.absoluteFill} size="large" color={COLORS.contentBrand} />}
       />
     </View>
   );

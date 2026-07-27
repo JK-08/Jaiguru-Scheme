@@ -64,14 +64,14 @@ export interface OnboardingSlide {
   readonly collections?: readonly CollectionTag[];
 }
 
-// Champagne-gold luxury palette — sourced entirely from the global AppTheme so
-// the onboarding shares one design system with the rest of the app.
-export const GOLD = COLORS.accent; // #D4AF37
-export const GOLD_LIGHT = COLORS.accentLight; // #F4E5B5
-export const GOLD_DEEP = COLORS.accentDark; // #B8860B
-export const CHAMPAGNE = COLORS.champagne; // #F7ECD2
-export const INK = COLORS.textPrimary;
-export const INK_SOFT = COLORS.textSecondary;
+// Amber accent ramp — sourced entirely from the global AppTheme so the
+// onboarding shares one design system with the rest of the app.
+export const GOLD = COLORS.accent;
+export const GOLD_LIGHT = COLORS.accentSoft;
+export const GOLD_DEEP = COLORS.accentStrong;
+export const CHAMPAGNE = COLORS.accentSubtle;
+export const INK = COLORS.contentPrimary;
+export const INK_SOFT = COLORS.contentSecondary;
 
 export const ONBOARDING_DATA: readonly OnboardingSlide[] = [
   {

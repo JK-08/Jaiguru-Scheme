@@ -3,7 +3,7 @@ import React from 'react';
 import { View, StyleProp, ViewStyle, TouchableOpacity } from 'react-native';
 import theme from '../../../Utills/AppTheme';
 
-const { COLORS, SIZES, SHADOWS } = theme;
+const { COLORS, SIZES, ELEVATION } = theme;
 
 export type CardVariant = 'default' | 'elevated' | 'premium' | 'blue' | 'blueLight' | 'blueBorder' | 'flat';
 
@@ -17,19 +17,19 @@ export interface AppCardProps {
 
 export default function AppCard({ children, variant = 'default', onPress, style, padded = true }: AppCardProps) {
   const variantStyles: Record<CardVariant, ViewStyle> = {
-    default: { backgroundColor: COLORS.white, ...SHADOWS.sm },
-    elevated: { backgroundColor: COLORS.white, ...SHADOWS.md },
-    premium: { backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.goldPrimary, ...SHADOWS.gold },
-    blue: { backgroundColor: COLORS.accentDark, ...SHADOWS.blue },
-    blueLight: { backgroundColor: COLORS.accentLight, ...SHADOWS.sm },
-    blueBorder: { backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.accentDark, ...SHADOWS.sm },
-    flat: { backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.border },
+    default: { backgroundColor: COLORS.surface, ...ELEVATION.raised },
+    elevated: { backgroundColor: COLORS.surface, ...ELEVATION.floating },
+    premium: { backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.borderBrand, ...ELEVATION.brandGlow },
+    blue: { backgroundColor: COLORS.brand, ...ELEVATION.brandGlow },
+    blueLight: { backgroundColor: COLORS.accentSoft, ...ELEVATION.raised },
+    blueBorder: { backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.borderAccent, ...ELEVATION.raised },
+    flat: { backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border },
   };
 
   const cardStyle: StyleProp<ViewStyle> = [
     {
       borderRadius: SIZES.radius.card,
-      padding: padded ? SIZES.card.padding : 0,
+      padding: padded ? SIZES.space.lg : 0,
       ...variantStyles[variant],
     },
     style,

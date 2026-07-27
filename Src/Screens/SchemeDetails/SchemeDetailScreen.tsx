@@ -23,7 +23,7 @@ interface FilterButtonProps {
 
 const FilterButton = ({ title, value, isActive, onPress }: FilterButtonProps) => (
   <TouchableOpacity style={[styles.filterButton, isActive && styles.filterButtonActive]} onPress={() => onPress(value)}>
-    <AppText variant="label" color={isActive ? COLORS.white : COLORS.textSecondary}>
+    <AppText variant="label" color={isActive ? COLORS.surface : COLORS.contentSecondary}>
       {title}
     </AppText>
   </TouchableOpacity>
@@ -45,7 +45,7 @@ export default function AllSchemesScreen() {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
-          <Icon name="arrow-back" size={24} color={COLORS.textPrimary} />
+          <Icon name="arrow-back" size={24} color={COLORS.contentPrimary} />
         </TouchableOpacity>
         <AppText variant="h6">All Schemes</AppText>
         <View style={styles.headerRight} />
@@ -67,36 +67,36 @@ export default function AllSchemesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.backgroundSecondary },
+  container: { flex: 1, backgroundColor: COLORS.surfaceMuted },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: SIZES.padding.lg,
-    paddingVertical: SIZES.padding.md,
-    backgroundColor: COLORS.white,
+    paddingHorizontal: SIZES.space.lg,
+    paddingVertical: SIZES.space.md,
+    backgroundColor: COLORS.surface,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  backButton: { padding: SIZES.padding.xs },
+  backButton: { padding: SIZES.space.xs },
   headerRight: { width: 40 },
   filterContainer: {
     flexDirection: 'row',
-    backgroundColor: COLORS.white,
-    paddingHorizontal: SIZES.padding.lg,
-    paddingVertical: SIZES.padding.md,
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: SIZES.space.lg,
+    paddingVertical: SIZES.space.md,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
   filterButton: {
     flex: 1,
-    paddingVertical: SIZES.padding.sm,
-    paddingHorizontal: SIZES.padding.md,
+    paddingVertical: SIZES.space.sm,
+    paddingHorizontal: SIZES.space.md,
     marginHorizontal: 4,
-    borderRadius: SIZES.radius.full,
-    backgroundColor: COLORS.gray100,
+    borderRadius: SIZES.radius.pill,
+    backgroundColor: COLORS.surfaceSunken,
     alignItems: 'center',
   },
-  filterButtonActive: { backgroundColor: COLORS.accentDark },
+  filterButtonActive: { backgroundColor: COLORS.brand },
   content: { flex: 1 },
 });

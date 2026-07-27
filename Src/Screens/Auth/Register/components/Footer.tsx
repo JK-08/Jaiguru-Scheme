@@ -8,7 +8,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import theme from '../../../../Utills/AppTheme';
 
-const { COLORS, SIZES, FONTS, COMMON_STYLES } = theme;
+const { COLORS, SIZES, FONTS, STYLES } = theme;
 
 export interface FooterProps {
   onLogin: () => void;
@@ -16,7 +16,7 @@ export interface FooterProps {
 }
 
 const Footer: React.FC<FooterProps> = ({ onLogin, disabled }) => (
-  <View style={[COMMON_STYLES.rowCenter, styles.wrap]}>
+  <View style={[STYLES.rowCenter, styles.wrap]}>
     <Text style={styles.text}>Already have an account? </Text>
     <Pressable onPress={onLogin} disabled={disabled} hitSlop={6} accessibilityRole="button">
       <Text style={styles.link}>Login</Text>
@@ -26,17 +26,17 @@ const Footer: React.FC<FooterProps> = ({ onLogin, disabled }) => (
 
 const styles = StyleSheet.create({
   wrap: {
-    marginTop: SIZES.lg,
+    marginTop: SIZES.space.xxl,
   },
   text: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.md,
-    color: COLORS.textSecondary,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentSecondary,
   },
   link: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.font.md,
-    color: COLORS.accentDark,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentBrand,
   },
 });
 

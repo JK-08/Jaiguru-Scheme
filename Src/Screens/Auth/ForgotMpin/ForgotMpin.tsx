@@ -70,13 +70,13 @@ const ForgotMpinScreen = () => {
     >
       {isLoadingUser ? (
         <View style={styles.loadingCard}>
-          <ActivityIndicator size="small" color={COLORS.accentDark} />
+          <ActivityIndicator size="small" color={COLORS.contentBrand} />
           <Text style={styles.loadingText}>Loading your details…</Text>
         </View>
       ) : userMobile ? (
         <View style={styles.infoCard}>
           <View style={styles.infoHeader}>
-            <MaterialCommunityIcons name="cellphone" size={SIZES.icon.sm} color={COLORS.accentDark} />
+            <MaterialCommunityIcons name="cellphone" size={SIZES.icon.sm} color={COLORS.contentBrand} />
             <Text style={styles.infoTitle}>Registered Mobile Number</Text>
           </View>
           <Text style={styles.mobileNumber}>{formatMobileNumber(userMobile)}</Text>
@@ -119,78 +119,78 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: SIZES.padding.lg,
+    paddingVertical: SIZES.space.lg,
   },
   loadingText: {
     fontFamily: FONTS.family.medium,
-    fontSize: SIZES.font.sm,
-    color: COLORS.textSecondary,
-    marginLeft: SIZES.sm,
+    fontSize: SIZES.text.sm,
+    color: COLORS.contentSecondary,
+    marginLeft: SIZES.space.sm,
   },
   infoCard: {
-    backgroundColor: COLORS.whiteOpacity80,
+    backgroundColor: COLORS.whiteAlpha80,
     borderRadius: SIZES.radius.xl,
-    padding: SIZES.padding.lg,
+    padding: SIZES.space.lg,
     borderWidth: 1,
-    borderColor: COLORS.accentOpacity30,
+    borderColor: COLORS.brandAlpha32,
   },
   infoHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SIZES.sm,
+    marginBottom: SIZES.space.sm,
   },
   infoTitle: {
     fontFamily: FONTS.family.semiBold,
-    fontSize: SIZES.font.md,
-    color: COLORS.textPrimary,
-    marginLeft: SIZES.sm,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentPrimary,
+    marginLeft: SIZES.space.sm,
   },
   mobileNumber: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.heading.h4,
-    color: COLORS.accentDark,
+    fontSize: SIZES.text.xxl,
+    color: COLORS.contentBrand,
     letterSpacing: 2,
   },
   divider: {
     height: 1,
-    backgroundColor: COLORS.borderChampagne,
-    marginVertical: SIZES.md,
+    backgroundColor: COLORS.accentSubtle,
+    marginVertical: SIZES.space.lg,
   },
   infoText: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.sm,
-    lineHeight: SIZES.font.sm * 1.5,
-    color: COLORS.textSecondary,
+    fontSize: SIZES.text.sm,
+    lineHeight: SIZES.text.sm * 1.5,
+    color: COLORS.contentSecondary,
   },
   warningCard: {
     alignItems: 'center',
-    backgroundColor: COLORS.whiteOpacity80,
+    backgroundColor: COLORS.whiteAlpha80,
     borderRadius: SIZES.radius.xl,
-    padding: SIZES.padding.lg,
+    padding: SIZES.space.lg,
     borderWidth: 1,
     borderColor: `${COLORS.warning}40`,
   },
   warningTitle: {
     fontFamily: FONTS.family.semiBold,
-    fontSize: SIZES.font.lg,
-    color: COLORS.textPrimary,
-    marginTop: SIZES.sm,
+    fontSize: SIZES.text.lg,
+    color: COLORS.contentPrimary,
+    marginTop: SIZES.space.sm,
   },
   warningText: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.sm,
-    lineHeight: SIZES.font.sm * 1.5,
-    color: COLORS.textSecondary,
+    fontSize: SIZES.text.sm,
+    lineHeight: SIZES.text.sm * 1.5,
+    color: COLORS.contentSecondary,
     textAlign: 'center',
-    marginTop: SIZES.xs,
+    marginTop: SIZES.space.xs,
   },
-  footer: { marginTop: SIZES.xl },
+  footer: { marginTop: SIZES.space.xxxl },
   disclaimer: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.xs,
-    lineHeight: SIZES.font.xs * 1.5,
-    color: COLORS.textTertiary,
+    fontSize: SIZES.text.xxs,
+    lineHeight: SIZES.text.xxs * 1.5,
+    color: COLORS.contentMuted,
     textAlign: 'center',
-    marginTop: SIZES.lg,
+    marginTop: SIZES.space.xxl,
   },
 });

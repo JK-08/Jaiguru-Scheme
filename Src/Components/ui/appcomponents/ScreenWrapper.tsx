@@ -41,8 +41,8 @@ export default function ScreenWrapper({
   style,
   contentStyle,
 }: ScreenWrapperProps) {
-  const bg = backgroundColor ?? COLORS.background;
-  const ph = paddingHorizontal ?? SIZES.padding.container;
+  const bg = backgroundColor ?? COLORS.surfacePage;
+  const ph = paddingHorizontal ?? SIZES.space.gutter;
 
   return (
     <SafeAreaView edges={edges} style={[styles.safe, { backgroundColor: bg }, style]}>
@@ -58,7 +58,7 @@ export default function ScreenWrapper({
           keyboardShouldPersistTaps="handled"
           refreshControl={
             onRefresh ? (
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.accentDark]} tintColor={COLORS.accentDark} />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.brand]} tintColor={COLORS.contentBrand} />
             ) : undefined
           }
         >

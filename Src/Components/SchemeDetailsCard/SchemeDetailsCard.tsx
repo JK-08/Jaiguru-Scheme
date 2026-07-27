@@ -3,12 +3,12 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity, FlatList, RefreshControl, Dimensions } from 'react-native';
 import { useMySchemes } from '../../api/hooks/Account/useMySchemes';
 import { Account } from '../../types/Account/Account';
-import { COLORS, SIZES, FONTS, SHADOWS } from '../../Utills/AppTheme';
+import { COLORS, SIZES, FONTS, ELEVATION } from '../../Utills/AppTheme';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.9;
-const CARD_SPACING = SIZES.padding.lg;
+const CARD_SPACING = SIZES.space.lg;
 
 export type SchemeDetailsCardFilter = 'all' | 'active' | 'due' | 'completed';
 
@@ -286,7 +286,7 @@ export default function SchemeDetailsCard({ layout = 'horizontal', filter = 'all
       <View style={styles.container}>
         {layout === 'horizontal' && renderHeader()}
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={COLORS.accentDark} />
+          <ActivityIndicator size="large" color={COLORS.contentBrand} />
           <Text style={styles.loadingText}>Loading your schemes...</Text>
         </View>
       </View>
@@ -342,7 +342,7 @@ export default function SchemeDetailsCard({ layout = 'horizontal', filter = 'all
       <FlatList
         data={filteredAccounts}
         renderItem={renderAccountCard}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.accentDark]} tintColor={COLORS.accentDark} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.brand]} tintColor={COLORS.contentBrand} />}
         ListFooterComponent={layout === 'horizontal' ? <View style={styles.footer} /> : null}
         initialNumToRender={layout === 'vertical' ? 5 : 2}
         maxToRenderPerBatch={layout === 'vertical' ? 10 : 3}
@@ -361,73 +361,73 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   containerVertical: {
-    paddingBottom: SIZES.padding.lg,
+    paddingBottom: SIZES.space.lg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: SIZES.padding.lg,
-    paddingTop: SIZES.padding.xl,
-    paddingBottom: SIZES.padding.md,
+    paddingHorizontal: SIZES.space.lg,
+    paddingTop: SIZES.space.xl,
+    paddingBottom: SIZES.space.md,
   },
   headerLeftSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SIZES.margin.sm,
+    gap: SIZES.space.sm,
   },
   headerTitle: {
-    ...FONTS.h3,
-    color: COLORS.accentDark,
+    ...FONTS.title,
+    color: COLORS.contentBrand,
   },
   countBadge: {
-    backgroundColor: COLORS.accentDark + '20',
-    paddingHorizontal: SIZES.padding.sm,
+    backgroundColor: COLORS.brand + '20',
+    paddingHorizontal: SIZES.space.sm,
     paddingVertical: 2,
     borderRadius: SIZES.radius.sm,
     borderWidth: 1,
-    borderColor: COLORS.accentDark + '40',
+    borderColor: COLORS.borderAccent + '40',
   },
   countText: {
-    ...FONTS.captionBold,
-    color: COLORS.accentDark,
-    fontSize: SIZES.font.sm,
+    ...FONTS.label,
+    color: COLORS.contentBrand,
+    fontSize: SIZES.text.sm,
   },
   viewAllButton: {
-    paddingHorizontal: SIZES.padding.md,
-    paddingVertical: SIZES.padding.xs,
+    paddingHorizontal: SIZES.space.md,
+    paddingVertical: SIZES.space.xs,
   },
   viewAllText: {
-    ...FONTS.h5,
-    color: COLORS.accentDark,
+    ...FONTS.subheading,
+    color: COLORS.contentBrand,
   },
   statsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
-    marginHorizontal: SIZES.padding.lg,
-    marginBottom: SIZES.margin.lg,
-    padding: SIZES.padding.md,
+    backgroundColor: COLORS.surface,
+    marginHorizontal: SIZES.space.lg,
+    marginBottom: SIZES.space.lg,
+    padding: SIZES.space.md,
     borderRadius: SIZES.radius.md,
-    ...SHADOWS.xs,
+    ...ELEVATION.raised,
     borderWidth: 1,
-    borderColor: COLORS.accentOpacity20,
+    borderColor: COLORS.brandAlpha16,
   },
   statCard: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: SIZES.padding.xs,
+    paddingVertical: SIZES.space.xs,
   },
   statValue: {
-    ...FONTS.h3,
-    color: COLORS.accentDark,
-    fontSize: SIZES.font.xl,
+    ...FONTS.title,
+    color: COLORS.contentBrand,
+    fontSize: SIZES.text.xl,
     marginBottom: 2,
   },
   statLabel: {
     ...FONTS.caption,
-    color: COLORS.textSecondary,
-    fontSize: SIZES.font.xs,
+    color: COLORS.contentSecondary,
+    fontSize: SIZES.text.xxs,
   },
   statDivider: {
     width: 1,
@@ -435,12 +435,12 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.divider,
   },
   listContainer: {
-    paddingHorizontal: SIZES.padding.lg,
-    paddingBottom: SIZES.padding.lg,
+    paddingHorizontal: SIZES.space.lg,
+    paddingBottom: SIZES.space.lg,
   },
   listContainerVertical: {
-    paddingHorizontal: SIZES.padding.lg,
-    paddingBottom: SIZES.padding.xl,
+    paddingHorizontal: SIZES.space.lg,
+    paddingBottom: SIZES.space.xl,
   },
   cardWrapper: {
     width: CARD_WIDTH,
@@ -449,150 +449,150 @@ const styles = StyleSheet.create({
   cardWrapperVertical: {
     width: '100%',
     marginRight: 0,
-    marginBottom: SIZES.margin.lg,
+    marginBottom: SIZES.space.lg,
   },
   card: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     borderRadius: SIZES.radius.card,
-    ...SHADOWS.md,
+    ...ELEVATION.floating,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: COLORS.accentOpacity20,
+    borderColor: COLORS.brandAlpha16,
   },
   cardVertical: {
     marginHorizontal: 0,
   },
   cardContent: {
-    padding: SIZES.padding.lg,
+    padding: SIZES.space.lg,
   },
   cardContentVertical: {
-    padding: SIZES.padding.md,
+    padding: SIZES.space.md,
   },
   cardHeader: {
-    padding: SIZES.padding.md,
-    backgroundColor: COLORS.champagneSoft,
+    padding: SIZES.space.md,
+    backgroundColor: COLORS.accentTint,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
-    gap: SIZES.margin.xs,
+    gap: SIZES.space.xs,
   },
   regBadge: {
-    backgroundColor: COLORS.accentDark,
-    paddingHorizontal: SIZES.padding.md,
-    paddingVertical: SIZES.padding.xs,
+    backgroundColor: COLORS.brand,
+    paddingHorizontal: SIZES.space.md,
+    paddingVertical: SIZES.space.xs,
     borderRadius: SIZES.radius.sm,
   },
   regBadgeText: {
-    ...FONTS.captionBold,
-    color: COLORS.white,
-    fontSize: SIZES.font.sm,
+    ...FONTS.label,
+    color: COLORS.contentOnBrand,
+    fontSize: SIZES.text.sm,
   },
   schemeBadge: {
-    backgroundColor: COLORS.secondaryLight,
-    paddingHorizontal: SIZES.padding.sm,
-    paddingVertical: SIZES.padding.xs,
+    backgroundColor: COLORS.accentSoft,
+    paddingHorizontal: SIZES.space.sm,
+    paddingVertical: SIZES.space.xs,
     borderRadius: SIZES.radius.sm,
   },
   schemeBadgeText: {
     ...FONTS.caption,
     color: COLORS.black,
-    fontSize: SIZES.font.xs,
+    fontSize: SIZES.text.xxs,
     fontWeight: 'bold',
   },
   dueBadge: {
-    backgroundColor: COLORS.error,
-    paddingHorizontal: SIZES.padding.sm,
-    paddingVertical: SIZES.padding.xs,
+    backgroundColor: COLORS.danger,
+    paddingHorizontal: SIZES.space.sm,
+    paddingVertical: SIZES.space.xs,
     borderRadius: SIZES.radius.sm,
   },
   dueBadgeText: {
-    ...FONTS.captionBold,
-    color: COLORS.white,
-    fontSize: SIZES.font.xs,
+    ...FONTS.label,
+    color: COLORS.contentOnBrand,
+    fontSize: SIZES.text.xxs,
   },
   divider: {
     height: 1,
-    backgroundColor: COLORS.goldOpacity30,
+    backgroundColor: COLORS.brandAlpha32,
   },
   nameSection: {
-    marginBottom: SIZES.margin.lg,
+    marginBottom: SIZES.space.lg,
   },
   nameText: {
-    ...FONTS.h3,
-    color: COLORS.accentDark,
-    marginBottom: SIZES.margin.xs,
+    ...FONTS.title,
+    color: COLORS.contentBrand,
+    marginBottom: SIZES.space.xs,
   },
   schemeText: {
     ...FONTS.body,
-    color: COLORS.textSecondary,
-    fontSize: SIZES.font.sm,
+    color: COLORS.contentSecondary,
+    fontSize: SIZES.text.sm,
   },
   amountSection: {
     flexDirection: 'row',
-    marginBottom: SIZES.margin.md,
-    gap: SIZES.margin.sm,
+    marginBottom: SIZES.space.md,
+    gap: SIZES.space.sm,
   },
   amountCard: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: COLORS.backgroundSecondary,
-    padding: SIZES.padding.sm,
+    backgroundColor: COLORS.surfaceMuted,
+    padding: SIZES.space.sm,
     borderRadius: SIZES.radius.md,
     borderWidth: 1,
-    borderColor: COLORS.accentOpacity20,
+    borderColor: COLORS.brandAlpha16,
   },
   amtCard: {
-    backgroundColor: COLORS.goldLight,
-    borderColor: COLORS.goldOpacity30,
+    backgroundColor: COLORS.accentTint,
+    borderColor: COLORS.brandAlpha32,
   },
   amountLabel: {
     ...FONTS.caption,
-    color: COLORS.textSecondary,
-    marginBottom: SIZES.margin.xs,
-    fontSize: SIZES.font.xs,
+    color: COLORS.contentSecondary,
+    marginBottom: SIZES.space.xs,
+    fontSize: SIZES.text.xxs,
     textAlign: 'center',
   },
   amountValue: {
-    ...FONTS.h4,
-    color: COLORS.accentDark,
-    fontSize: SIZES.font.md,
+    ...FONTS.heading,
+    color: COLORS.contentBrand,
+    fontSize: SIZES.text.md,
     fontWeight: '700',
   },
   progressSection: {
-    marginBottom: SIZES.margin.lg,
+    marginBottom: SIZES.space.lg,
   },
   progressLabelRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: SIZES.margin.xs,
+    marginBottom: SIZES.space.xs,
   },
   progressLabel: {
     ...FONTS.caption,
-    color: COLORS.textSecondary,
-    fontSize: SIZES.font.xs,
+    color: COLORS.contentSecondary,
+    fontSize: SIZES.text.xxs,
   },
   progressCount: {
-    ...FONTS.captionBold,
-    color: COLORS.accentDark,
-    fontSize: SIZES.font.sm,
+    ...FONTS.label,
+    color: COLORS.contentBrand,
+    fontSize: SIZES.text.sm,
   },
   progressBar: {
     height: 8,
-    backgroundColor: COLORS.accentOpacity20,
+    backgroundColor: COLORS.brandAlpha16,
     borderRadius: SIZES.radius.sm,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: COLORS.accentDark,
+    backgroundColor: COLORS.brand,
     borderRadius: SIZES.radius.sm,
   },
   dateSection: {
     flexDirection: 'row',
-    marginBottom: SIZES.margin.lg,
-    gap: SIZES.margin.xs,
+    marginBottom: SIZES.space.lg,
+    gap: SIZES.space.xs,
   },
   dateCard: {
     flex: 1,
@@ -604,121 +604,121 @@ const styles = StyleSheet.create({
   },
   dateLabel: {
     ...FONTS.caption,
-    color: COLORS.textSecondary,
-    marginBottom: SIZES.margin.xs,
+    color: COLORS.contentSecondary,
+    marginBottom: SIZES.space.xs,
   },
   dateValue: {
-    ...FONTS.bodyMedium,
-    color: COLORS.textPrimary,
+    ...FONTS.bodyEmphasis,
+    color: COLORS.contentPrimary,
   },
   dueDateSection: {
     alignItems: 'center',
-    marginBottom: SIZES.margin.lg,
+    marginBottom: SIZES.space.lg,
   },
   buttonsSection: {
     flexDirection: 'row',
-    gap: SIZES.margin.md,
+    gap: SIZES.space.md,
   },
   buttonsSectionVertical: {
-    marginTop: SIZES.margin.md,
+    marginTop: SIZES.space.md,
   },
   viewButton: {
     flex: 1,
-    backgroundColor: COLORS.white,
-    paddingVertical: SIZES.padding.md,
+    backgroundColor: COLORS.surface,
+    paddingVertical: SIZES.space.md,
     borderRadius: SIZES.radius.md,
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: COLORS.accentDark,
-    ...SHADOWS.xs,
+    borderColor: COLORS.borderAccent,
+    ...ELEVATION.raised,
   },
   viewButtonText: {
-    ...FONTS.bodyBold,
-    color: COLORS.accentDark,
-    fontSize: SIZES.font.md,
+    ...FONTS.bodyEmphasis,
+    color: COLORS.contentBrand,
+    fontSize: SIZES.text.md,
   },
   payButton: {
     flex: 1,
-    backgroundColor: COLORS.accentDark,
-    paddingVertical: SIZES.padding.md,
+    backgroundColor: COLORS.brand,
+    paddingVertical: SIZES.space.md,
     borderRadius: SIZES.radius.md,
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: COLORS.accentDark,
-    ...SHADOWS.xs,
+    borderColor: COLORS.borderAccent,
+    ...ELEVATION.raised,
   },
   payButtonDue: {},
   fullyPaidBadge: {
     flex: 1,
     backgroundColor: '#E8F5E9',
-    paddingVertical: SIZES.padding.md,
+    paddingVertical: SIZES.space.md,
     borderRadius: SIZES.radius.md,
     alignItems: 'center',
     borderWidth: 1.5,
     borderColor: '#43A047',
   },
   fullyPaidText: {
-    ...FONTS.bodyBold,
+    ...FONTS.bodyEmphasis,
     color: '#2E7D32',
-    fontSize: SIZES.font.md,
+    fontSize: SIZES.text.md,
   },
   payButtonText: {
-    ...FONTS.bodyBold,
-    color: COLORS.white,
-    fontSize: SIZES.font.md,
+    ...FONTS.bodyEmphasis,
+    color: COLORS.contentOnBrand,
+    fontSize: SIZES.text.md,
   },
   bottomBorder: {
     height: 3,
-    backgroundColor: COLORS.accentDark,
+    backgroundColor: COLORS.brand,
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: SIZES.padding.container,
+    padding: SIZES.space.gutter,
   },
   loadingText: {
     ...FONTS.body,
-    color: COLORS.textSecondary,
-    marginTop: SIZES.margin.md,
+    color: COLORS.contentSecondary,
+    marginTop: SIZES.space.md,
   },
   errorText: {
     ...FONTS.body,
-    color: COLORS.error,
-    marginBottom: SIZES.margin.md,
+    color: COLORS.danger,
+    marginBottom: SIZES.space.md,
   },
   retryButton: {
-    backgroundColor: COLORS.accentDark,
-    paddingHorizontal: SIZES.padding.xl,
-    paddingVertical: SIZES.padding.md,
+    backgroundColor: COLORS.brand,
+    paddingHorizontal: SIZES.space.xl,
+    paddingVertical: SIZES.space.md,
     borderRadius: SIZES.radius.md,
   },
   retryButtonText: {
-    ...FONTS.bodyBold,
-    color: COLORS.white,
+    ...FONTS.bodyEmphasis,
+    color: COLORS.contentOnBrand,
   },
   noAccountText: {
-    ...FONTS.h3,
-    color: COLORS.textPrimary,
-    marginBottom: SIZES.margin.sm,
+    ...FONTS.title,
+    color: COLORS.contentPrimary,
+    marginBottom: SIZES.space.sm,
   },
   emptySubtext: {
     ...FONTS.body,
-    color: COLORS.textSecondary,
-    marginBottom: SIZES.margin.lg,
+    color: COLORS.contentSecondary,
+    marginBottom: SIZES.space.lg,
     textAlign: 'center',
   },
   createButton: {
-    backgroundColor: COLORS.accentDark,
-    paddingHorizontal: SIZES.padding.xl,
-    paddingVertical: SIZES.padding.md,
+    backgroundColor: COLORS.brand,
+    paddingHorizontal: SIZES.space.xl,
+    paddingVertical: SIZES.space.md,
     borderRadius: SIZES.radius.md,
   },
   createButtonText: {
-    ...FONTS.bodyBold,
-    color: COLORS.white,
+    ...FONTS.bodyEmphasis,
+    color: COLORS.contentOnBrand,
   },
   footer: {
-    width: SIZES.padding.lg,
+    width: SIZES.space.lg,
   },
 });

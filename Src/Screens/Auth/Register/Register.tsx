@@ -47,8 +47,8 @@ import SocialActions from '../Login/components/SocialActions';
 const { COLORS, SIZES } = theme;
 const { width, height } = Dimensions.get('window');
 
-const BG_GRADIENT = COLORS.gradient.champagneSurface as [string, string, string];
-const GLOW_GRADIENT = [COLORS.champagne, COLORS.whiteOpacity10] as [string, string];
+const BG_GRADIENT = COLORS.gradient.accentWash as [string, string, string];
+const GLOW_GRADIENT = [COLORS.accentSubtle, COLORS.whiteAlpha10] as [string, string];
 
 const RegisterScreen: React.FC = () => {
   const { company } = useCompany();
@@ -156,7 +156,7 @@ const RegisterScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.background },
+  root: { flex: 1, backgroundColor: COLORS.surfacePage },
   flex: { flex: 1 },
   safe: { flex: 1 },
   glow: {
@@ -170,12 +170,12 @@ const styles = StyleSheet.create({
   glowFill: { flex: 1 },
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: SIZES.padding.container,
-    paddingTop: SIZES.sm,
-    paddingBottom: SIZES.xl,
+    paddingHorizontal: SIZES.space.gutter,
+    paddingTop: SIZES.space.sm,
+    paddingBottom: SIZES.space.xxxl,
   },
-  body: { marginTop: SIZES.sm },
-  buttonWrap: { marginTop: SIZES.md },
+  body: { marginTop: SIZES.space.sm },
+  buttonWrap: { marginTop: SIZES.space.lg },
 });
 
 export default RegisterScreen;

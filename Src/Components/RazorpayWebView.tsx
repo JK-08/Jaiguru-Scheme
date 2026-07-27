@@ -13,14 +13,14 @@ const UPI_SCHEMES = [
 ];
 
 const THEME = {
-  bg:      COLORS.backgroundSecondary,
-  surface: COLORS.white,
+  bg:      COLORS.surfaceMuted,
+  surface: COLORS.surface,
   border:  COLORS.border,
-  accent:  COLORS.accentDark,
-  text:    COLORS.textPrimary,
-  textSec: COLORS.textSecondary,
-  error:   COLORS.error,
-  white:   COLORS.white,
+  accent:  COLORS.accent,
+  text:    COLORS.contentPrimary,
+  textSec: COLORS.contentSecondary,
+  error:   COLORS.danger,
+  white:   COLORS.surface,
 };
 
 export interface RazorpayOptions {
@@ -96,7 +96,7 @@ const buildHtml = (options: RazorpayOptions): string => {
       email:   "${safeStr(o.prefill?.email)}",
       contact: "${safeStr(o.prefill?.contact)}"
     },
-    theme: { color: "${safeStr(o.theme?.color || COLORS.accentDark)}" },
+    theme: { color: "${safeStr(o.theme?.color || COLORS.accent)}" },
     handler: function (response) {
       paymentDone = true;
       post({ type: 'success', data: response });
@@ -146,12 +146,12 @@ const WebViewHeader = ({ title, onBack }: WebViewHeaderProps) => (
 const headerStyles = StyleSheet.create({
   container: {
     flexDirection: "row", alignItems: "center", height: 52,
-    backgroundColor: COLORS.white, borderBottomWidth: 1, borderBottomColor: COLORS.border,
-    paddingHorizontal: SIZES.padding.sm,
+    backgroundColor: COLORS.surface, borderBottomWidth: 1, borderBottomColor: COLORS.border,
+    paddingHorizontal: SIZES.space.sm,
   },
   backBtn:  { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
-  backIcon: { fontSize: 32, color: COLORS.textPrimary, lineHeight: 36 },
-  title:    { flex: 1, fontSize: SIZES.font.lg, fontFamily: FONTS.family.semiBold, color: COLORS.textPrimary, textAlign: "center" },
+  backIcon: { fontSize: 32, color: COLORS.contentPrimary, lineHeight: 36 },
+  title:    { flex: 1, fontSize: SIZES.text.lg, fontFamily: FONTS.family.semiBold, color: COLORS.contentPrimary, textAlign: "center" },
   spacer:   { width: 44 },
 });
 
@@ -166,10 +166,10 @@ const LoadingOverlay = () => (
 const overlayStyles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: COLORS.backgroundSecondary,
+    backgroundColor: COLORS.surfaceMuted,
     alignItems: "center", justifyContent: "center",
   },
-  text: { color: COLORS.textSecondary, fontSize: SIZES.font.sm, fontFamily: FONTS.family.regular, marginTop: SIZES.sm },
+  text: { color: COLORS.contentSecondary, fontSize: SIZES.text.sm, fontFamily: FONTS.family.regular, marginTop: SIZES.space.sm },
 });
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -373,7 +373,7 @@ const RazorpayWebView = ({ visible, options, onSuccess, onDismiss }: RazorpayWeb
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.backgroundSecondary,
+    backgroundColor: COLORS.surfaceMuted,
     paddingTop: Platform.OS === "ios" ? 0 : StatusBar.currentHeight || 0,
   },
   flex: { flex: 1 },

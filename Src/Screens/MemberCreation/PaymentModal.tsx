@@ -20,19 +20,19 @@ const CONTENT_BY_STEP: Record<string, { title: string; message: string; icon: st
     title: 'Creating Order',
     message: 'Please wait while we set up your payment order...',
     icon: 'receipt-outline',
-    color: COLORS.accentDark,
+    color: COLORS.contentBrand,
   },
   verifying: {
     title: 'Verifying Payment',
     message: 'Please wait while we confirm your payment...',
     icon: 'shield-checkmark-outline',
-    color: COLORS.accentDark,
+    color: COLORS.contentBrand,
   },
   failed: {
     title: 'Payment Failed',
     message: '',
     icon: 'close-circle-outline',
-    color: COLORS.error,
+    color: COLORS.danger,
   },
 };
 
@@ -40,7 +40,7 @@ const DEFAULT_CONTENT = {
   title: 'Processing',
   message: 'Please wait...',
   icon: 'hourglass-outline',
-  color: COLORS.accentDark,
+  color: COLORS.contentBrand,
 };
 
 const PaymentModal = ({ visible, step, error }: PaymentModalProps) => {
@@ -51,16 +51,16 @@ const PaymentModal = ({ visible, step, error }: PaymentModalProps) => {
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <AppCard variant="elevated" style={styles.card}>
-          <View style={[styles.iconCircle, { backgroundColor: isFailed ? COLORS.errorLight + '22' : COLORS.accentLight }]}>
+          <View style={[styles.iconCircle, { backgroundColor: isFailed ? COLORS.danger + '22' : COLORS.accentSoft }]}>
             <Icon name={content.icon} size={40} color={content.color} />
           </View>
           <AppText variant="h5" align="center" style={styles.title}>
             {content.title}
           </AppText>
-          <AppText variant="bodySmall" color={COLORS.textSecondary} align="center" style={styles.message}>
+          <AppText variant="bodySmall" color={COLORS.contentSecondary} align="center" style={styles.message}>
             {isFailed ? error || 'Something went wrong. Please try again.' : content.message}
           </AppText>
-          {!isFailed && <ActivityIndicator size="large" color={COLORS.accentDark} style={styles.spinner} />}
+          {!isFailed && <ActivityIndicator size="large" color={COLORS.contentBrand} style={styles.spinner} />}
         </AppCard>
       </View>
     </Modal>
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(15, 20, 25, 0.55)',
-    padding: SIZES.padding.xl,
+    padding: SIZES.space.xl,
   },
   card: {
     width: '100%',
@@ -86,16 +86,16 @@ const styles = StyleSheet.create({
     borderRadius: 38,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: SIZES.md,
+    marginBottom: SIZES.space.lg,
   },
   title: {
-    marginBottom: SIZES.xs,
+    marginBottom: SIZES.space.xs,
   },
   message: {
-    marginBottom: SIZES.md,
+    marginBottom: SIZES.space.lg,
   },
   spinner: {
-    marginTop: SIZES.xs,
+    marginTop: SIZES.space.xs,
   },
 });
 

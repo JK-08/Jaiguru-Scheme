@@ -21,6 +21,33 @@ export interface AppTextProps {
   style?: StyleProp<TextStyle>;
 }
 
+// The theme's typography scale was renamed (h1..h6 -> display/title/heading/…).
+// This map keeps AppText's public `variant` API stable while pointing each one
+// at a real FONTS entry. Without it every variant below fell through to
+// FONTS.body, so headings silently rendered at body size.
+const VARIANT_TO_FONT: Record<TextVariant, string> = {
+  h1: 'display',
+  h2: 'display2',
+  h3: 'title',
+  h4: 'heading',
+  h5: 'subheadingLg',
+  h6: 'subheading',
+  bodyLarge: 'bodyLg',
+  body: 'body',
+  bodyMedium: 'bodyEmphasis',
+  bodySmall: 'bodySm',
+  bodyBold: 'bodyStrong',
+  caption: 'caption',
+  captionBold: 'label',
+  label: 'label',
+  labelUppercase: 'eyebrow',
+  button: 'action',
+  buttonLarge: 'action',
+  buttonSmall: 'actionSm',
+  goldText: 'bodyEmphasis',
+  blueText: 'bodyEmphasis',
+};
+
 export default function AppText({
   children,
   variant = 'body',
@@ -29,14 +56,15 @@ export default function AppText({
   numberOfLines,
   style,
 }: AppTextProps) {
-  const variantStyle: TextStyle = (FONTS as any)[variant] ?? FONTS.body;
+  const variantStyle: TextStyle =
+    (FONTS as any)[VARIANT_TO_FONT[variant] ?? variant] ?? FONTS.body;
 
   return (
     <Text
       numberOfLines={numberOfLines}
       style={[
         variantStyle,
-        { textAlign: align, color: color ?? (variantStyle as any).color ?? COLORS.textPrimary },
+        { textAlign: align, color: color ?? (variantStyle as any).color ?? COLORS.contentPrimary },
         style,
       ]}
     >

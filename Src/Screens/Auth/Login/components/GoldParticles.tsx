@@ -25,12 +25,12 @@ interface Particle {
 }
 
 const PARTICLES: readonly Particle[] = [
-  { icon: 'star-four-points', x: 0.1, y: 0.08, size: 16, delay: 0, amplitude: 14, color: COLORS.accent },
-  { icon: 'circle', x: 0.86, y: 0.06, size: 8, delay: 300, amplitude: 10, color: COLORS.accentLight },
-  { icon: 'diamond-outline', x: 0.9, y: 0.22, size: 14, delay: 600, amplitude: 16, color: COLORS.accentDark },
-  { icon: 'star-four-points-outline', x: 0.06, y: 0.26, size: 12, delay: 450, amplitude: 12, color: COLORS.accentDark },
-  { icon: 'circle', x: 0.22, y: 0.02, size: 6, delay: 800, amplitude: 9, color: COLORS.accent },
-  { icon: 'star-four-points', x: 0.72, y: 0.28, size: 10, delay: 950, amplitude: 11, color: COLORS.accentLight },
+  { icon: 'star-four-points', x: 0.1, y: 0.08, size: 16, delay: 0, amplitude: 14, color: COLORS.contentBrand },
+  { icon: 'circle', x: 0.86, y: 0.06, size: 8, delay: 300, amplitude: 10, color: COLORS.brandSoft },
+  { icon: 'diamond-outline', x: 0.9, y: 0.22, size: 14, delay: 600, amplitude: 16, color: COLORS.contentBrand },
+  { icon: 'star-four-points-outline', x: 0.06, y: 0.26, size: 12, delay: 450, amplitude: 12, color: COLORS.contentBrand },
+  { icon: 'circle', x: 0.22, y: 0.02, size: 6, delay: 800, amplitude: 9, color: COLORS.contentBrand },
+  { icon: 'star-four-points', x: 0.72, y: 0.28, size: 10, delay: 950, amplitude: 11, color: COLORS.brandSoft },
 ];
 
 export interface GoldParticlesProps {

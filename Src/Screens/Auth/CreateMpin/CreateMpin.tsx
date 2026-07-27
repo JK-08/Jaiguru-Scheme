@@ -229,7 +229,7 @@ const MpinCreateScreen = () => {
             autoFocus
           />
           <Pressable style={styles.eyeBtn} onPress={() => setShowMpin((v) => !v)} disabled={isCreatingMpin} hitSlop={8}>
-            <MaterialCommunityIcons name={showMpin ? 'eye-off' : 'eye'} size={SIZES.icon.md} color={COLORS.accentDark} />
+            <MaterialCommunityIcons name={showMpin ? 'eye-off' : 'eye'} size={SIZES.icon.md} color={COLORS.contentBrand} />
           </Pressable>
         </View>
 
@@ -244,14 +244,14 @@ const MpinCreateScreen = () => {
             disabled={isCreatingMpin || step !== 2}
           />
           <Pressable style={styles.eyeBtn} onPress={() => setShowConfirm((v) => !v)} disabled={isCreatingMpin} hitSlop={8}>
-            <MaterialCommunityIcons name={showConfirm ? 'eye-off' : 'eye'} size={SIZES.icon.md} color={COLORS.accentDark} />
+            <MaterialCommunityIcons name={showConfirm ? 'eye-off' : 'eye'} size={SIZES.icon.md} color={COLORS.contentBrand} />
           </Pressable>
         </View>
       </View>
 
       {!!displayError && (
         <View style={styles.errorBox}>
-          <MaterialCommunityIcons name="alert-circle" size={SIZES.icon.sm} color={COLORS.error} />
+          <MaterialCommunityIcons name="alert-circle" size={SIZES.icon.sm} color={COLORS.danger} />
           <Text style={styles.errorText}>{displayError}</Text>
         </View>
       )}
@@ -278,7 +278,7 @@ const MpinCreateScreen = () => {
       )}
 
       <Pressable onPress={handleReset} style={styles.resetLink} hitSlop={8} disabled={isCreatingMpin}>
-        <MaterialCommunityIcons name="refresh" size={SIZES.icon.xs} color={COLORS.textSecondary} />
+        <MaterialCommunityIcons name="refresh" size={SIZES.icon.xs} color={COLORS.contentSecondary} />
         <Text style={styles.resetText}>Start over</Text>
       </Pressable>
     </MpinScaffold>
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: SIZES.xl,
+    marginBottom: SIZES.space.xxxl,
   },
   stepDot: {
     width: 32,
@@ -299,68 +299,68 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  stepDotActive: { backgroundColor: COLORS.accent },
+  stepDotActive: { backgroundColor: COLORS.brand },
   stepDotInactive: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     borderWidth: 1.5,
-    borderColor: COLORS.borderChampagne,
+    borderColor: COLORS.accentSubtle,
   },
-  stepNumActive: { fontFamily: FONTS.family.bold, fontSize: SIZES.font.sm, color: COLORS.white },
-  stepNumInactive: { fontFamily: FONTS.family.bold, fontSize: SIZES.font.sm, color: COLORS.textTertiary },
+  stepNumActive: { fontFamily: FONTS.family.bold, fontSize: SIZES.text.sm, color: COLORS.contentOnBrand },
+  stepNumInactive: { fontFamily: FONTS.family.bold, fontSize: SIZES.text.sm, color: COLORS.contentMuted },
   connector: {
     width: 48,
     height: 3,
-    marginHorizontal: SIZES.sm,
+    marginHorizontal: SIZES.space.sm,
     borderRadius: 2,
-    backgroundColor: COLORS.borderChampagne,
+    backgroundColor: COLORS.accentSubtle,
   },
-  connectorActive: { backgroundColor: COLORS.accent },
+  connectorActive: { backgroundColor: COLORS.brand },
   inputSection: { alignItems: 'center' },
   pinRow: { alignItems: 'center' },
   hidden: { position: 'absolute', opacity: 0, height: 0, overflow: 'hidden' },
-  eyeBtn: { marginTop: SIZES.md, padding: SIZES.xs },
+  eyeBtn: { marginTop: SIZES.space.lg, padding: SIZES.space.xs },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: SIZES.md,
-    paddingHorizontal: SIZES.md,
+    marginTop: SIZES.space.lg,
+    paddingHorizontal: SIZES.space.lg,
   },
   errorText: {
     fontFamily: FONTS.family.medium,
-    fontSize: SIZES.font.sm,
-    color: COLORS.error,
-    marginLeft: SIZES.xs,
+    fontSize: SIZES.text.sm,
+    color: COLORS.danger,
+    marginLeft: SIZES.space.xs,
     flexShrink: 1,
     textAlign: 'center',
   },
   tips: {
-    marginTop: SIZES.xl,
+    marginTop: SIZES.space.xxxl,
     alignSelf: 'center',
   },
   tipRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SIZES.sm,
+    marginBottom: SIZES.space.sm,
   },
   tipText: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.sm,
-    color: COLORS.textSecondary,
-    marginLeft: SIZES.sm,
+    fontSize: SIZES.text.sm,
+    color: COLORS.contentSecondary,
+    marginLeft: SIZES.space.sm,
   },
-  footer: { marginTop: SIZES.xl },
+  footer: { marginTop: SIZES.space.xxxl },
   resetLink: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: SIZES.lg,
+    marginTop: SIZES.space.xxl,
   },
   resetText: {
     fontFamily: FONTS.family.medium,
-    fontSize: SIZES.font.sm,
-    color: COLORS.textSecondary,
-    marginLeft: SIZES.xs,
+    fontSize: SIZES.text.sm,
+    color: COLORS.contentSecondary,
+    marginLeft: SIZES.space.xs,
   },
 });
 

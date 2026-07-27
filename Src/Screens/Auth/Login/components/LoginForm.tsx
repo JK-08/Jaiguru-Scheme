@@ -16,7 +16,7 @@ import { LOGIN_CONSTRAINTS } from '../validation/loginSchema';
 import LuxuryInput from './LuxuryInput';
 import LoginButton from './LoginButton';
 
-const { COLORS, SIZES, FONTS, SHADOWS, COMMON_STYLES } = theme;
+const { COLORS, SIZES, FONTS, ELEVATION, STYLES } = theme;
 
 export interface LoginFormProps {
   mobile: string;
@@ -87,17 +87,17 @@ const LoginForm: React.FC<LoginFormProps> = ({
           trailingAccessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
         />
 
-        <View style={[COMMON_STYLES.rowBetween, styles.optionsRow]}>
+        <View style={[STYLES.rowBetween, styles.optionsRow]}>
           <Pressable
             onPress={toggleRemember}
             hitSlop={8}
             accessibilityRole="checkbox"
             accessibilityState={{ checked: remember }}
             accessibilityLabel="Remember me"
-            style={COMMON_STYLES.row}
+            style={STYLES.row}
           >
             <View style={[styles.checkbox, remember && styles.checkboxChecked]}>
-              {remember && <MaterialCommunityIcons name="check" size={SIZES.icon.xs} color={COLORS.white} />}
+              {remember && <MaterialCommunityIcons name="check" size={SIZES.icon.xs} color={COLORS.contentOnBrand} />}
             </View>
             <Text style={styles.rememberText}>Remember Me</Text>
           </Pressable>
@@ -125,48 +125,48 @@ const LoginForm: React.FC<LoginFormProps> = ({
 const styles = StyleSheet.create({
   cardShadow: {
     borderRadius: SIZES.radius.xxl,
-    ...SHADOWS.lg,
-    shadowColor: COLORS.accentDark,
+    ...ELEVATION.floating,
+    shadowColor: COLORS.shadowAccent,
   },
   card: {
     borderRadius: SIZES.radius.xxl,
     overflow: 'hidden',
-    padding: SIZES.padding.xxl,
-    backgroundColor: COLORS.whiteOpacity70,
+    padding: SIZES.space.xxl,
+    backgroundColor: COLORS.whiteAlpha70,
     borderWidth: 1,
-    borderColor: COLORS.accentOpacity30,
+    borderColor: COLORS.brandAlpha32,
   },
   optionsRow: {
-    marginTop: SIZES.xs,
-    marginBottom: SIZES.sm,
+    marginTop: SIZES.space.xs,
+    marginBottom: SIZES.space.sm,
   },
   checkbox: {
     width: SIZES.icon.md,
     height: SIZES.icon.md,
     borderRadius: SIZES.radius.xs,
     borderWidth: 1.5,
-    borderColor: COLORS.accentDark,
+    borderColor: COLORS.borderAccent,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: SIZES.sm,
-    backgroundColor: COLORS.white,
+    marginRight: SIZES.space.sm,
+    backgroundColor: COLORS.surface,
   },
   checkboxChecked: {
-    backgroundColor: COLORS.accent,
-    borderColor: COLORS.accent,
+    backgroundColor: COLORS.brand,
+    borderColor: COLORS.borderBrand,
   },
   rememberText: {
     fontFamily: FONTS.family.medium,
-    fontSize: SIZES.font.md,
-    color: COLORS.textSecondary,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentSecondary,
   },
   forgotText: {
     fontFamily: FONTS.family.semiBold,
-    fontSize: SIZES.font.md,
-    color: COLORS.accentDark,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentBrand,
   },
   buttonWrap: {
-    marginTop: SIZES.md,
+    marginTop: SIZES.space.lg,
   },
 });
 

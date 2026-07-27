@@ -111,7 +111,7 @@ const AnimatedTab = ({ tab, isActive, onPress, badgeCount = 0 }: AnimatedTabProp
     return (
       <TouchableOpacity style={styles.centerContainer} onPress={onPress} activeOpacity={0.8}>
         <Animated.View style={[styles.centerIconWrap, isActive ? styles.centerIconActive : styles.centerIconInactive, { transform: [{ translateY: lift }, { scale }] }]}>
-          <IconComponent name={iconName as any} size={SIZES.icon.lg} color={COLORS.white} />
+          <IconComponent name={iconName as any} size={SIZES.icon.lg} color={COLORS.contentOnBrand} />
         </Animated.View>
         <Text style={isActive ? styles.centerActiveText : styles.centerInactiveText}>{tab.label}</Text>
       </TouchableOpacity>
@@ -120,7 +120,7 @@ const AnimatedTab = ({ tab, isActive, onPress, badgeCount = 0 }: AnimatedTabProp
 
   const scale = progress.interpolate({ inputRange: [0, 1], outputRange: [1, 1.12] });
   const lift = progress.interpolate({ inputRange: [0, 1], outputRange: [0, -2] });
-  const color = isActive ? COLORS.accentDark : COLORS.textSecondary;
+  const color = isActive ? COLORS.accent : COLORS.contentSecondary;
 
   return (
     <TouchableOpacity style={styles.footerBtnContainer} onPress={onPress} activeOpacity={0.7}>
@@ -166,7 +166,7 @@ function BottomTab({ activeScreen }: BottomTabProps) {
   };
 
   return (
-    <View style={[styles.footerContainer, { paddingBottom: Math.max(insets.bottom, SIZES.padding.xs) }]}>
+    <View style={[styles.footerContainer, { paddingBottom: Math.max(insets.bottom, SIZES.space.xs) }]}>
       {TABS.map((tab) => (
         <AnimatedTab
           key={tab.key}

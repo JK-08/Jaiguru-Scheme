@@ -24,7 +24,7 @@ import Animated, {
 import theme from '../../Utills/AppTheme';
 
 const { width } = Dimensions.get('window');
-const { COLORS, SIZES, FONTS, SHADOWS } = theme;
+const { COLORS, SIZES, FONTS, ELEVATION } = theme;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -81,45 +81,45 @@ const TYPE_CONFIG: Record<ToastType, {
 }> = {
   success: {
     icon: 'check-circle',
-    gradient: ['#1A1A1A', '#1A1A1A'],
-    accent: '#22C55E',
-    iconBg: 'rgba(34,197,94,0.15)',
+    gradient: [COLORS.surfaceInverse, COLORS.surfaceInverse],
+    accent: COLORS.successOnInverse,
+    iconBg: 'rgba(18,138,94,0.18)',
   },
   error: {
     icon: 'close-circle',
-    gradient: ['#1A1A1A', '#1A1A1A'],
-    accent: '#EF4444',
-    iconBg: 'rgba(239,68,68,0.15)',
+    gradient: [COLORS.surfaceInverse, COLORS.surfaceInverse],
+    accent: COLORS.dangerOnInverse,
+    iconBg: 'rgba(198,40,40,0.18)',
   },
   warning: {
     icon: 'alert-circle',
-    gradient: ['#1A1A1A', '#1A1A1A'],
-    accent: '#F59E0B',
-    iconBg: 'rgba(245,158,11,0.15)',
+    gradient: [COLORS.surfaceInverse, COLORS.surfaceInverse],
+    accent: COLORS.warningOnInverse,
+    iconBg: 'rgba(183,121,31,0.18)',
   },
   info: {
     icon: 'information-outline',
-    gradient: ['#1A1A1A', '#1A1A1A'],
-    accent: '#3B82F6',
-    iconBg: 'rgba(59,130,246,0.15)',
+    gradient: [COLORS.surfaceInverse, COLORS.surfaceInverse],
+    accent: COLORS.infoOnInverse,
+    iconBg: 'rgba(31,111,208,0.18)',
   },
   premium: {
     icon: 'crown',
-    gradient: [COLORS.accentDark, '#8B6914'],
+    gradient: [COLORS.brandDeep, COLORS.brand],
     accent: COLORS.accent,
-    iconBg: 'rgba(212,175,55,0.2)',
+    iconBg: COLORS.brandAlpha32,
   },
   default: {
     icon: 'bell-outline',
-    gradient: ['#1A1A1A', '#1A1A1A'],
+    gradient: [COLORS.surfaceInverse, COLORS.surfaceInverse],
     accent: COLORS.accent,
-    iconBg: 'rgba(212,175,55,0.15)',
+    iconBg: COLORS.brandAlpha16,
   },
   progress: {
     icon: 'progress-clock',
-    gradient: ['#1A1A1A', '#1A1A1A'],
-    accent: COLORS.accent,
-    iconBg: 'rgba(212,175,55,0.15)',
+    gradient: [COLORS.surfaceInverse, COLORS.surfaceInverse],
+    accent: COLORS.brandSoft,
+    iconBg: COLORS.brandAlpha16,
   },
 };
 
@@ -190,8 +190,8 @@ const ToastComponent = ({
   }));
 
   const posStyle = position === 'bottom'
-    ? { bottom: insets.bottom + SIZES.md }
-    : { top: insets.top + SIZES.sm };
+    ? { bottom: insets.bottom + SIZES.space.lg }
+    : { top: insets.top + SIZES.space.sm };
 
   if (!visible) return null;
 
@@ -270,8 +270,8 @@ export const useToast = () => {
 const styles = StyleSheet.create({
   wrapper: {
     position: 'absolute',
-    left: SIZES.md,
-    right: SIZES.md,
+    left: SIZES.space.lg,
+    right: SIZES.space.lg,
     zIndex: 9999,
   },
   pressable: {
@@ -283,10 +283,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#1C1C1E',
     borderRadius: SIZES.radius.xl,
-    paddingVertical: SIZES.sm + 2,
-    paddingRight: SIZES.md,
+    paddingVertical: SIZES.space.sm + 2,
+    paddingRight: SIZES.space.lg,
     overflow: 'hidden',
-    ...SHADOWS.xl,
+    ...ELEVATION.overlay,
     shadowColor: '#000',
     shadowOpacity: 0.45,
     shadowRadius: 16,
@@ -298,8 +298,8 @@ const styles = StyleSheet.create({
     width: 3,
     alignSelf: 'stretch',
     borderRadius: 2,
-    marginLeft: SIZES.sm,
-    marginRight: SIZES.sm,
+    marginLeft: SIZES.space.sm,
+    marginRight: SIZES.space.sm,
     minHeight: 32,
   },
   iconBubble: {
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: SIZES.sm,
+    marginRight: SIZES.space.sm,
   },
   textWrap: {
     flex: 1,
@@ -316,30 +316,30 @@ const styles = StyleSheet.create({
   },
   titleText: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.font.sm,
+    fontSize: SIZES.text.sm,
     color: '#FFFFFF',
     marginBottom: 2,
     letterSpacing: 0.1,
   },
   messageText: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.sm,
+    fontSize: SIZES.text.sm,
     color: 'rgba(255,255,255,0.75)',
-    lineHeight: SIZES.font.sm * 1.45,
+    lineHeight: SIZES.text.sm * 1.45,
   },
   actionBtn: {
-    paddingHorizontal: SIZES.sm,
+    paddingHorizontal: SIZES.space.sm,
     paddingVertical: 4,
     borderRadius: SIZES.radius.sm,
     borderWidth: 1,
-    marginLeft: SIZES.sm,
+    marginLeft: SIZES.space.sm,
   },
   actionText: {
     fontFamily: FONTS.family.semiBold,
-    fontSize: SIZES.font.xs,
+    fontSize: SIZES.text.xxs,
   },
   closeBtn: {
-    marginLeft: SIZES.sm,
+    marginLeft: SIZES.space.sm,
     padding: 2,
   },
 });

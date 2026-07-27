@@ -19,6 +19,7 @@
 //     neither is wired up in this app yet) to diagnose.
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { COLORS } from '../Utills/AppTheme';
 
 interface Props {
   children: React.ReactNode;
@@ -72,10 +73,10 @@ class ErrorBoundary extends React.Component<Props, State> {
 export default ErrorBoundary;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: COLORS.surfacePage },
   scrollContent: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  title: { fontSize: 20, fontWeight: '700', color: '#D32F2F', marginBottom: 12, textAlign: 'center' },
-  message: { fontSize: 14, color: '#555', textAlign: 'center', marginBottom: 24 },
-  button: { backgroundColor: '#4CAF50', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 },
-  buttonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  title: { fontSize: 20, fontWeight: '700', color: COLORS.danger, marginBottom: 12, textAlign: 'center' },
+  message: { fontSize: 14, color: COLORS.contentSecondary, textAlign: 'center', marginBottom: 24 },
+  button: { backgroundColor: COLORS.brand, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 },
+  buttonText: { color: COLORS.contentOnBrand, fontWeight: '600', fontSize: 16 },
 });

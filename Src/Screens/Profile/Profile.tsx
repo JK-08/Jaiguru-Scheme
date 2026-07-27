@@ -88,7 +88,7 @@ const MENU_SECTIONS: MenuSection[] = [
 ];
 
 const getAvatarColor = (name: string): string => {
-  const colors = ['#4A90E2', '#50C878', '#FF6B6B', '#FFA500', '#9B59B6', '#1ABC9C', '#E74C3C', '#3498DB', '#2ECC71'];
+  const colors = ['#2274D4', '#2A8448', '#EB0000', '#A16800', '#9B59B6', '#12846D', '#DF2E1B', '#207AB6', '#1E8549'];
   if (!name) return colors[0];
   const hash = name.split('').reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
   return colors[Math.abs(hash) % colors.length];
@@ -146,7 +146,7 @@ const ProfileScreen = () => {
   };
 
   const renderSectionTitle = (title: string) => (
-    <AppText variant="label" color={COLORS.textTertiary} style={styles.sectionTitle}>
+    <AppText variant="label" color={COLORS.contentMuted} style={styles.sectionTitle}>
       {title.toUpperCase()}
     </AppText>
   );
@@ -160,12 +160,12 @@ const ProfileScreen = () => {
         {/* ---------- Hero: centered avatar + name + contact chips ---------- */}
         <View style={styles.heroWrap}>
           {loading ? (
-            <ActivityIndicator size="large" color={COLORS.accentDark} />
+            <ActivityIndicator size="large" color={COLORS.contentBrand} />
           ) : (
             <>
               <View style={styles.avatarCenterWrap}>
                 <LinearGradient
-                  colors={[COLORS.accentDark, COLORS.accent]}
+                  colors={[COLORS.brand, COLORS.brandStrong]}
                   style={styles.avatarRing}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
@@ -175,7 +175,7 @@ const ProfileScreen = () => {
                       <Image source={{ uri: user.picture }} style={styles.avatarImage} />
                     ) : (
                       <View style={[styles.avatarFallback, { backgroundColor: getAvatarColor(user.name) }]}>
-                        <AppText variant="h2" color={COLORS.white}>
+                        <AppText variant="h2" color={COLORS.contentOnBrand}>
                           {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                         </AppText>
                       </View>
@@ -184,12 +184,12 @@ const ProfileScreen = () => {
                 </LinearGradient>
                 {/* Decorative badge — wire to an "Edit Profile" screen if one is added later */}
                 <View style={styles.avatarBadge}>
-                  <Icon name="photo-camera" size={13} color={COLORS.white} />
+                  <Icon name="photo-camera" size={13} color={COLORS.contentOnBrand} />
                 </View>
               </View>
 
               <View style={styles.nameRowCenter}>
-                <AppText variant="h3" color={COLORS.textPrimary} numberOfLines={1}>
+                <AppText variant="h3" color={COLORS.contentPrimary} numberOfLines={1}>
                   {user.name}
                   
                 </AppText>
@@ -202,8 +202,8 @@ const ProfileScreen = () => {
               <View style={styles.infoCard}>
                 {!!user.email && (
                   <View style={styles.infoRow}>
-                    <Icon name="mail-outline" size={14} color={COLORS.accentDark} />
-                    <AppText variant="bodySmall" color={COLORS.textPrimary} numberOfLines={1} style={styles.infoText}>
+                    <Icon name="mail-outline" size={14} color={COLORS.contentBrand} />
+                    <AppText variant="bodySmall" color={COLORS.contentPrimary} numberOfLines={1} style={styles.infoText}>
                       {user.email}
                     </AppText>
                   </View>
@@ -211,8 +211,8 @@ const ProfileScreen = () => {
                 {!!user.email && !!user.contactNumber && <View style={styles.infoDivider} />}
                 {!!user.contactNumber && (
                   <View style={styles.infoRow}>
-                    <Icon name="call" size={14} color={COLORS.accentDark} />
-                    <AppText variant="bodySmall" color={COLORS.textPrimary} numberOfLines={1} style={styles.infoText}>
+                    <Icon name="call" size={14} color={COLORS.contentBrand} />
+                    <AppText variant="bodySmall" color={COLORS.contentPrimary} numberOfLines={1} style={styles.infoText}>
                       {user.contactNumber}
                     </AppText>
                   </View>
@@ -233,15 +233,15 @@ const ProfileScreen = () => {
                     <View
                       style={[
                         styles.menuIconWrap,
-                        { backgroundColor: item.danger ? COLORS.error + '12' : COLORS.accentLight },
+                        { backgroundColor: item.danger ? COLORS.danger + '12' : COLORS.accentSoft },
                       ]}
                     >
-                      <Icon name={item.icon} size={20} color={item.danger ? COLORS.error : COLORS.accentDark} />
+                      <Icon name={item.icon} size={20} color={item.danger ? COLORS.danger : COLORS.accent} />
                     </View>
-                    <AppText variant="body" color={item.danger ? COLORS.error : COLORS.textPrimary} style={{ flex: 1 }}>
+                    <AppText variant="body" color={item.danger ? COLORS.danger : COLORS.contentPrimary} style={{ flex: 1 }}>
                       {item.label}
                     </AppText>
-                    <Icon name="chevron-right" size={20} color={COLORS.textTertiary} />
+                    <Icon name="chevron-right" size={20} color={COLORS.contentMuted} />
                   </TouchableOpacity>
                   {index < section.items.length - 1 && <View style={styles.menuDivider} />}
                 </View>
@@ -252,8 +252,8 @@ const ProfileScreen = () => {
 
         {/* ---------- Logout: full-width outlined button ---------- */}
         <TouchableOpacity style={styles.logoutButton} activeOpacity={0.7} onPress={handleLogout}>
-          <Icon name="logout" size={18} color={COLORS.error} />
-          <AppText variant="bodyBold" color={COLORS.error} style={{ marginLeft: SIZES.sm }}>
+          <Icon name="logout" size={18} color={COLORS.danger} />
+          <AppText variant="bodyBold" color={COLORS.danger} style={{ marginLeft: SIZES.space.sm }}>
             Logout
           </AppText>
         </TouchableOpacity>
@@ -261,10 +261,10 @@ const ProfileScreen = () => {
         {/* ---------- Footer ---------- */}
         <View style={styles.footerDivider} />
         <View style={styles.footer}>
-          <AppText variant="label" color={COLORS.textTertiary} align="center">
+          <AppText variant="label" color={COLORS.contentMuted} align="center">
             App Version {Constants.expoConfig?.version ?? '—'}
           </AppText>
-          <AppText variant="label" color={COLORS.accentDark} align="center" style={{ marginTop: 4, fontSize: 14 }}>
+          <AppText variant="label" color={COLORS.contentBrand} align="center" style={{ marginTop: 4, fontSize: 14 }}>
             Powered by BRIGHTECH SOFTWARE
           </AppText>
         </View>
@@ -281,21 +281,21 @@ export default ProfileScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.surfacePage,
   },
   content: {
-    padding: SIZES.padding.lg,
+    padding: SIZES.space.lg,
   },
 
   // Hero
   heroWrap: {
     alignItems: 'center',
-    marginBottom: SIZES.margin.lg,
+    marginBottom: SIZES.space.lg,
   },
   avatarCenterWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: SIZES.sm,
+    marginBottom: SIZES.space.sm,
   },
   avatarRing: {
     width: 96,
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     borderRadius: 45,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.surfacePage,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -333,11 +333,11 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: COLORS.accentDark,
+    backgroundColor: COLORS.brand,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: COLORS.white,
+    borderColor: COLORS.surface,
   },
   nameRowCenter: {
     flexDirection: 'row',
@@ -345,10 +345,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   infoCard: {
-    backgroundColor: COLORS.accentLight,
+    backgroundColor: COLORS.accentSoft,
     borderRadius: SIZES.radius.md,
-    paddingHorizontal: SIZES.padding.md,
-    marginTop: SIZES.sm,
+    paddingHorizontal: SIZES.space.md,
+    marginTop: SIZES.space.sm,
     width: '90%',
   },
   infoRow: {
@@ -362,16 +362,16 @@ const styles = StyleSheet.create({
   },
   infoDivider: {
     height: 1,
-    backgroundColor: COLORS.borderLight,
+    backgroundColor: COLORS.borderSubtle,
   },
 
 
   // Sections
   sectionWrap: {
-    marginBottom: SIZES.margin.lg,
+    marginBottom: SIZES.space.lg,
   },
   sectionTitle: {
-    marginBottom: SIZES.xs,
+    marginBottom: SIZES.space.xs,
     marginLeft: 4,
     letterSpacing: 0.5,
   },
@@ -379,8 +379,8 @@ const styles = StyleSheet.create({
   menuRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: SIZES.padding.md,
-    paddingHorizontal: SIZES.padding.lg,
+    paddingVertical: SIZES.space.md,
+    paddingHorizontal: SIZES.space.lg,
   },
   menuIconWrap: {
     width: 36,
@@ -388,12 +388,12 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: SIZES.md,
+    marginRight: SIZES.space.lg,
   },
   menuDivider: {
     height: 1,
-    backgroundColor: COLORS.borderLight,
-    marginLeft: SIZES.padding.lg + 36 + SIZES.md,
+    backgroundColor: COLORS.borderSubtle,
+    marginLeft: SIZES.space.lg + 36 + SIZES.space.lg,
   },
 
   // Logout
@@ -402,17 +402,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: COLORS.error,
+    borderColor: COLORS.danger,
     borderRadius: SIZES.radius.md,
-    paddingVertical: SIZES.padding.md,
-    marginBottom: SIZES.margin.lg,
+    paddingVertical: SIZES.space.md,
+    marginBottom: SIZES.space.lg,
   },
 
   // Footer
   footerDivider: {
     height: 1,
-    backgroundColor: COLORS.borderLight,
-    marginBottom: SIZES.sm,
+    backgroundColor: COLORS.borderSubtle,
+    marginBottom: SIZES.space.sm,
   },
   footer: {
     alignItems: 'center',

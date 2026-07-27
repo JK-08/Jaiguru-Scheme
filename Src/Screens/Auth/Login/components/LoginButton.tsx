@@ -12,10 +12,10 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-na
 
 import theme from '../../../../Utills/AppTheme';
 
-const { COLORS, SIZES, FONTS, SHADOWS } = theme;
+const { COLORS, SIZES, FONTS, ELEVATION } = theme;
 type MCName = keyof typeof MaterialCommunityIcons.glyphMap;
 
-const GOLD_GRADIENT = COLORS.gradient.champagneGold as [string, string, string];
+const GOLD_GRADIENT = COLORS.gradient.brand as [string, string, string];
 
 export interface LoginButtonProps {
   label: string;
@@ -61,10 +61,10 @@ const LoginButton: React.FC<LoginButtonProps> = ({
           style={styles.gradient}
         >
           {loading ? (
-            <ActivityIndicator color={COLORS.textOnGold} />
+            <ActivityIndicator color={COLORS.contentOnAccent} />
           ) : (
             <View style={styles.content}>
-              <MaterialCommunityIcons name={icon} size={SIZES.icon.md} color={COLORS.textOnGold} />
+              <MaterialCommunityIcons name={icon} size={SIZES.icon.md} color={COLORS.contentOnAccent} />
               <Text style={styles.label}>{label}</Text>
             </View>
           )}
@@ -78,8 +78,8 @@ const styles = StyleSheet.create({
   wrap: {
     width: '100%',
     borderRadius: SIZES.radius.xl,
-    ...SHADOWS.goldStrong,
-    shadowColor: COLORS.accent,
+    ...ELEVATION.brandGlow,
+    shadowColor: COLORS.shadowBrand,
   },
   disabled: {
     opacity: 0.6,
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   gradient: {
-    height: SIZES.button.height.lg,
+    height: SIZES.control.heightLg,
     borderRadius: SIZES.radius.xl,
     alignItems: 'center',
     justifyContent: 'center',
@@ -100,10 +100,10 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.font.lg,
+    fontSize: SIZES.text.lg,
     letterSpacing: 0.4,
-    color: COLORS.textOnGold,
-    marginLeft: SIZES.sm,
+    color: COLORS.contentOnAccent,
+    marginLeft: SIZES.space.sm,
   },
 });
 

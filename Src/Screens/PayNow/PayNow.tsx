@@ -163,10 +163,10 @@ const PayNow = () => {
           <AppText variant="h2" align="center" style={styles.statusSpacing}>
             Payment Successful!
           </AppText>
-          <AppText variant="body" color={COLORS.textSecondary} align="center" style={styles.statusSpacing}>
+          <AppText variant="body" color={COLORS.contentSecondary} align="center" style={styles.statusSpacing}>
             {formatCurrency(paymentAmount)} paid successfully
           </AppText>
-          <AppText variant="bodyBold" color={COLORS.accentDark} style={styles.statusDetail}>
+          <AppText variant="bodyBold" color={COLORS.contentBrand} style={styles.statusDetail}>
             Installment {nextInstallment}/{totalInstallments}
           </AppText>
           {paymentId ? (
@@ -194,7 +194,7 @@ const PayNow = () => {
           <AppText variant="h2" align="center" style={styles.statusSpacing}>
             Payment Failed
           </AppText>
-          <AppText variant="body" color={COLORS.textSecondary} align="center" style={styles.statusSpacing}>
+          <AppText variant="body" color={COLORS.contentSecondary} align="center" style={styles.statusSpacing}>
             {statusMsg || 'Something went wrong. Please try again.'}
           </AppText>
           <AppButton label="Try Again" size="lg" style={styles.actionBtn} onPress={() => setStatus(STATUS.IDLE)} />
@@ -219,7 +219,7 @@ const PayNow = () => {
           <AppText variant="h3" style={styles.memberName}>
             {memberName}
           </AppText>
-          <AppText variant="body" color={COLORS.textSecondary} numberOfLines={2} style={styles.schemeName}>
+          <AppText variant="body" color={COLORS.contentSecondary} numberOfLines={2} style={styles.schemeName}>
             {schemeName}
           </AppText>
 
@@ -228,12 +228,12 @@ const PayNow = () => {
           <View style={styles.progressBarContainer}>
             <View style={[styles.progressFill, { width: `${progress}%` }]} />
           </View>
-          <AppText variant="bodySmall" color={COLORS.textSecondary} style={styles.progressText}>
+          <AppText variant="bodySmall" color={COLORS.contentSecondary} style={styles.progressText}>
             {installmentsPaid}/{totalInstallments} Installments Paid
           </AppText>
 
           <View style={styles.nextBadge}>
-            <AppText variant="bodyMedium" color={COLORS.accentDark}>
+            <AppText variant="bodyMedium" color={COLORS.contentBrand}>
               Next Installment: #{nextInstallment}
             </AppText>
           </View>
@@ -251,7 +251,7 @@ const PayNow = () => {
 
           {nextDueDate && (
             <View style={styles.dueBadge}>
-              <AppText variant="bodyMedium" color={COLORS.accentDark}>
+              <AppText variant="bodyMedium" color={COLORS.contentBrand}>
                 Next Due: {formatDate(nextDueDate)}
               </AppText>
             </View>
@@ -264,17 +264,17 @@ const PayNow = () => {
             Payment Summary
           </AppText>
           <View style={styles.row}>
-            <AppText color={COLORS.textSecondary}>Installment Amount</AppText>
+            <AppText color={COLORS.contentSecondary}>Installment Amount</AppText>
             <AppText variant="bodyBold">{formatCurrency(amount)}</AppText>
           </View>
           <View style={styles.row}>
-            <AppText color={COLORS.textSecondary}>Total Paid Till Date</AppText>
+            <AppText color={COLORS.contentSecondary}>Total Paid Till Date</AppText>
             <AppText variant="bodyBold">{formatCurrency(totalAmount)}</AppText>
           </View>
           <AppDivider />
           <View style={styles.row}>
             <AppText variant="h6">Due Amount</AppText>
-            <AppText variant="h4" color={COLORS.accentDark}>
+            <AppText variant="h4" color={COLORS.contentBrand}>
               {formatCurrency(paymentAmount)}
             </AppText>
           </View>
@@ -289,7 +289,7 @@ const PayNow = () => {
             <AppText style={styles.methodIcon}>💰</AppText>
             <View style={styles.methodInfo}>
               <AppText variant="h6">Razorpay</AppText>
-              <AppText variant="bodySmall" color={COLORS.textSecondary}>
+              <AppText variant="bodySmall" color={COLORS.contentSecondary}>
                 UPI, Card, NetBanking, Wallet
               </AppText>
             </View>
@@ -297,7 +297,7 @@ const PayNow = () => {
           </View>
           <View style={styles.secureRow}>
             <AppText>🔒 </AppText>
-            <AppText variant="bodySmall" color={COLORS.textSecondary} style={styles.secureText}>
+            <AppText variant="bodySmall" color={COLORS.contentSecondary} style={styles.secureText}>
               Secure payment powered by Razorpay
             </AppText>
           </View>
@@ -324,83 +324,83 @@ const PayNow = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.backgroundSecondary },
+  container: { flex: 1, backgroundColor: COLORS.surfaceMuted },
   scrollContent: { paddingBottom: 0 },
 
   badgeRow: {
     flexDirection: 'row',
-    gap: SIZES.sm,
-    marginBottom: SIZES.margin.sm,
+    gap: SIZES.space.sm,
+    marginBottom: SIZES.space.sm,
   },
   card: {
-    marginBottom: SIZES.margin.md,
+    marginBottom: SIZES.space.md,
   },
   memberName: {
-    marginBottom: SIZES.xs,
+    marginBottom: SIZES.space.xs,
     textTransform: 'uppercase',
   },
   schemeName: {
-    marginBottom: SIZES.md,
+    marginBottom: SIZES.space.lg,
   },
   progressBarContainer: {
     height: 8,
-    backgroundColor: COLORS.gray200,
-    borderRadius: SIZES.radius.full,
+    backgroundColor: COLORS.border,
+    borderRadius: SIZES.radius.pill,
     overflow: 'hidden',
-    marginBottom: SIZES.sm,
+    marginBottom: SIZES.space.sm,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: COLORS.accentDark,
-    borderRadius: SIZES.radius.full,
+    backgroundColor: COLORS.brand,
+    borderRadius: SIZES.radius.pill,
   },
   progressText: {
-    marginBottom: SIZES.sm,
+    marginBottom: SIZES.space.sm,
   },
   nextBadge: {
-    backgroundColor: COLORS.accentLight,
-    padding: SIZES.padding.sm,
+    backgroundColor: COLORS.accentSoft,
+    padding: SIZES.space.sm,
     borderRadius: SIZES.radius.sm,
     alignItems: 'center',
-    marginBottom: SIZES.sm,
+    marginBottom: SIZES.space.sm,
   },
   dateRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: SIZES.sm,
+    marginBottom: SIZES.space.sm,
   },
   dueBadge: {
-    backgroundColor: COLORS.secondaryLighter,
-    padding: SIZES.padding.sm,
+    backgroundColor: COLORS.accentSubtle,
+    padding: SIZES.space.sm,
     borderRadius: SIZES.radius.sm,
     alignItems: 'center',
   },
 
   sectionTitle: {
-    marginBottom: SIZES.md,
+    marginBottom: SIZES.space.lg,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SIZES.sm,
+    marginBottom: SIZES.space.sm,
   },
 
   methodRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.gray100,
-    padding: SIZES.padding.lg,
+    backgroundColor: COLORS.surfaceSunken,
+    padding: SIZES.space.lg,
     borderRadius: SIZES.radius.md,
-    marginBottom: SIZES.sm,
+    marginBottom: SIZES.space.sm,
   },
-  methodIcon: { fontSize: SIZES.icon.lg, marginRight: SIZES.sm },
+  methodIcon: { fontSize: SIZES.icon.lg, marginRight: SIZES.space.sm },
   methodInfo: { flex: 1 },
   secureRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.gray50,
-    padding: SIZES.padding.md,
+    backgroundColor: COLORS.surfaceMuted,
+    padding: SIZES.space.md,
     borderRadius: SIZES.radius.sm,
   },
   secureText: { flex: 1 },
@@ -410,27 +410,27 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
-    padding: SIZES.padding.lg,
-    paddingBottom: Platform.OS === 'ios' ? 34 : SIZES.padding.lg,
+    padding: SIZES.space.lg,
+    paddingBottom: Platform.OS === 'ios' ? 34 : SIZES.space.lg,
   },
   payNote: {
-    marginTop: SIZES.sm,
+    marginTop: SIZES.space.sm,
   },
 
   statusContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: SIZES.padding.xxxl,
+    padding: SIZES.space.xxxl,
   },
-  statusIcon: { fontSize: 64, marginBottom: SIZES.md },
-  statusSpacing: { marginBottom: SIZES.sm },
-  statusDetail: { marginBottom: SIZES.xs },
-  paymentIdText: { marginBottom: SIZES.xl },
-  actionBtn: { marginBottom: SIZES.sm },
+  statusIcon: { fontSize: 64, marginBottom: SIZES.space.lg },
+  statusSpacing: { marginBottom: SIZES.space.sm },
+  statusDetail: { marginBottom: SIZES.space.xs },
+  paymentIdText: { marginBottom: SIZES.space.xxxl },
+  actionBtn: { marginBottom: SIZES.space.sm },
 });
 
 export default PayNow;

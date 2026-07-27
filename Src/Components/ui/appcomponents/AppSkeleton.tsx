@@ -38,7 +38,7 @@ export function AppSkeleton({ width = '100%', height = 16, borderRadius, circle 
           width: width as any,
           height,
           borderRadius: circle ? height / 2 : borderRadius ?? SIZES.radius.sm,
-          backgroundColor: COLORS.gray200,
+          backgroundColor: COLORS.border,
           opacity,
         },
         style,
@@ -50,10 +50,10 @@ export function AppSkeleton({ width = '100%', height = 16, borderRadius, circle 
 /** Common composite: a card-shaped skeleton row (icon + two lines), for list screens. */
 export function AppSkeletonListItem({ style }: { style?: StyleProp<ViewStyle> }) {
   return (
-    <View style={[{ flexDirection: 'row', alignItems: 'center', padding: SIZES.padding.md }, style]}>
+    <View style={[{ flexDirection: 'row', alignItems: 'center', padding: SIZES.space.md }, style]}>
       <AppSkeleton circle width={44} height={44} />
-      <View style={{ marginLeft: SIZES.md, flex: 1 }}>
-        <AppSkeleton width="60%" height={14} style={{ marginBottom: SIZES.xs }} />
+      <View style={{ marginLeft: SIZES.space.lg, flex: 1 }}>
+        <AppSkeleton width="60%" height={14} style={{ marginBottom: SIZES.space.xs }} />
         <AppSkeleton width="40%" height={12} />
       </View>
     </View>

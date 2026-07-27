@@ -34,7 +34,7 @@ export default function AppAvatar({ uri, initials, size = 'medium', style }: App
     width: dimension,
     height: dimension,
     borderRadius: dimension / 2,
-    backgroundColor: COLORS.gray200,
+    backgroundColor: COLORS.border,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -46,7 +46,7 @@ export default function AppAvatar({ uri, initials, size = 'medium', style }: App
 
   return (
     <View style={[containerStyle, style]}>
-      <Text style={{ fontFamily: FONTS.family.semiBold, fontSize: FONT_SIZE_BY_SIZE[size], color: COLORS.textSecondary }}>
+      <Text style={{ fontFamily: FONTS.family.semiBold, fontSize: FONT_SIZE_BY_SIZE[size], color: COLORS.contentSecondary }}>
         {(initials || '?').slice(0, 2).toUpperCase()}
       </Text>
     </View>

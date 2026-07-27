@@ -12,8 +12,8 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } fr
 import theme from '../../../Utills/AppTheme';
 import { getInitials } from './homeHeaderData';
 
-const { COLORS, SIZES, FONTS, SHADOWS } = theme;
-const RING = COLORS.gradient.champagneGold as [string, string, string];
+const { COLORS, SIZES, FONTS, ELEVATION } = theme;
+const RING = COLORS.gradient.brand as [string, string, string];
 
 export interface ProfileAvatarProps {
   name: string;
@@ -62,17 +62,17 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ name, imageUrl, size = 52
 };
 
 const styles = StyleSheet.create({
-  shadow: { ...SHADOWS.goldStrong, shadowColor: COLORS.accent },
+  shadow: { ...ELEVATION.brandGlow, shadowColor: COLORS.shadowBrand },
   ring: { alignItems: 'center', justifyContent: 'center' },
   initialsWrap: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   initials: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.font.lg,
-    color: COLORS.accentDark,
+    fontSize: SIZES.text.lg,
+    color: COLORS.contentBrand,
     letterSpacing: 0.5,
   },
 });

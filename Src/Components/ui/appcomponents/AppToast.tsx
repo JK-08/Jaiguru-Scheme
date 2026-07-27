@@ -24,12 +24,15 @@ interface ToastContextValue {
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
+// This toast renders white text directly on the fill, so it uses the darker
+// `*Text` tones: the base `success`/`warning` fills only reach 4.35:1 and
+// 3.64:1 against white, which fails AA for body copy.
 const VARIANT_CONFIG: Record<ToastVariant, { bg: string; icon: string }> = {
-  default: { bg: COLORS.gray900, icon: 'information-circle' },
-  success: { bg: COLORS.success, icon: 'checkmark-circle' },
-  error: { bg: COLORS.error, icon: 'close-circle' },
-  warning: { bg: COLORS.warning, icon: 'warning' },
-  info: { bg: COLORS.info, icon: 'information-circle' },
+  default: { bg: COLORS.contentPrimary, icon: 'information-circle' },
+  success: { bg: COLORS.successText, icon: 'checkmark-circle' },
+  error: { bg: COLORS.dangerText, icon: 'close-circle' },
+  warning: { bg: COLORS.warningText, icon: 'warning' },
+  info: { bg: COLORS.infoText, icon: 'information-circle' },
 };
 
 export const AppToastProvider = ({ children }: { children: React.ReactNode }) => {
@@ -64,8 +67,8 @@ export const AppToastProvider = ({ children }: { children: React.ReactNode }) =>
           pointerEvents="none"
           style={[styles.container, { backgroundColor: config.bg, transform: [{ translateY }] }]}
         >
-          <Icon name={config.icon} size={20} color={COLORS.white} style={{ marginRight: SIZES.sm }} />
-          <Text style={[FONTS.bodyMedium, styles.text]} numberOfLines={2}>
+          <Icon name={config.icon} size={20} color={COLORS.contentOnBrand} style={{ marginRight: SIZES.space.sm }} />
+          <Text style={[FONTS.bodyEmphasis, styles.text]} numberOfLines={2}>
             {toast.message}
           </Text>
         </Animated.View>
@@ -89,11 +92,11 @@ export const useToast = (): ToastContextValue => {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    left: SIZES.padding.lg,
-    right: SIZES.padding.lg,
-    bottom: SIZES.padding.xxl,
+    left: SIZES.space.lg,
+    right: SIZES.space.lg,
+    bottom: SIZES.space.xxl,
     borderRadius: SIZES.radius.md,
-    padding: SIZES.padding.md,
+    padding: SIZES.space.md,
     flexDirection: 'row',
     alignItems: 'center',
     shadowColor: COLORS.black,
@@ -103,7 +106,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   text: {
-    color: COLORS.white,
+    color: COLORS.contentOnBrand,
     flex: 1,
   },
 });

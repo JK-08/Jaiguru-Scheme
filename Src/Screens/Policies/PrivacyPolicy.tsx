@@ -11,7 +11,7 @@ export interface PrivacyPolicyProps {
 }
 
 const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
-  const { COLORS, SIZES, FONTS, SHADOWS, COMMON_STYLES, moderateScale } = theme;
+  const { COLORS, SIZES, FONTS, ELEVATION, STYLES, moderateScale } = theme;
 
   const openEmail = () => {
     Linking.openURL('mailto:sandiyafoundationschennaillp@gmail.com');
@@ -22,12 +22,12 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
   };
 
   const PolicySection = ({ title, children, isLast = false }: { title: string; children: React.ReactNode; isLast?: boolean }) => (
-    <View style={{ marginBottom: isLast ? 0 : SIZES.padding.xl }}>
+    <View style={{ marginBottom: isLast ? 0 : SIZES.space.xl }}>
       <Text
         style={{
-          ...FONTS.h4,
-          color: COLORS.accentDark,
-          marginBottom: SIZES.padding.md,
+          ...FONTS.heading,
+          color: COLORS.contentBrand,
+          marginBottom: SIZES.space.md,
         }}
       >
         {title}
@@ -37,12 +37,12 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
   );
 
   const BulletPoint = ({ text, style = {} }: { text: string; style?: object }) => (
-    <View style={{ flexDirection: 'row', marginBottom: SIZES.padding.sm }}>
+    <View style={{ flexDirection: 'row', marginBottom: SIZES.space.sm }}>
       <Text
         style={{
           ...FONTS.body,
-          color: COLORS.textSecondary,
-          marginRight: SIZES.padding.sm,
+          color: COLORS.contentSecondary,
+          marginRight: SIZES.space.sm,
         }}
       >
         •
@@ -50,7 +50,7 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
       <Text
         style={{
           ...FONTS.body,
-          color: COLORS.textSecondary,
+          color: COLORS.contentSecondary,
           flex: 1,
           ...style,
         }}
@@ -61,15 +61,15 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
   );
 
   return (
-    <SafeAreaView style={COMMON_STYLES.container}>
+    <SafeAreaView style={STYLES.screen}>
       <PremiumBackground />
       <CommonHeader title="Privacy Policy" onBackPress={() => navigation.goBack()} transparent borderBottom={false} shadow={false} />
 
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
-          padding: SIZES.padding.container,
-          paddingBottom: SIZES.padding.xxxl,
+          padding: SIZES.space.gutter,
+          paddingBottom: SIZES.space.xxxl,
         }}
         showsVerticalScrollIndicator={false}
       >
@@ -77,11 +77,11 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
         <View
           style={{
             alignItems: 'center',
-            marginBottom: SIZES.padding.xl,
-            padding: SIZES.padding.lg,
-            backgroundColor: COLORS.accentLight,
+            marginBottom: SIZES.space.xl,
+            padding: SIZES.space.lg,
+            backgroundColor: COLORS.accentSoft,
             borderRadius: SIZES.radius.lg,
-            ...SHADOWS.sm,
+            ...ELEVATION.raised,
           }}
         >
           <View
@@ -89,29 +89,29 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
               width: moderateScale(60),
               height: moderateScale(60),
               borderRadius: SIZES.radius.lg,
-              backgroundColor: COLORS.accentDark,
+              backgroundColor: COLORS.brand,
               alignItems: 'center',
               justifyContent: 'center',
-              marginBottom: SIZES.padding.md,
+              marginBottom: SIZES.space.md,
             }}
           >
             <Text
               style={{
-                fontSize: SIZES.font.xxl,
-                color: COLORS.white,
+                fontSize: SIZES.text.xxl,
+                color: COLORS.contentOnBrand,
                 fontWeight: 'bold',
               }}
             >
               SF
             </Text>
           </View>
-          <Text style={{ ...FONTS.h4, color: COLORS.accentDark, textAlign: 'center' }}>SANDIYA FOUNDATIONS CHENNAI LLP</Text>
+          <Text style={{ ...FONTS.heading, color: COLORS.contentBrand, textAlign: 'center' }}>SANDIYA FOUNDATIONS CHENNAI LLP</Text>
           <Text
             style={{
-              ...FONTS.bodySmall,
-              color: COLORS.textSecondary,
+              ...FONTS.bodySm,
+              color: COLORS.contentSecondary,
               textAlign: 'center',
-              marginTop: SIZES.padding.xs,
+              marginTop: SIZES.space.xs,
             }}
           >
             Last Updated: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
@@ -123,8 +123,8 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
           <Text
             style={{
               ...FONTS.body,
-              color: COLORS.textSecondary,
-              marginBottom: SIZES.padding.sm,
+              color: COLORS.contentSecondary,
+              marginBottom: SIZES.space.sm,
             }}
           >
             At SANDIYA FOUNDATIONS CHENNAI LLP, we prioritize your privacy. This policy details how we collect, use, and protect your
@@ -137,8 +137,8 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
           <Text
             style={{
               ...FONTS.body,
-              color: COLORS.textSecondary,
-              marginBottom: SIZES.padding.md,
+              color: COLORS.contentSecondary,
+              marginBottom: SIZES.space.md,
             }}
           >
             We collect essential information to deliver our services effectively:
@@ -153,31 +153,31 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
 
         {/* How We Use Your Data */}
         <PolicySection title="3. How We Use Your Data">
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: SIZES.padding.sm }}>
-            <Text style={{ ...FONTS.body, color: COLORS.success, marginRight: SIZES.padding.sm }}>✓</Text>
-            <Text style={{ ...FONTS.body, color: COLORS.textSecondary, flex: 1 }}>To process service requests and transactions</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: SIZES.space.sm }}>
+            <Text style={{ ...FONTS.body, color: COLORS.successText, marginRight: SIZES.space.sm }}>✓</Text>
+            <Text style={{ ...FONTS.body, color: COLORS.contentSecondary, flex: 1 }}>To process service requests and transactions</Text>
           </View>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: SIZES.padding.sm }}>
-            <Text style={{ ...FONTS.body, color: COLORS.success, marginRight: SIZES.padding.sm }}>✓</Text>
-            <Text style={{ ...FONTS.body, color: COLORS.textSecondary, flex: 1 }}>For client communication and support</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: SIZES.space.sm }}>
+            <Text style={{ ...FONTS.body, color: COLORS.successText, marginRight: SIZES.space.sm }}>✓</Text>
+            <Text style={{ ...FONTS.body, color: COLORS.contentSecondary, flex: 1 }}>For client communication and support</Text>
           </View>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: SIZES.padding.sm }}>
-            <Text style={{ ...FONTS.body, color: COLORS.success, marginRight: SIZES.padding.sm }}>✓</Text>
-            <Text style={{ ...FONTS.body, color: COLORS.textSecondary, flex: 1 }}>To enhance service delivery and user experience</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: SIZES.space.sm }}>
+            <Text style={{ ...FONTS.body, color: COLORS.successText, marginRight: SIZES.space.sm }}>✓</Text>
+            <Text style={{ ...FONTS.body, color: COLORS.contentSecondary, flex: 1 }}>To enhance service delivery and user experience</Text>
           </View>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: SIZES.padding.sm }}>
-            <Text style={{ ...FONTS.body, color: COLORS.success, marginRight: SIZES.padding.sm }}>✓</Text>
-            <Text style={{ ...FONTS.body, color: COLORS.textSecondary, flex: 1 }}>For business analytics and operational improvement</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: SIZES.space.sm }}>
+            <Text style={{ ...FONTS.body, color: COLORS.successText, marginRight: SIZES.space.sm }}>✓</Text>
+            <Text style={{ ...FONTS.body, color: COLORS.contentSecondary, flex: 1 }}>For business analytics and operational improvement</Text>
           </View>
 
-          <View style={{ marginTop: SIZES.padding.md }}>
+          <View style={{ marginTop: SIZES.space.md }}>
             <Text
               style={{
                 ...FONTS.body,
-                color: COLORS.accentDark,
+                color: COLORS.contentBrand,
                 fontStyle: 'italic',
               }}
             >
@@ -191,8 +191,8 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
           <Text
             style={{
               ...FONTS.body,
-              color: COLORS.textSecondary,
-              marginBottom: SIZES.padding.md,
+              color: COLORS.contentSecondary,
+              marginBottom: SIZES.space.md,
             }}
           >
             We Do Not
@@ -200,10 +200,10 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
 
           <View
             style={{
-              backgroundColor: COLORS.error + '20',
-              padding: SIZES.padding.md,
+              backgroundColor: COLORS.danger + '20',
+              padding: SIZES.space.md,
               borderRadius: SIZES.radius.md,
-              marginBottom: SIZES.padding.lg,
+              marginBottom: SIZES.space.lg,
             }}
           >
             <BulletPoint text="Sell or rent personal data" />
@@ -213,8 +213,8 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
           <Text
             style={{
               ...FONTS.body,
-              color: COLORS.textSecondary,
-              marginBottom: SIZES.padding.md,
+              color: COLORS.contentSecondary,
+              marginBottom: SIZES.space.md,
             }}
           >
             We May Share With
@@ -223,7 +223,7 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
           <View
             style={{
               backgroundColor: COLORS.success + '20',
-              padding: SIZES.padding.md,
+              padding: SIZES.space.md,
               borderRadius: SIZES.radius.md,
             }}
           >
@@ -234,9 +234,9 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
 
           <Text
             style={{
-              ...FONTS.bodySmall,
-              color: COLORS.textTertiary,
-              marginTop: SIZES.padding.md,
+              ...FONTS.bodySm,
+              color: COLORS.contentMuted,
+              marginTop: SIZES.space.md,
               fontStyle: 'italic',
             }}
           >
@@ -248,44 +248,44 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
         <PolicySection title="5. Security Measures">
           <View
             style={{
-              ...COMMON_STYLES.card.blueLight,
-              marginBottom: SIZES.padding.lg,
+              ...STYLES.card.brandSoft,
+              marginBottom: SIZES.space.lg,
             }}
           >
             <Text
               style={{
                 ...FONTS.label,
-                color: COLORS.accentDark,
-                marginBottom: SIZES.padding.sm,
+                color: COLORS.contentBrand,
+                marginBottom: SIZES.space.sm,
               }}
             >
               Encryption
             </Text>
-            <Text style={{ ...FONTS.body, color: COLORS.textSecondary }}>All data transmissions use SSL encryption</Text>
+            <Text style={{ ...FONTS.body, color: COLORS.contentSecondary }}>All data transmissions use SSL encryption</Text>
           </View>
 
           <View
             style={{
-              ...COMMON_STYLES.card.blueLight,
-              marginBottom: SIZES.padding.lg,
+              ...STYLES.card.brandSoft,
+              marginBottom: SIZES.space.lg,
             }}
           >
             <Text
               style={{
                 ...FONTS.label,
-                color: COLORS.accentDark,
-                marginBottom: SIZES.padding.sm,
+                color: COLORS.contentBrand,
+                marginBottom: SIZES.space.sm,
               }}
             >
               Data Storage
             </Text>
-            <Text style={{ ...FONTS.body, color: COLORS.textSecondary }}>Information stored on secured servers with monitoring</Text>
+            <Text style={{ ...FONTS.body, color: COLORS.contentSecondary }}>Information stored on secured servers with monitoring</Text>
           </View>
 
           <View
             style={{
               backgroundColor: COLORS.warning + '10',
-              padding: SIZES.padding.md,
+              padding: SIZES.space.md,
               borderRadius: SIZES.radius.md,
               borderLeftWidth: 4,
               borderLeftColor: COLORS.warning,
@@ -293,8 +293,8 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
           >
             <Text
               style={{
-                ...FONTS.bodySmall,
-                color: COLORS.textSecondary,
+                ...FONTS.bodySm,
+                color: COLORS.contentSecondary,
                 fontStyle: 'italic',
               }}
             >
@@ -308,8 +308,8 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
           <Text
             style={{
               ...FONTS.body,
-              color: COLORS.textSecondary,
-              marginBottom: SIZES.padding.md,
+              color: COLORS.contentSecondary,
+              marginBottom: SIZES.space.md,
             }}
           >
             Our website utilizes cookies for:
@@ -319,19 +319,19 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
             style={{
               flexDirection: 'row',
               flexWrap: 'wrap',
-              marginBottom: SIZES.padding.lg,
+              marginBottom: SIZES.space.lg,
             }}
           >
             {['Performance', 'Site functionality', 'Analytics', 'Visitor insights', 'Personalization', 'User preferences'].map((label) => (
               <View
                 key={label}
                 style={{
-                  ...COMMON_STYLES.chip.blue,
-                  marginRight: SIZES.padding.sm,
-                  marginBottom: SIZES.padding.sm,
+                  ...STYLES.chip.brand,
+                  marginRight: SIZES.space.sm,
+                  marginBottom: SIZES.space.sm,
                 }}
               >
-                <Text style={{ ...FONTS.bodySmall, color: COLORS.accentDark }}>{label}</Text>
+                <Text style={{ ...FONTS.bodySm, color: COLORS.contentBrand }}>{label}</Text>
               </View>
             ))}
           </View>
@@ -339,16 +339,16 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
           <View
             style={{
               backgroundColor: COLORS.info + '10',
-              padding: SIZES.padding.md,
+              padding: SIZES.space.md,
               borderRadius: SIZES.radius.md,
-              marginBottom: SIZES.padding.lg,
+              marginBottom: SIZES.space.lg,
             }}
           >
             <Text
               style={{
                 ...FONTS.body,
-                color: COLORS.textSecondary,
-                marginBottom: SIZES.padding.sm,
+                color: COLORS.contentSecondary,
+                marginBottom: SIZES.space.sm,
               }}
             >
               You may disable cookies in browser settings, though some features may be limited.
@@ -359,18 +359,18 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
         {/* Contact Information */}
         <View
           style={{
-            ...COMMON_STYLES.card.default,
-            backgroundColor: COLORS.accentLight,
+            ...STYLES.card.base,
+            backgroundColor: COLORS.accentSoft,
             alignItems: 'center',
-            marginTop: SIZES.padding.xl,
-            marginBottom: SIZES.padding.xl,
+            marginTop: SIZES.space.xl,
+            marginBottom: SIZES.space.xl,
           }}
         >
           <Text
             style={{
-              ...FONTS.h5,
-              color: COLORS.accentDark,
-              marginBottom: SIZES.padding.lg,
+              ...FONTS.subheading,
+              color: COLORS.contentBrand,
+              marginBottom: SIZES.space.lg,
               textAlign: 'center',
             }}
           >
@@ -379,9 +379,9 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
 
           <Text
             style={{
-              ...FONTS.bodyMedium,
-              color: COLORS.accentDark,
-              marginBottom: SIZES.padding.sm,
+              ...FONTS.bodyEmphasis,
+              color: COLORS.contentBrand,
+              marginBottom: SIZES.space.sm,
               textAlign: 'center',
             }}
           >
@@ -391,9 +391,9 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
             <Text
               style={{
                 ...FONTS.body,
-                color: COLORS.accentDark,
+                color: COLORS.contentBrand,
                 textDecorationLine: 'underline',
-                marginBottom: SIZES.padding.md,
+                marginBottom: SIZES.space.md,
               }}
             >
               sandiyafoundationschennaillp@gmail.com
@@ -402,8 +402,8 @@ const PrivacyPolicy = ({ navigation }: PrivacyPolicyProps) => {
           <TouchableOpacity onPress={openWebsite}>
             <Text
               style={{
-                ...FONTS.bodySmall,
-                color: COLORS.textSecondary,
+                ...FONTS.bodySm,
+                color: COLORS.contentSecondary,
                 textDecorationLine: 'underline',
               }}
             >

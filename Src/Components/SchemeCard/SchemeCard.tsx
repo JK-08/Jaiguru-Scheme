@@ -5,7 +5,7 @@ import { useSchemeCatalog } from '../../api/hooks/Schemes/useSchemeCatalog';
 import { Scheme } from '../../types/Scheme/Scheme';
 import { useNavigation } from '@react-navigation/native';
 import placeholderImage from '../../Assets/Company/logo.png';
-import { COLORS, SIZES, FONTS, moderateScale, SHADOWS } from '../../Utills/AppTheme';
+import { COLORS, SIZES, FONTS, moderateScale, ELEVATION } from '../../Utills/AppTheme';
 import { IMAGE_BASE_URL } from '../../Config/BaseUrl';
 
 export default function SchemeCardSlider() {
@@ -17,7 +17,7 @@ export default function SchemeCardSlider() {
 
   const screenWidth = Dimensions.get('window').width;
   const CARD_WIDTH = screenWidth * 0.85;
-  const CARD_MARGIN = SIZES.md;
+  const CARD_MARGIN = SIZES.space.lg;
   const SNAP_INTERVAL = CARD_WIDTH + CARD_MARGIN;
   const IMAGE_HEIGHT = CARD_WIDTH * (9 / 16);
 
@@ -66,7 +66,7 @@ export default function SchemeCardSlider() {
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{
         paddingHorizontal: (screenWidth - CARD_WIDTH) / 2,
-        paddingVertical: SIZES.md,
+        paddingVertical: SIZES.space.lg,
       }}
     />
   );
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.radius.lg,
     overflow: 'hidden',
     backgroundColor: COLORS.surface,
-    ...SHADOWS.medium,
+    ...ELEVATION.floating,
   },
   imageBackground: {
     width: '100%',
@@ -85,35 +85,35 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: SIZES.md,
-    backgroundColor: COLORS.background,
+    padding: SIZES.space.lg,
+    backgroundColor: COLORS.surfacePage,
   },
   actionButton: {
     flex: 1,
-    paddingVertical: SIZES.sm,
+    paddingVertical: SIZES.space.sm,
     borderRadius: SIZES.radius.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
   knowMoreButton: {
-    backgroundColor: COLORS.secondary,
+    backgroundColor: COLORS.brand,
     borderWidth: 1,
-    borderColor: COLORS.borderLight,
+    borderColor: COLORS.borderSubtle,
     marginRight: moderateScale(8),
   },
   joinButton: {
-    backgroundColor: COLORS.accentDark,
+    backgroundColor: COLORS.brand,
     marginLeft: moderateScale(8),
     padding: moderateScale(12),
   },
   knowMoreButtonText: {
-    ...FONTS.bodySmall,
-    color: COLORS.textPrimary,
+    ...FONTS.bodySm,
+    color: COLORS.contentOnBrand,
     fontWeight: 'bold',
   },
   joinButtonText: {
-    ...FONTS.bodySmall,
-    color: COLORS.textInverse,
+    ...FONTS.bodySm,
+    color: COLORS.contentOnInverse,
     fontWeight: 'bold',
   },
 });

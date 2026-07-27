@@ -21,7 +21,7 @@ export default function AppLoader({
   overlay = false,
   message,
   size = 'large',
-  color = COLORS.accentDark,
+  color = COLORS.contentBrand,
   style,
 }: AppLoaderProps) {
   if (!visible) return null;
@@ -29,26 +29,26 @@ export default function AppLoader({
   const content = (
     <View style={[{ alignItems: 'center', justifyContent: 'center' }, style]}>
       <ActivityIndicator size={size} color={color} />
-      {message && <Text style={[FONTS.bodySmall, { marginTop: SIZES.margin.sm, color: COLORS.textSecondary }]}>{message}</Text>}
+      {message && <Text style={[FONTS.bodySm, { marginTop: SIZES.space.sm, color: COLORS.contentSecondary }]}>{message}</Text>}
     </View>
   );
 
   if (overlay) {
     return (
       <Modal transparent visible={visible} animationType="fade">
-        <View style={{ flex: 1, backgroundColor: COLORS.overlayDark, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ flex: 1, backgroundColor: COLORS.scrim, alignItems: 'center', justifyContent: 'center' }}>
           <View
             style={{
-              backgroundColor: COLORS.white,
+              backgroundColor: COLORS.surface,
               borderRadius: SIZES.radius.lg,
-              padding: SIZES.padding.xl,
+              padding: SIZES.space.xl,
               alignItems: 'center',
               minWidth: 120,
             }}
           >
             <ActivityIndicator size={size} color={color} />
             {message && (
-              <Text style={[FONTS.bodySmall, { marginTop: SIZES.margin.sm, color: COLORS.textSecondary, textAlign: 'center' }]}>
+              <Text style={[FONTS.bodySm, { marginTop: SIZES.space.sm, color: COLORS.contentSecondary, textAlign: 'center' }]}>
                 {message}
               </Text>
             )}
@@ -59,7 +59,7 @@ export default function AppLoader({
   }
 
   if (fullScreen) {
-    return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.background }}>{content}</View>;
+    return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.surfacePage }}>{content}</View>;
   }
 
   return content;

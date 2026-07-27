@@ -78,9 +78,9 @@ const ResetPasswordScreen = ({ route, navigation }: Props) => {
 export default ResetPasswordScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.white },
-  content: { padding: SIZES.padding.container },
-  title: { ...FONTS.h3, color: COLORS.textPrimary, marginBottom: SIZES.margin.xl },
-  field: { marginBottom: SIZES.margin.md },
-  button: { marginTop: SIZES.margin.sm },
+  container: { flex: 1, backgroundColor: COLORS.surface },
+  content: { padding: SIZES.space.gutter },
+  title: { ...FONTS.title, color: COLORS.contentPrimary, marginBottom: SIZES.space.xl },
+  field: { marginBottom: SIZES.space.md },
+  button: { marginTop: SIZES.space.sm },
 });

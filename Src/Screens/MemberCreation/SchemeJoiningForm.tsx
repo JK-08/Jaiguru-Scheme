@@ -7,7 +7,7 @@ import { Scheme } from '../../types/Scheme/Scheme';
 import { AppText, AppCard, AppBadge, AppSectionHeader } from '../../Components/ui/appcomponents';
 import theme from '../../Utills/AppTheme';
 
-const { COLORS, SIZES, SHADOWS } = theme;
+const { COLORS, SIZES, ELEVATION } = theme;
 
 // NOTE: All payments in this flow are collected online via Razorpay
 // (see MemberCreation.tsx's startPayment/schemeCollectInsert payload, which
@@ -120,8 +120,8 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
     if (loadingSchemes) {
       return (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.accentDark} />
-          <AppText variant="bodySmall" color={COLORS.textSecondary} style={{ marginTop: SIZES.sm }}>
+          <ActivityIndicator size="large" color={COLORS.contentBrand} />
+          <AppText variant="bodySmall" color={COLORS.contentSecondary} style={{ marginTop: SIZES.space.sm }}>
             Loading schemes...
           </AppText>
         </View>
@@ -131,7 +131,7 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
     if (errorSchemes) {
       return (
         <View style={styles.errorContainer}>
-          <AppText variant="bodyBold" color={COLORS.error} align="center">
+          <AppText variant="bodyBold" color={COLORS.danger} align="center">
             Error loading schemes: {errorSchemes}
           </AppText>
         </View>
@@ -146,7 +146,7 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
           <AppCard style={styles.card}>
             <AppSectionHeader title="Member Details" />
             <View style={styles.detailRow}>
-              <AppText variant="bodySmall" color={COLORS.textSecondary}>
+              <AppText variant="bodySmall" color={COLORS.contentSecondary}>
                 Name
               </AppText>
               <AppText variant="bodyBold">
@@ -154,13 +154,13 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
               </AppText>
             </View>
             <View style={styles.detailRow}>
-              <AppText variant="bodySmall" color={COLORS.textSecondary}>
+              <AppText variant="bodySmall" color={COLORS.contentSecondary}>
                 Mobile
               </AppText>
               <AppText variant="bodyBold">{userData.mobileNumber || 'N/A'}</AppText>
             </View>
             <View style={[styles.detailRow, { marginBottom: 0 }]}>
-              <AppText variant="bodySmall" color={COLORS.textSecondary}>
+              <AppText variant="bodySmall" color={COLORS.contentSecondary}>
                 Email
               </AppText>
               <AppText variant="bodyBold">{userData.emailAddress || 'N/A'}</AppText>
@@ -172,19 +172,19 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
         <AppCard style={styles.card}>
           <AppSectionHeader title="Selected Scheme Details" />
           <View style={styles.detailRow}>
-            <AppText variant="bodySmall" color={COLORS.textSecondary}>
+            <AppText variant="bodySmall" color={COLORS.contentSecondary}>
               Scheme Name
             </AppText>
             <AppText variant="bodyBold">{scheme?.schemeName || 'N/A'}</AppText>
           </View>
           <View style={styles.detailRow}>
-            <AppText variant="bodySmall" color={COLORS.textSecondary}>
+            <AppText variant="bodySmall" color={COLORS.contentSecondary}>
               Scheme Code
             </AppText>
             <AppText variant="bodyBold">{scheme?.SchemeSName || 'N/A'}</AppText>
           </View>
           <View style={styles.detailRow}>
-            <AppText variant="bodySmall" color={COLORS.textSecondary}>
+            <AppText variant="bodySmall" color={COLORS.contentSecondary}>
               Metal Type
             </AppText>
             <AppBadge label={`${getMetalTypeName(scheme?.MetalType)} (${scheme?.MetalType || 'N/A'})`} variant="gold" />
@@ -195,7 +195,7 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
         <AppCard style={styles.card}>
           <AppSectionHeader title="Select Scheme Amount" />
           {schemes.length === 0 ? (
-            <AppText variant="bodySmall" color={COLORS.textSecondary}>
+            <AppText variant="bodySmall" color={COLORS.contentSecondary}>
               No schemes available
             </AppText>
           ) : (
@@ -204,26 +204,26 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
               activeOpacity={0.7}
               onPress={() => setDropdownVisible(true)}
             >
-              <AppText variant="body" color={selectedScheme ? COLORS.textPrimary : COLORS.inputPlaceholder}>
+              <AppText variant="body" color={selectedScheme ? COLORS.contentPrimary : COLORS.contentPlaceholder}>
                 {selectedScheme
                   ? `${selectedScheme} · ₹${getAmount(selectedScheme)}`
                   : 'Select an amount'}
               </AppText>
-              <Icon name="chevron-down" size={20} color={COLORS.textSecondary} />
+              <Icon name="chevron-down" size={20} color={COLORS.contentSecondary} />
             </TouchableOpacity>
           )}
 
           {selectedScheme && (
             <View style={styles.amountContainer}>
               <View>
-                <AppText variant="bodySmall" color={COLORS.successDark}>
+                <AppText variant="bodySmall" color={COLORS.successText}>
                   Selected Amount
                 </AppText>
-                <AppText variant="caption" color={COLORS.successDark}>
+                <AppText variant="caption" color={COLORS.successText}>
                   Code: {selectedScheme}
                 </AppText>
               </View>
-              <AppText variant="h4" color={COLORS.successDark}>
+              <AppText variant="h4" color={COLORS.successText}>
                 ₹{getAmount(selectedScheme)}
               </AppText>
             </View>
@@ -238,7 +238,7 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
             onPress={() => setDropdownVisible(false)}
           >
             <View style={styles.dropdownSheet} onStartShouldSetResponder={() => true}>
-              <AppText variant="h5" style={{ marginBottom: SIZES.md }}>
+              <AppText variant="h5" style={{ marginBottom: SIZES.space.lg }}>
                 Select Scheme Amount
               </AppText>
               <FlatList
@@ -255,10 +255,10 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
                         setDropdownVisible(false);
                       }}
                     >
-                      <AppText variant={isSelected ? 'bodyBold' : 'body'} color={isSelected ? COLORS.accentDark : COLORS.textPrimary}>
+                      <AppText variant={isSelected ? 'bodyBold' : 'body'} color={isSelected ? COLORS.accent : COLORS.contentPrimary}>
                         {item.GROUPCODE} · ₹{item.AMOUNT}
                       </AppText>
-                      {isSelected && <Icon name="checkmark-circle" size={20} color={COLORS.accentDark} />}
+                      {isSelected && <Icon name="checkmark-circle" size={20} color={COLORS.contentBrand} />}
                     </TouchableOpacity>
                   );
                 }}
@@ -271,10 +271,10 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
         <AppCard style={styles.card}>
           <AppSectionHeader title="Payment Method" />
           <View style={styles.paymentDetails}>
-            <AppText variant="bodySmall" color={COLORS.accentDark}>
+            <AppText variant="bodySmall" color={COLORS.contentBrand}>
               Payment Type
             </AppText>
-            <AppText variant="h6" color={COLORS.accentDark}>
+            <AppText variant="h6" color={COLORS.contentBrand}>
               Online (00001)
             </AppText>
           </View>
@@ -283,47 +283,47 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
         {/* Summary Card */}
         {selectedScheme && selectedPayment && (
           <AppCard variant="premium" style={styles.card}>
-            <AppText variant="h5" align="center" color={COLORS.accentDark} style={{ marginBottom: SIZES.md }}>
+            <AppText variant="h5" align="center" color={COLORS.contentBrand} style={{ marginBottom: SIZES.space.lg }}>
               Order Summary
             </AppText>
 
             <View style={styles.summaryRow}>
-              <AppText variant="bodySmall" color={COLORS.accentDark}>
+              <AppText variant="bodySmall" color={COLORS.contentBrand}>
                 Scheme
               </AppText>
-              <AppText variant="bodyBold" color={COLORS.accentDark}>
+              <AppText variant="bodyBold" color={COLORS.contentBrand}>
                 {scheme?.schemeName}
               </AppText>
             </View>
             <View style={styles.summaryRow}>
-              <AppText variant="bodySmall" color={COLORS.accentDark}>
+              <AppText variant="bodySmall" color={COLORS.contentBrand}>
                 Scheme Code
               </AppText>
-              <AppText variant="bodyBold" color={COLORS.accentDark}>
+              <AppText variant="bodyBold" color={COLORS.contentBrand}>
                 {selectedScheme}
               </AppText>
             </View>
             <View style={styles.summaryRow}>
-              <AppText variant="bodySmall" color={COLORS.accentDark}>
+              <AppText variant="bodySmall" color={COLORS.contentBrand}>
                 Amount
               </AppText>
-              <AppText variant="bodyBold" color={COLORS.accentDark}>
+              <AppText variant="bodyBold" color={COLORS.contentBrand}>
                 ₹{getAmount(selectedScheme)}
               </AppText>
             </View>
             <View style={styles.summaryRow}>
-              <AppText variant="bodySmall" color={COLORS.accentDark}>
+              <AppText variant="bodySmall" color={COLORS.contentBrand}>
                 Payment Type
               </AppText>
-              <AppText variant="bodyBold" color={COLORS.accentDark}>
+              <AppText variant="bodyBold" color={COLORS.contentBrand}>
                 Online (00001)
               </AppText>
             </View>
             <View style={[styles.summaryRow, { borderBottomWidth: 0 }]}>
-              <AppText variant="bodySmall" color={COLORS.accentDark}>
+              <AppText variant="bodySmall" color={COLORS.contentBrand}>
                 Metal Type
               </AppText>
-              <AppText variant="bodyBold" color={COLORS.accentDark}>
+              <AppText variant="bodyBold" color={COLORS.contentBrand}>
                 {getMetalTypeName(scheme?.MetalType)}
               </AppText>
             </View>
@@ -343,68 +343,68 @@ export default SchemeJoiningForm;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.backgroundSecondary,
+    backgroundColor: COLORS.surfaceMuted,
   },
   contentContainer: {
-    padding: SIZES.padding.lg,
+    padding: SIZES.space.lg,
     paddingBottom: 100,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: SIZES.padding.xl,
-    backgroundColor: COLORS.backgroundSecondary,
+    padding: SIZES.space.xl,
+    backgroundColor: COLORS.surfaceMuted,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: SIZES.padding.xl,
-    backgroundColor: COLORS.backgroundSecondary,
+    padding: SIZES.space.xl,
+    backgroundColor: COLORS.surfaceMuted,
   },
   header: {
-    marginBottom: SIZES.margin.lg,
-    paddingBottom: SIZES.padding.md,
+    marginBottom: SIZES.space.lg,
+    paddingBottom: SIZES.space.md,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
   card: {
-    marginBottom: SIZES.margin.lg,
+    marginBottom: SIZES.space.lg,
   },
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SIZES.margin.sm,
+    marginBottom: SIZES.space.sm,
   },
   dropdownField: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    borderRadius: SIZES.radius.input,
-    paddingHorizontal: SIZES.padding.md,
-    paddingVertical: SIZES.padding.md,
-    backgroundColor: COLORS.inputBackground,
-    marginBottom: SIZES.md,
+    borderColor: COLORS.fieldBorder,
+    borderRadius: SIZES.radius.field,
+    paddingHorizontal: SIZES.space.md,
+    paddingVertical: SIZES.space.md,
+    backgroundColor: COLORS.fieldBackground,
+    marginBottom: SIZES.space.lg,
   },
   dropdownOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: SIZES.padding.xl,
+    padding: SIZES.space.xl,
   },
   dropdownSheet: {
     width: '100%',
     maxWidth: 400,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     borderRadius: SIZES.radius.xl,
-    padding: SIZES.padding.lg,
+    padding: SIZES.space.lg,
     maxHeight: '70%',
-    ...SHADOWS.lg,
+    ...ELEVATION.floating,
   },
   dropdownList: {
     flexGrow: 0,
@@ -413,38 +413,38 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: SIZES.padding.md,
-    paddingHorizontal: SIZES.padding.sm,
+    paddingVertical: SIZES.space.md,
+    paddingHorizontal: SIZES.space.sm,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.borderLight,
+    borderBottomColor: COLORS.borderSubtle,
   },
   dropdownRowSelected: {
-    backgroundColor: COLORS.accentLight,
+    backgroundColor: COLORS.accentSoft,
     borderRadius: SIZES.radius.sm,
   },
   amountContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: COLORS.backgroundSecondary,
-    padding: SIZES.padding.md,
+    backgroundColor: COLORS.surfaceMuted,
+    padding: SIZES.space.md,
     borderRadius: SIZES.radius.md,
     borderWidth: 1,
     borderColor: COLORS.success + '40',
   },
   paymentDetails: {
-    backgroundColor: COLORS.accentLight,
-    padding: SIZES.padding.md,
+    backgroundColor: COLORS.accentSoft,
+    padding: SIZES.space.md,
     borderRadius: SIZES.radius.md,
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SIZES.margin.sm,
-    paddingBottom: SIZES.padding.sm,
+    marginBottom: SIZES.space.sm,
+    paddingBottom: SIZES.space.sm,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.goldOpacity20,
+    borderBottomColor: COLORS.brandAlpha16,
   },
   bottomSpacing: {
     height: 30,

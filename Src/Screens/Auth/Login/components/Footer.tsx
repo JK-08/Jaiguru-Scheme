@@ -31,14 +31,14 @@ const Footer: React.FC<FooterProps> = ({ trustedSince = '1985', onPrivacy, onTer
         <React.Fragment key={b.label}>
           {i > 0 && <View style={styles.dot} />}
           <View style={styles.badge}>
-            <MaterialCommunityIcons name={b.icon} size={SIZES.icon.xs} color={COLORS.accentDark} />
+            <MaterialCommunityIcons name={b.icon} size={SIZES.icon.xs} color={COLORS.contentBrand} />
             <Text style={styles.badgeText}>{b.label}</Text>
           </View>
         </React.Fragment>
       ))}
       <View style={styles.dot} />
       <View style={styles.badge}>
-        <MaterialCommunityIcons name="diamond-stone" size={SIZES.icon.xs} color={COLORS.accentDark} />
+        <MaterialCommunityIcons name="diamond-stone" size={SIZES.icon.xs} color={COLORS.contentBrand} />
         <Text style={styles.badgeText}>Trusted Since {trustedSince}</Text>
       </View>
     </View>
@@ -58,7 +58,7 @@ const Footer: React.FC<FooterProps> = ({ trustedSince = '1985', onPrivacy, onTer
 const styles = StyleSheet.create({
   wrap: {
     alignItems: 'center',
-    marginTop: SIZES.lg,
+    marginTop: SIZES.space.xxl,
   },
   badgeRow: {
     flexDirection: 'row',
@@ -72,30 +72,30 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: FONTS.family.medium,
-    fontSize: SIZES.font.xs,
-    color: COLORS.textSecondary,
-    marginLeft: SIZES.xs,
+    fontSize: SIZES.text.xxs,
+    color: COLORS.contentSecondary,
+    marginLeft: SIZES.space.xs,
   },
   dot: {
     width: 3,
     height: 3,
     borderRadius: 1.5,
-    backgroundColor: COLORS.borderChampagne,
-    marginHorizontal: SIZES.sm,
+    backgroundColor: COLORS.accentSubtle,
+    marginHorizontal: SIZES.space.sm,
   },
   legalRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: SIZES.md,
+    marginTop: SIZES.space.lg,
   },
   legalLink: {
     fontFamily: FONTS.family.medium,
-    fontSize: SIZES.font.sm,
-    color: COLORS.accentDark,
+    fontSize: SIZES.text.sm,
+    color: COLORS.contentBrand,
   },
   legalSep: {
-    color: COLORS.textSecondary,
-    marginHorizontal: SIZES.sm,
+    color: COLORS.contentSecondary,
+    marginHorizontal: SIZES.space.sm,
   },
 });
 

@@ -34,12 +34,12 @@ import LuxuryInput from '../Login/components/LuxuryInput';
 import LoginButton from '../Login/components/LoginButton';
 import GoldParticles from '../Login/components/GoldParticles';
 
-const { COLORS, SIZES, FONTS, SHADOWS } = theme;
+const { COLORS, SIZES, FONTS, ELEVATION } = theme;
 const { width, height } = Dimensions.get('window');
 
-const BG_GRADIENT = COLORS.gradient.champagneSurface as [string, string, string];
-const MEDALLION_GRADIENT = COLORS.gradient.champagneGold as [string, string, string];
-const MEDALLION = SIZES.icon.xxxxl + SIZES.md;
+const BG_GRADIENT = COLORS.gradient.accentWash as [string, string, string];
+const MEDALLION_GRADIENT = COLORS.gradient.brand as [string, string, string];
+const MEDALLION = SIZES.icon.avatarLg + SIZES.space.lg;
 
 interface Props {
   route: { params: { userId?: string; googleData?: any } };
@@ -103,7 +103,7 @@ const GoogleContactMobileScreen = ({ route, navigation }: Props) => {
               <View style={styles.medallionWrap}>
                 <LinearGradient colors={MEDALLION_GRADIENT} style={styles.medallion} start={{ x: 0.1, y: 0.1 }} end={{ x: 0.9, y: 0.9 }}>
                   <View style={styles.medallionInner}>
-                    <MaterialCommunityIcons name="cellphone-check" size={SIZES.icon.xxl} color={COLORS.accentDark} />
+                    <MaterialCommunityIcons name="cellphone-check" size={SIZES.icon.xxl} color={COLORS.contentBrand} />
                   </View>
                 </LinearGradient>
               </View>
@@ -131,7 +131,7 @@ const GoogleContactMobileScreen = ({ route, navigation }: Props) => {
                 />
 
                 <View style={styles.infoBox}>
-                  <MaterialCommunityIcons name="information-outline" size={SIZES.icon.sm} color={COLORS.accentDark} />
+                  <MaterialCommunityIcons name="information-outline" size={SIZES.icon.sm} color={COLORS.contentBrand} />
                   <Text style={styles.infoText}>We&apos;ll send a 6-digit verification code to this number.</Text>
                 </View>
 
@@ -144,7 +144,7 @@ const GoogleContactMobileScreen = ({ route, navigation }: Props) => {
                 />
 
                 <View style={styles.securityNote}>
-                  <MaterialCommunityIcons name="shield-lock" size={SIZES.icon.xs} color={COLORS.accentDark} />
+                  <MaterialCommunityIcons name="shield-lock" size={SIZES.icon.xs} color={COLORS.contentBrand} />
                   <Text style={styles.securityText}>Your information is secure and encrypted.</Text>
                 </View>
               </View>
@@ -159,21 +159,21 @@ const GoogleContactMobileScreen = ({ route, navigation }: Props) => {
 export default GoogleContactMobileScreen;
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.background },
+  root: { flex: 1, backgroundColor: COLORS.surfacePage },
   safe: { flex: 1 },
   flex: { flex: 1 },
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: SIZES.padding.container,
-    paddingTop: SIZES.xl,
-    paddingBottom: SIZES.xl,
+    paddingHorizontal: SIZES.space.gutter,
+    paddingTop: SIZES.space.xxxl,
+    paddingBottom: SIZES.space.xxxl,
   },
   medallionWrap: {
     alignSelf: 'center',
     borderRadius: MEDALLION / 2,
-    ...SHADOWS.goldStrong,
-    shadowColor: COLORS.accent,
-    marginBottom: SIZES.lg,
+    ...ELEVATION.brandGlow,
+    shadowColor: COLORS.shadowBrand,
+    marginBottom: SIZES.space.xxl,
   },
   medallion: {
     width: MEDALLION,
@@ -183,59 +183,59 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   medallionInner: {
-    width: MEDALLION - SIZES.md,
-    height: MEDALLION - SIZES.md,
-    borderRadius: (MEDALLION - SIZES.md) / 2,
-    backgroundColor: COLORS.whiteOpacity80,
+    width: MEDALLION - SIZES.space.lg,
+    height: MEDALLION - SIZES.space.lg,
+    borderRadius: (MEDALLION - SIZES.space.lg) / 2,
+    backgroundColor: COLORS.whiteAlpha80,
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.heading.h3,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.display3,
+    color: COLORS.contentPrimary,
     textAlign: 'center',
   },
   subtitle: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.md,
-    lineHeight: SIZES.font.md * 1.5,
-    color: COLORS.textSecondary,
+    fontSize: SIZES.text.md,
+    lineHeight: SIZES.text.md * 1.5,
+    color: COLORS.contentSecondary,
     textAlign: 'center',
-    marginTop: SIZES.sm,
-    marginBottom: SIZES.xl,
-    paddingHorizontal: SIZES.md,
+    marginTop: SIZES.space.sm,
+    marginBottom: SIZES.space.xxxl,
+    paddingHorizontal: SIZES.space.lg,
   },
   form: {
-    marginTop: SIZES.xs,
+    marginTop: SIZES.space.xs,
   },
   infoBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.accentOpacity20,
+    backgroundColor: COLORS.brandAlpha16,
     borderRadius: SIZES.radius.lg,
-    padding: SIZES.md,
-    marginBottom: SIZES.lg,
+    padding: SIZES.space.lg,
+    marginBottom: SIZES.space.xxl,
     borderWidth: 1,
-    borderColor: COLORS.accentOpacity30,
+    borderColor: COLORS.brandAlpha32,
   },
   infoText: {
     fontFamily: FONTS.family.medium,
-    fontSize: SIZES.font.sm,
-    color: COLORS.textPrimary,
+    fontSize: SIZES.text.sm,
+    color: COLORS.contentPrimary,
     flex: 1,
-    marginLeft: SIZES.sm,
+    marginLeft: SIZES.space.sm,
   },
   securityNote: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: SIZES.lg,
+    marginTop: SIZES.space.xxl,
   },
   securityText: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.xs,
-    color: COLORS.textSecondary,
-    marginLeft: SIZES.xs,
+    fontSize: SIZES.text.xxs,
+    color: COLORS.contentSecondary,
+    marginLeft: SIZES.space.xs,
   },
 });

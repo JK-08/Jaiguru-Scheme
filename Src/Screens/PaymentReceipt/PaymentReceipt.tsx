@@ -5,6 +5,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
 import PremiumBackground from '../../Components/PremiumBackground/PremiumBackground';
 import PaymentReceiptPDF from '../../Utills/PaymentReceiptPDF';
+import { COLORS } from '../../Utills/AppTheme';
 import { useCompany } from '../../api/hooks/Company/useCompany';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { AppButton, AppText } from '../../Components/ui/appcomponents';
@@ -120,16 +121,16 @@ export default function PaymentReceiptPage() {
           shadow={false}
           showBack
           backIconName="arrow-back"
-          backIconColor="#B8860B"
+          backIconColor={COLORS.contentBrand}
           backgroundColor="#FFFFFF"
           textColor="#000000"
           centerTitle
           rightComponent={
             <TouchableOpacity onPress={handleDownloadReceipt} style={styles.actionButton} disabled={isGeneratingPDF}>
               {isGeneratingPDF ? (
-                <ActivityIndicator size="small" color="#B8860B" />
+                <ActivityIndicator size="small" color={COLORS.contentBrand} />
               ) : (
-                <MaterialIcons name="download" size={24} color="#B8860B" />
+                <MaterialIcons name="download" size={24} color={COLORS.contentBrand} />
               )}
             </TouchableOpacity>
           }
@@ -300,7 +301,7 @@ const styles = StyleSheet.create({
     marginBottom: moderateScale(20),
   },
   goBackButton: {
-    backgroundColor: '#B8860B',
+    backgroundColor: COLORS.brand,
     paddingHorizontal: moderateScale(20),
     paddingVertical: moderateScale(12),
     borderRadius: moderateScale(8),
@@ -342,7 +343,7 @@ const styles = StyleSheet.create({
     width: moderateScale(60),
     height: moderateScale(60),
     borderRadius: moderateScale(30),
-    backgroundColor: '#B8860B',
+    backgroundColor: COLORS.brand,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: moderateScale(12),
@@ -356,13 +357,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   companyName: {
-    color: '#B8860B',
+    color: COLORS.contentBrand,
     fontSize: moderateScale(18),
     fontWeight: 'bold',
     letterSpacing: 0.5,
   },
   contactSection: {
-    backgroundColor: '#FBF4E4',
+    backgroundColor: COLORS.accentTint,
     padding: moderateScale(12),
     borderRadius: moderateScale(6),
     marginBottom: moderateScale(16),
@@ -375,13 +376,13 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 2,
-    backgroundColor: '#B8860B',
+    backgroundColor: COLORS.brand,
     marginVertical: moderateScale(16),
   },
   receiptTitle: {
     fontSize: moderateScale(20),
     fontWeight: 'bold',
-    color: '#B8860B',
+    color: COLORS.contentBrand,
     textAlign: 'center',
     marginBottom: moderateScale(20),
     letterSpacing: 1,
@@ -392,7 +393,7 @@ const styles = StyleSheet.create({
     borderRadius: moderateScale(6),
     marginBottom: moderateScale(16),
     borderLeftWidth: 4,
-    borderLeftColor: '#B8860B',
+    borderLeftColor: COLORS.borderBrand,
   },
   infoRow: {
     flexDirection: 'row',
@@ -420,7 +421,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: moderateScale(13),
     fontWeight: 'bold',
-    color: '#B8860B',
+    color: COLORS.contentBrand,
     marginBottom: moderateScale(10),
     textTransform: 'uppercase',
   },
@@ -460,7 +461,7 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#B8860B',
+    backgroundColor: COLORS.brand,
     paddingVertical: moderateScale(10),
     paddingHorizontal: moderateScale(8),
   },
@@ -489,12 +490,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
-    backgroundColor: '#FBF4E4',
+    backgroundColor: COLORS.accentTint,
     padding: moderateScale(14),
     borderRadius: moderateScale(6),
     marginBottom: moderateScale(20),
     borderWidth: 1,
-    borderColor: '#FFD700',
+    borderColor: COLORS.borderAccent,
   },
   totalLabel: {
     fontSize: moderateScale(14),
@@ -505,7 +506,7 @@ const styles = StyleSheet.create({
   totalAmount: {
     fontSize: moderateScale(18),
     fontWeight: 'bold',
-    color: '#B8860B',
+    color: COLORS.contentBrand,
   },
   paymentModeSection: {
     backgroundColor: '#F8F9FA',
@@ -516,7 +517,7 @@ const styles = StyleSheet.create({
   paymentModeTitle: {
     fontSize: moderateScale(12),
     fontWeight: 'bold',
-    color: '#B8860B',
+    color: COLORS.contentBrand,
     marginBottom: moderateScale(8),
   },
   paymentModeRow: {
@@ -549,7 +550,7 @@ const styles = StyleSheet.create({
   },
   footerSubText: {
     fontSize: moderateScale(10),
-    color: '#999',
+    color: COLORS.contentMuted,
     fontStyle: 'italic',
   },
   actionButton: {

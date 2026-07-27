@@ -30,7 +30,7 @@ import {
 } from 'react-native';
 import theme from '../../../Utills/AppTheme';
 
-const { COLORS, FONTS, SIZES, SHADOWS } = theme;
+const { COLORS, FONTS, SIZES, ELEVATION } = theme;
 
 export interface AppOTPInputRef {
   focus: () => void;
@@ -184,18 +184,18 @@ const AppOTPInput = forwardRef<AppOTPInputRef, AppOTPInputProps>(
     }));
 
     const boxColor = (index: number) => {
-      if (disabled) return COLORS.gray100;
-      if (error) return COLORS.errorLight + '22';
+      if (disabled) return COLORS.surfaceSunken;
+      if (error) return COLORS.danger + '22';
       if (success && otp[index]) return COLORS.success + '22';
-      if (otp[index] || focusedIndex === index) return COLORS.accentLight;
-      return COLORS.gray100;
+      if (otp[index] || focusedIndex === index) return COLORS.accentSoft;
+      return COLORS.surfaceSunken;
     };
 
     const boxBorderColor = (index: number) => {
-      if (error) return COLORS.error;
+      if (error) return COLORS.danger;
       if (success && otp[index]) return COLORS.success;
-      if (focusedIndex === index || otp[index]) return COLORS.accentDark;
-      return COLORS.borderMedium;
+      if (focusedIndex === index || otp[index]) return COLORS.accent;
+      return COLORS.borderStrong;
     };
 
     return (
@@ -235,7 +235,7 @@ const AppOTPInput = forwardRef<AppOTPInputRef, AppOTPInputProps>(
                       autoComplete={Platform.OS === 'android' ? 'sms-otp' : 'one-time-code'}
                     />
                     {hasValue && (
-                      <Text style={[styles.digit, { color: error ? COLORS.error : success ? COLORS.success : COLORS.textPrimary }]}>
+                      <Text style={[styles.digit, { color: error ? COLORS.danger : success ? COLORS.success : COLORS.contentPrimary }]}>
                         {otp[i]}
                       </Text>
                     )}
@@ -256,17 +256,17 @@ export default AppOTPInput;
 
 const styles = StyleSheet.create({
   container: { alignItems: 'center' },
-  label: { ...FONTS.label, color: COLORS.textPrimary, marginBottom: 4 },
-  hint: { ...FONTS.bodySmall, color: COLORS.textSecondary, marginBottom: 12 },
+  label: { ...FONTS.label, color: COLORS.contentPrimary, marginBottom: 4 },
+  hint: { ...FONTS.bodySm, color: COLORS.contentSecondary, marginBottom: 12 },
   row: { flexDirection: 'row', alignItems: 'center' },
   box: {
     borderRadius: SIZES.radius.md,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
-    ...SHADOWS.sm,
+    ...ELEVATION.raised,
   },
   hiddenInput: { position: 'absolute', width: '100%', height: '100%', opacity: 0 },
-  digit: { ...FONTS.h4, textAlign: 'center' },
-  errorMsg: { ...FONTS.caption, color: COLORS.error, marginTop: 8, textAlign: 'center' },
+  digit: { ...FONTS.heading, textAlign: 'center' },
+  errorMsg: { ...FONTS.caption, color: COLORS.danger, marginTop: 8, textAlign: 'center' },
 });

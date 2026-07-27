@@ -18,7 +18,7 @@ import Animated, {
 
 import theme from '../../../Utills/AppTheme';
 
-const { COLORS, SIZES, FONTS, SHADOWS } = theme;
+const { COLORS, SIZES, FONTS, ELEVATION } = theme;
 
 export interface GoldRateCardProps {
   gold?: number | null;
@@ -61,7 +61,7 @@ const GoldRateCard: React.FC<GoldRateCardProps> = ({
   const liveDotStyle = useAnimatedStyle(() => ({ opacity: 0.4 + 0.6 * livePulse.value }));
 
   const renderValue = (v: number | null | undefined) => {
-    if (loading) return <ActivityIndicator size="small" color={COLORS.accentDark} />;
+    if (loading) return <ActivityIndicator size="small" color={COLORS.contentBrand} />;
     if (error || v == null) return <Text style={styles.na}>N/A</Text>;
     return <Text style={styles.rate}>{formatINR(v)}</Text>;
   };
@@ -71,7 +71,7 @@ const GoldRateCard: React.FC<GoldRateCardProps> = ({
       <View style={styles.card}>
         <View style={styles.header}>
           <View style={styles.titleWrap}>
-            <MaterialCommunityIcons name="gold" size={SIZES.icon.md} color={COLORS.accentDark} />
+            <MaterialCommunityIcons name="gold" size={SIZES.icon.md} color={COLORS.contentBrand} />
             <Text style={styles.title}>Today's Rate</Text>
           </View>
 
@@ -84,7 +84,7 @@ const GoldRateCard: React.FC<GoldRateCardProps> = ({
             )}
             <Pressable onPress={onRefresh} hitSlop={8} accessibilityRole="button" accessibilityLabel="Refresh rates">
               <Animated.View style={spinStyle}>
-                <MaterialCommunityIcons name="refresh" size={SIZES.icon.sm} color={COLORS.accentDark} />
+                <MaterialCommunityIcons name="refresh" size={SIZES.icon.sm} color={COLORS.contentBrand} />
               </Animated.View>
             </Pressable>
           </View>
@@ -93,7 +93,7 @@ const GoldRateCard: React.FC<GoldRateCardProps> = ({
         <View style={styles.ratesRow}>
           <View style={styles.rateCol}>
             <View style={styles.metalWrap}>
-              <MaterialCommunityIcons name="circle" size={SIZES.icon.xs} color={COLORS.accent} />
+              <MaterialCommunityIcons name="circle" size={SIZES.icon.xs} color={COLORS.contentBrand} />
               <Text style={styles.metal}>GOLD</Text>
             </View>
             <Text style={styles.purity}>916</Text>
@@ -105,7 +105,7 @@ const GoldRateCard: React.FC<GoldRateCardProps> = ({
 
           <View style={styles.rateCol}>
             <View style={styles.metalWrap}>
-              <MaterialCommunityIcons name="circle" size={SIZES.icon.xs} color={COLORS.gray400} />
+              <MaterialCommunityIcons name="circle" size={SIZES.icon.xs} color={COLORS.contentPlaceholder} />
               <Text style={styles.metal}>SILVER</Text>
             </View>
             {renderValue(silver)}
@@ -115,7 +115,7 @@ const GoldRateCard: React.FC<GoldRateCardProps> = ({
 
         {!!lastUpdated && !error && (
           <View style={styles.footer}>
-            <MaterialCommunityIcons name="clock-outline" size={SIZES.icon.xs} color={COLORS.textTertiary} />
+            <MaterialCommunityIcons name="clock-outline" size={SIZES.icon.xs} color={COLORS.contentMuted} />
             <Text style={styles.updated}>Updated {lastUpdated}</Text>
           </View>
         )}
@@ -127,16 +127,16 @@ const GoldRateCard: React.FC<GoldRateCardProps> = ({
 const styles = StyleSheet.create({
   shadow: {
     borderRadius: SIZES.radius.xxl,
-    ...SHADOWS.lg,
-    shadowColor: COLORS.accentDark,
+    ...ELEVATION.floating,
+    shadowColor: COLORS.shadowAccent,
   },
   card: {
     borderRadius: SIZES.radius.xxl,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.accentOpacity20,
-    paddingHorizontal: SIZES.padding.lg,
-    paddingVertical: SIZES.padding.sm,
+    borderColor: COLORS.brandAlpha16,
+    paddingHorizontal: SIZES.space.lg,
+    paddingVertical: SIZES.space.sm,
   },
   header: {
     flexDirection: 'row',
@@ -146,18 +146,18 @@ const styles = StyleSheet.create({
   titleWrap: { flexDirection: 'row', alignItems: 'center' },
   title: {
     fontFamily: FONTS.family.semiBold,
-    fontSize: SIZES.font.md,
-    color: COLORS.textPrimary,
-    marginLeft: SIZES.sm,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentPrimary,
+    marginLeft: SIZES.space.sm,
   },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: SIZES.sm },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: SIZES.space.sm },
   liveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: `${COLORS.success}1A`,
-    paddingHorizontal: SIZES.sm,
+    paddingHorizontal: SIZES.space.sm,
     paddingVertical: 3,
-    borderRadius: SIZES.radius.full,
+    borderRadius: SIZES.radius.pill,
   },
   liveDot: {
     width: 6,
@@ -168,68 +168,68 @@ const styles = StyleSheet.create({
   },
   liveText: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.font.xxs,
+    fontSize: SIZES.text.xxs,
     color: COLORS.success,
     letterSpacing: 0.5,
   },
   ratesRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: SIZES.sm,
+    marginTop: SIZES.space.sm,
   },
   rateCol: { flex: 1, alignItems: 'center' },
   metalWrap: { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
   metal: {
     fontFamily: FONTS.family.medium,
-    fontSize: SIZES.font.xs,
-    color: COLORS.textSecondary,
+    fontSize: SIZES.text.xxs,
+    color: COLORS.contentSecondary,
     letterSpacing: 1,
-    marginLeft: SIZES.xs,
+    marginLeft: SIZES.space.xs,
   },
   purity: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.font.xs,
-    color: COLORS.accentDark,
+    fontSize: SIZES.text.xxs,
+    color: COLORS.contentBrand,
     letterSpacing: 1,
     marginTop: 1,
   },
   rate: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.font.lg,
-    color: COLORS.accentDark,
+    fontSize: SIZES.text.lg,
+    color: COLORS.contentBrand,
     marginTop: 1,
   },
   na: {
     fontFamily: FONTS.family.semiBold,
-    fontSize: SIZES.font.lg,
-    color: COLORS.textTertiary,
+    fontSize: SIZES.text.lg,
+    color: COLORS.contentMuted,
     marginTop: 2,
   },
   unit: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.xxs,
-    color: COLORS.textTertiary,
+    fontSize: SIZES.text.xxs,
+    color: COLORS.contentMuted,
     marginTop: 1,
   },
   vDivider: {
     width: 1,
-    height: SIZES.icon.xxxl,
-    backgroundColor: COLORS.borderChampagne,
+    height: SIZES.icon.avatar,
+    backgroundColor: COLORS.accentSubtle,
   },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: SIZES.sm,
-    paddingTop: SIZES.sm,
+    marginTop: SIZES.space.sm,
+    paddingTop: SIZES.space.sm,
     borderTopWidth: 1,
-    borderTopColor: COLORS.borderChampagne,
+    borderTopColor: COLORS.accentSubtle,
   },
   updated: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.font.xs,
-    color: COLORS.textTertiary,
-    marginLeft: SIZES.xs,
+    fontSize: SIZES.text.xxs,
+    color: COLORS.contentMuted,
+    marginLeft: SIZES.space.xs,
   },
 });
 
