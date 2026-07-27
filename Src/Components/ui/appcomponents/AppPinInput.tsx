@@ -131,16 +131,16 @@ const AppPinInput = forwardRef<AppPinInputRef, AppPinInputProps>(
     const dotFillColor = (index: number) => {
       if (error) return COLORS.danger;
       if (success && pin[index]) return COLORS.success;
-      if (pin[index]) return COLORS.accent;
+      if (pin[index]) return COLORS.brand;
       return 'transparent';
     };
 
     const dotBorderColor = (index: number) => {
       if (error) return COLORS.danger;
       if (success && pin[index]) return COLORS.success;
-      if (focused && pin.filter(Boolean).length === index) return COLORS.accent;
-      if (pin[index]) return COLORS.accent;
-      return COLORS.accentSubtle;
+      if (focused && pin.filter(Boolean).length === index) return COLORS.brand;
+      if (pin[index]) return COLORS.brand;
+      return COLORS.borderStrong;
     };
 
     return (
@@ -190,7 +190,7 @@ const AppPinInput = forwardRef<AppPinInputRef, AppPinInputProps>(
                       width: DOT,
                       height: DOT,
                       borderColor: dotBorderColor(i),
-                      backgroundColor: digit ? COLORS.accentSoft : COLORS.surfaceMuted,
+                      backgroundColor: digit ? COLORS.brandSubtle : COLORS.surfaceMuted,
                     },
                   ]}
                 >

@@ -7,7 +7,7 @@
 // -----------------------------------------------------------------------------
 
 import React, { useEffect } from 'react';
-import { Dimensions, StatusBar, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Image, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
@@ -23,8 +23,8 @@ import theme from '../../../Utills/AppTheme';
 import GoldParticles from '../../Auth/Login/components/GoldParticles';
 import GreetingSection from './GreetingSection';
 import ProfileAvatar from './ProfileAvatar';
-// import NotificationButton from './NotificationButton';
 import GoldRateCard from './GoldRateCard';
+import { useCompany } from '../../../api/hooks/Company/useCompany';
 
 import {
   getGreeting,
@@ -73,6 +73,7 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({
   onRefreshRate,
 }) => {
   const insets = useSafeAreaInsets();
+  const { company, loading: companyLoading } = useCompany();
 
   // Slow shimmer sweep across the curved header.
   const shine = useSharedValue(0);
@@ -87,14 +88,14 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({
 
   return (
     <View style={styles.wrap}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
       {/* Curved gold header */}
       <LinearGradient
         colors={HEADER_GRADIENT}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[styles.curve, { paddingTop: insets.top + SIZES.space.lg }]}
+        style={[styles.curve, { paddingTop: insets.top + SIZES.space.sm }]}
       >
         {/* particles + shimmer */}
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
@@ -109,19 +110,29 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({
           </View>
         </View>
 
-        {/* Top row: greeting + avatar/notification */}
+        {/* Single row: logo + company name (left) | avatar (right) */}
         <View style={styles.topRow}>
-          <View style={styles.greetingWrap}>
-            <GreetingSection greeting={getGreeting()} name={profile.name} />
+          <View style={styles.brandRow}>
+            {companyLoading ? (
+              <ActivityIndicator size="small" color={COLORS.contentOnBrand} />
+            ) : company ? (
+              <>
+                {company.CompanyLogoUrl ? (
+                  <Image source={{ uri: company.CompanyLogoUrl }} style={styles.logo} resizeMode="contain" />
+                ) : null}
+                <Text style={styles.companyName} numberOfLines={1}>
+                  {company.COMPANYNAME || company.COMPANYID || 'Jaiguru Jewellers'}
+                </Text>
+              </>
+            ) : (
+              <Text style={styles.companyName}>Jaiguru Jewellers</Text>
+            )}
           </View>
-
-          <View style={styles.actionsCol}>
-            <View style={styles.avatarRow}>
-              {/* <NotificationButton count={unreadCount} onPress={onNotificationsPress} /> */}
-              <ProfileAvatar name={profile.name} imageUrl={profile.avatarUrl} onPress={onProfilePress} />
-            </View>
-          </View>
+          <ProfileAvatar name={profile.name} imageUrl={profile.avatarUrl} onPress={onProfilePress} />
         </View>
+
+        {/* Greeting below */}
+        <GreetingSection greeting={getGreeting()} name={profile.name} />
       </LinearGradient>
 
       {/* Floating cards overlapping the curve */}
@@ -148,7 +159,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: SIZES.radius.xxl,
     borderBottomRightRadius: SIZES.radius.xxl,
     paddingHorizontal: SIZES.space.gutter,
-    paddingBottom: SIZES.space.huge + SIZES.space.xxl,
+    paddingBottom: SIZES.space.huge + SIZES.space.xl,
     overflow: 'hidden',
   },
   shineClip: {
@@ -163,12 +174,29 @@ const styles = StyleSheet.create({
   },
   topRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    marginBottom: SIZES.space.sm,
   },
-  greetingWrap: { flex: 1, paddingRight: SIZES.space.lg },
-  actionsCol: { alignItems: 'flex-end' },
-  avatarRow: { flexDirection: 'row', alignItems: 'center', gap: SIZES.space.sm },
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: SIZES.space.md,
+  },
+  logo: {
+    width: theme.moderateScale(36),
+    height: theme.moderateScale(36),
+    borderRadius: SIZES.radius.sm,
+    marginRight: SIZES.space.sm,
+  },
+  companyName: {
+    fontFamily: theme.FONTS.family.bold,
+    fontSize: SIZES.text.lg,
+    color: COLORS.contentOnBrand,
+    letterSpacing: 0.3,
+    flexShrink: 1,
+  },
   quickWrap: { marginTop: SIZES.space.lg },
   cards: {
     marginTop: -SIZES.space.huge,

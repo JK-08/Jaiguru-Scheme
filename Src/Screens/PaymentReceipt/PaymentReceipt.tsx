@@ -120,6 +120,7 @@ export default function PaymentReceiptPage() {
           borderBottom={false}
           shadow={false}
           showBack
+          leftIconColor={COLORS.white}
           backIconName="arrow-back"
           backIconColor={COLORS.contentBrand}
           backgroundColor="#FFFFFF"

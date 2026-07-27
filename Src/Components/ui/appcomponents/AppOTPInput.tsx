@@ -187,14 +187,14 @@ const AppOTPInput = forwardRef<AppOTPInputRef, AppOTPInputProps>(
       if (disabled) return COLORS.surfaceSunken;
       if (error) return COLORS.danger + '22';
       if (success && otp[index]) return COLORS.success + '22';
-      if (otp[index] || focusedIndex === index) return COLORS.accentSoft;
+      if (otp[index] || focusedIndex === index) return COLORS.brandSubtle;
       return COLORS.surfaceSunken;
     };
 
     const boxBorderColor = (index: number) => {
       if (error) return COLORS.danger;
       if (success && otp[index]) return COLORS.success;
-      if (focusedIndex === index || otp[index]) return COLORS.accent;
+      if (focusedIndex === index || otp[index]) return COLORS.brand;
       return COLORS.borderStrong;
     };
 

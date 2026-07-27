@@ -19,7 +19,7 @@ import Constants from 'expo-constants';
 import { View, ScrollView, Image, ActivityIndicator, Alert, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
 import PremiumBackground from '../../Components/PremiumBackground/PremiumBackground';
 import BottomTab from '../../Components/BottomTab/BottomTab';
@@ -28,7 +28,7 @@ import { getAuthSession, getUserData, getUserId, clearAuthData } from '../../Uti
 import { clearFCMToken } from '../../Helpers/NotificationHelper';
 import theme from '../../Utills/AppTheme';
 
-const { COLORS, SIZES } = theme;
+const { COLORS, SIZES, ELEVATION } = theme;
 
 interface ProfileUser {
   id: string | number | null;
@@ -50,10 +50,14 @@ const EMPTY_USER: ProfileUser = {
   loginType: '',
 };
 
+// Menu items are now grouped into labeled sections instead of one flat list.
 interface MenuAction {
   key: string;
   label: string;
   icon: string;
+  iconLib?: 'MaterialIcons' | 'Ionicons';
+  iconColor?: string;
+  bgColor?: string;
   danger?: boolean;
   onPress: (navigation: any) => void;
 }
@@ -63,26 +67,66 @@ interface MenuSection {
   items: MenuAction[];
 }
 
-// Menu items are now grouped into labeled sections instead of one flat list.
 const MENU_SECTIONS: MenuSection[] = [
   {
     title: 'Account',
     items: [
-      { key: 'resetmpin', label: 'Reset MPIN', icon: 'lock-reset', onPress: (navigation) => navigation.navigate('ResetMPIN') },
+      {
+        key: 'resetmpin',
+        label: 'Reset MPIN',
+        icon: 'lock-reset',
+        iconLib: 'MaterialIcons',
+        iconColor: COLORS.brand,
+        bgColor: COLORS.brandAlpha16,
+        onPress: (nav) => nav.navigate('ResetMPIN'),
+      },
     ],
   },
   {
     title: 'Support',
     items: [
-      { key: 'help', label: 'Help & Support', icon: 'support-agent', onPress: (navigation) => navigation.navigate('HelpCenter') },
-      { key: 'privacy', label: 'Privacy Policy', icon: 'lock-outline', onPress: (navigation) => navigation.navigate('PrivacyPolicy') },
-      { key: 'terms', label: 'Terms & Conditions', icon: 'description', onPress: (navigation) => navigation.navigate('TermsAndConditions') },
+      {
+        key: 'help',
+        label: 'Help & Support',
+        icon: 'headset-mic',
+        iconLib: 'MaterialIcons',
+        iconColor: COLORS.info,
+        bgColor: COLORS.infoSurface,
+        onPress: (nav) => nav.navigate('HelpCenter'),
+      },
+      {
+        key: 'privacy',
+        label: 'Privacy Policy',
+        icon: 'shield',
+        iconLib: 'MaterialIcons',
+        iconColor: COLORS.success,
+        bgColor: COLORS.successSurface,
+        onPress: (nav) => nav.navigate('PrivacyPolicy'),
+      },
+      {
+        key: 'terms',
+        label: 'Terms & Conditions',
+        icon: 'description',
+        iconLib: 'MaterialIcons',
+        iconColor: COLORS.warning,
+        bgColor: COLORS.warningSurface,
+        onPress: (nav) => nav.navigate('TermsAndConditions'),
+      },
     ],
   },
   {
     title: 'Danger Zone',
     items: [
-      { key: 'deleteaccount', label: 'Delete Account', icon: 'delete-outline', danger: true, onPress: (navigation) => navigation.navigate('DeleteAccount') },
+      {
+        key: 'deleteaccount',
+        label: 'Delete Account',
+        icon: 'delete-outline',
+        iconLib: 'MaterialIcons',
+        iconColor: COLORS.danger,
+        bgColor: COLORS.dangerSurface,
+        danger: true,
+        onPress: (nav) => nav.navigate('DeleteAccount'),
+      },
     ],
   },
 ];
@@ -184,25 +228,26 @@ const ProfileScreen = () => {
                 </LinearGradient>
                 {/* Decorative badge — wire to an "Edit Profile" screen if one is added later */}
                 <View style={styles.avatarBadge}>
-                  <Icon name="photo-camera" size={13} color={COLORS.contentOnBrand} />
+                  <MaterialIcons name="photo-camera" size={13} color={COLORS.contentOnBrand} />
                 </View>
               </View>
 
               <View style={styles.nameRowCenter}>
                 <AppText variant="h3" color={COLORS.contentPrimary} numberOfLines={1}>
                   {user.name}
-                  
                 </AppText>
                 {user.loginType === 'GOOGLE' && (
-                  <Icon name="verified" size={16} color={COLORS.success} style={{ marginLeft: 6 }} />
+                  <MaterialIcons name="verified" size={16} color={COLORS.success} style={{ marginLeft: 6 }} />
                 )}
               </View>
 
-              {/* Contact info — single card, email + mobile separated by divider */}
+              {/* Contact info rows */}
               <View style={styles.infoCard}>
                 {!!user.email && (
                   <View style={styles.infoRow}>
-                    <Icon name="mail-outline" size={14} color={COLORS.contentBrand} />
+                    <View style={styles.infoIconWrap}>
+                      <MaterialIcons name="mail-outline" size={16} color={COLORS.brand} />
+                    </View>
                     <AppText variant="bodySmall" color={COLORS.contentPrimary} numberOfLines={1} style={styles.infoText}>
                       {user.email}
                     </AppText>
@@ -211,13 +256,39 @@ const ProfileScreen = () => {
                 {!!user.email && !!user.contactNumber && <View style={styles.infoDivider} />}
                 {!!user.contactNumber && (
                   <View style={styles.infoRow}>
-                    <Icon name="call" size={14} color={COLORS.contentBrand} />
+                    <View style={styles.infoIconWrap}>
+                      <MaterialIcons name="call" size={16} color={COLORS.brand} />
+                    </View>
                     <AppText variant="bodySmall" color={COLORS.contentPrimary} numberOfLines={1} style={styles.infoText}>
                       {user.contactNumber}
                     </AppText>
                   </View>
                 )}
+                {/* {!!user.id && (
+                  <>
+                    <View style={styles.infoDivider} />
+                    <View style={styles.infoRow}>
+                      <View style={styles.infoIconWrap}>
+                        <MaterialIcons name="badge" size={16} color={COLORS.brand} />
+                      </View>
+                      <AppText variant="bodySmall" color={COLORS.contentPrimary} style={styles.infoText}>
+                        User ID: {user.id}
+                      </AppText>
+                    </View>
+                  </>
+                )} */}
               </View>
+
+              {/* Referral code card */}
+              {/* {!!user.referralCode && (
+                <View style={styles.referralCard}>
+                  <Ionicons name="gift-outline" size={18} color={COLORS.brand} />
+                  <View style={{ marginLeft: SIZES.space.sm, flex: 1 }}>
+                    <AppText variant="caption" color={COLORS.contentMuted}>Referral Code</AppText>
+                    <AppText variant="bodyBold" color={COLORS.brand}>{user.referralCode}</AppText>
+                  </View>
+                </View>
+              )} */}
             </>
           )}
         </View>
@@ -230,18 +301,13 @@ const ProfileScreen = () => {
               {section.items.map((item, index) => (
                 <View key={item.key}>
                   <TouchableOpacity style={styles.menuRow} activeOpacity={0.7} onPress={() => item.onPress(navigation)}>
-                    <View
-                      style={[
-                        styles.menuIconWrap,
-                        { backgroundColor: item.danger ? COLORS.danger + '12' : COLORS.accentSoft },
-                      ]}
-                    >
-                      <Icon name={item.icon} size={20} color={item.danger ? COLORS.danger : COLORS.accent} />
+                    <View style={[styles.menuIconWrap, { backgroundColor: item.bgColor ?? COLORS.brandAlpha16 }]}>
+                      <MaterialIcons name={item.icon as any} size={20} color={item.iconColor ?? COLORS.brand} />
                     </View>
                     <AppText variant="body" color={item.danger ? COLORS.danger : COLORS.contentPrimary} style={{ flex: 1 }}>
                       {item.label}
                     </AppText>
-                    <Icon name="chevron-right" size={20} color={COLORS.contentMuted} />
+                    <MaterialIcons name="chevron-right" size={20} color={COLORS.contentMuted} />
                   </TouchableOpacity>
                   {index < section.items.length - 1 && <View style={styles.menuDivider} />}
                 </View>
@@ -252,7 +318,7 @@ const ProfileScreen = () => {
 
         {/* ---------- Logout: full-width outlined button ---------- */}
         <TouchableOpacity style={styles.logoutButton} activeOpacity={0.7} onPress={handleLogout}>
-          <Icon name="logout" size={18} color={COLORS.danger} />
+          <MaterialIcons name="logout" size={18} color={COLORS.danger} />
           <AppText variant="bodyBold" color={COLORS.danger} style={{ marginLeft: SIZES.space.sm }}>
             Logout
           </AppText>
@@ -345,24 +411,47 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   infoCard: {
-    backgroundColor: COLORS.accentSoft,
+    backgroundColor: COLORS.surface,
     borderRadius: SIZES.radius.md,
     paddingHorizontal: SIZES.space.md,
     marginTop: SIZES.space.sm,
     width: '90%',
+    borderWidth: 1,
+    borderColor: COLORS.borderSubtle,
+    ...ELEVATION.raised,
+  },
+  infoIconWrap: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: COLORS.brandAlpha16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
+    gap: SIZES.space.sm,
   },
   infoText: {
-    marginLeft: 8,
     flex: 1,
   },
   infoDivider: {
     height: 1,
     backgroundColor: COLORS.borderSubtle,
+  },
+  referralCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.brandTint,
+    borderRadius: SIZES.radius.md,
+    paddingHorizontal: SIZES.space.md,
+    paddingVertical: SIZES.space.sm,
+    marginTop: SIZES.space.sm,
+    width: '90%',
+    borderWidth: 1,
+    borderColor: COLORS.brandAlpha16,
   },
 
 

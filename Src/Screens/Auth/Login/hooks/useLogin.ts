@@ -134,9 +134,11 @@ export function useLogin(): UseLogin {
   const toggleRemember = useCallback(() => setRemember((r) => !r), []);
 
   // ---- Post-auth routing ----------------------------------------------------
-  const routeAfterAuth = useCallback(async () => {
-    const hasMpin = await getMpinStatus();
-    if (hasMpin) navigation.replace('MpinVerify');
+  const routeAfterAuth = useCallback(async (mpinSet?: string) => {
+    // Prefer the live API value ("Y"/"N") over the stored flag.
+    const fromApi = mpinSet === 'Y';
+    const fromStorage = await getMpinStatus();
+    if (fromApi || fromStorage) navigation.replace('MpinVerify');
     else navigation.replace('MpinCreate');
   }, [navigation]);
 
@@ -162,8 +164,11 @@ export function useLogin(): UseLogin {
 
       if (res?.success !== false && res?.token) {
         await saveAuthData({ ...res, contactNumber: res.contactNumber || res.contact || mobile, loginType: 'NORMAL' });
+        // Persist the server-side mpinSet flag so future cold-starts are correct.
+        if (res.mpinSet === 'Y') await AsyncStorage.setItem('hasMpin', 'true');
+        else await AsyncStorage.setItem('hasMpin', 'false');
         showToast({ message: 'Login successful!', type: 'success' });
-        setTimeout(routeAfterAuth, 1200);
+        setTimeout(() => routeAfterAuth(res.mpinSet), 1200);
       } else {
         const msg = res?.message || res?.error || 'Invalid credentials';
         showToast({ message: msg, type: 'error' });
@@ -250,7 +255,9 @@ export function useLogin(): UseLogin {
             isLogin: true,
           });
         } else {
-          await routeAfterAuth();
+          if (res.mpinSet === 'Y') await AsyncStorage.setItem('hasMpin', 'true');
+          else await AsyncStorage.setItem('hasMpin', 'false');
+          await routeAfterAuth(res.mpinSet);
         }
       } else {
         showToast({ message: res?.error || 'Google authentication failed', type: 'error' });

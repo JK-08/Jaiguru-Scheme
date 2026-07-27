@@ -66,12 +66,12 @@ export interface OnboardingSlide {
 
 // Amber accent ramp — sourced entirely from the global AppTheme so the
 // onboarding shares one design system with the rest of the app.
-export const GOLD = COLORS.accent;
-export const GOLD_LIGHT = COLORS.accentSoft;
-export const GOLD_DEEP = COLORS.accentStrong;
-export const CHAMPAGNE = COLORS.accentSubtle;
-export const INK = COLORS.contentPrimary;
-export const INK_SOFT = COLORS.contentSecondary;
+export const GOLD = COLORS.accentDeep;        // #D4AF37 — main visible gold
+export const GOLD_LIGHT = COLORS.accentSoft;   // #F8EDC2 — light tint (surfaces only)
+export const GOLD_DEEP = COLORS.accentDeep;    // #D4AF37 — deep gold for text & icons
+export const CHAMPAGNE = COLORS.accentSubtle;  // #ECD98A — decorative surfaces only
+export const INK = COLORS.contentPrimary;      // #14161F
+export const INK_SOFT = COLORS.contentSecondary; // #3C4152
 
 export const ONBOARDING_DATA: readonly OnboardingSlide[] = [
   {

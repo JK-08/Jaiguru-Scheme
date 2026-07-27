@@ -6,26 +6,19 @@
 
 import React, { useEffect } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, {
   Easing,
   interpolate,
   useAnimatedStyle,
   useSharedValue,
-  withDelay,
-  withRepeat,
   withTiming,
 } from 'react-native-reanimated';
 
 import theme from '../../../../Utills/AppTheme';
 
-const { COLORS, SIZES, FONTS, ELEVATION } = theme;
-const AnimatedGradient = Animated.createAnimatedComponent(LinearGradient);
-const MEDALLION = SIZES.icon.avatarLg + SIZES.space.xxxl; // ~96 from theme scale
-
-const MEDALLION_GRADIENT = COLORS.gradient.brand as [string, string, string];
-const SHINE_GRADIENT = COLORS.gradient.shine as [string, string, string];
+const { COLORS, SIZES, FONTS } = theme;
+const MEDALLION = SIZES.icon.avatarLg + SIZES.space.xxxl;
 
 export interface LoginHeaderProps {
   brand?: string;
@@ -39,15 +32,10 @@ const LoginHeader: React.FC<LoginHeaderProps> = ({
   logoUrl,
 }) => {
   const enter = useSharedValue(0);
-  const shine = useSharedValue(0);
 
   useEffect(() => {
     enter.value = withTiming(1, { duration: 650, easing: Easing.out(Easing.cubic) });
-    shine.value = withDelay(
-      500,
-      withRepeat(withTiming(1, { duration: 2400, easing: Easing.inOut(Easing.quad) }), -1, false),
-    );
-  }, [enter, shine]);
+  }, [enter]);
 
   const medallionStyle = useAnimatedStyle(() => ({
     opacity: enter.value,
@@ -62,41 +50,15 @@ const LoginHeader: React.FC<LoginHeaderProps> = ({
     transform: [{ translateY: interpolate(enter.value, [0, 1], [16, 0]) }],
   }));
 
-  const shineStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: interpolate(shine.value, [0, 1], [-MEDALLION, MEDALLION]) },
-      { rotateZ: '18deg' },
-    ],
-    opacity: interpolate(shine.value, [0, 0.5, 1], [0, 0.9, 0]),
-  }));
 
   return (
     <View style={styles.wrap}>
-      <Animated.View style={[styles.medallionShadow, medallionStyle]}>
-        <LinearGradient
-          colors={MEDALLION_GRADIENT}
-          start={{ x: 0.1, y: 0.1 }}
-          end={{ x: 0.9, y: 0.9 }}
-          style={styles.medallion}
-        >
-          <View style={styles.logoInner}>
-            {logoUrl ? (
-              <Image source={{ uri: logoUrl }} style={styles.logoImg} resizeMode="contain" />
-            ) : (
-              <MaterialCommunityIcons name="gold" size={SIZES.icon.avatar} color={COLORS.contentBrand} />
-            )}
-          </View>
-
-          {/* looping shine sweep */}
-          <View style={styles.shineClip} pointerEvents="none">
-            <AnimatedGradient
-              colors={SHINE_GRADIENT}
-              start={{ x: 0, y: 0.5 }}
-              end={{ x: 1, y: 0.5 }}
-              style={[styles.shine, shineStyle]}
-            />
-          </View>
-        </LinearGradient>
+      <Animated.View style={[styles.logoWrap, medallionStyle]}>
+        {logoUrl ? (
+          <Image source={{ uri: logoUrl }} style={styles.logoImg} resizeMode="contain" />
+        ) : (
+          <MaterialCommunityIcons name="gold" size={SIZES.icon.avatar} color={COLORS.contentBrand} />
+        )}
       </Animated.View>
 
       <Animated.View style={[styles.textBlock, textStyle]}>
@@ -118,44 +80,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap:10
   },
-  medallionShadow: {
-    borderRadius: MEDALLION / 2,
-    ...ELEVATION.brandGlow,
-    shadowColor: COLORS.shadowBrand,
+  logoWrap: {
+    width: MEDALLION,
+    height: MEDALLION,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  medallion: {
+  logoImg: {
     width: MEDALLION,
     height: MEDALLION,
     borderRadius: MEDALLION / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  logoInner: {
-    width: MEDALLION - SIZES.space.lg,
-    height: MEDALLION - SIZES.space.lg,
-    borderRadius: (MEDALLION - SIZES.space.lg) / 2,
-    backgroundColor: COLORS.whiteAlpha80,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.whiteAlpha90,
-  },
-  logoImg: {
-    width: MEDALLION - SIZES.space.xxxl,
-    height: MEDALLION - SIZES.space.xxxl,
-    borderRadius: (MEDALLION - SIZES.space.xxxl) / 2,
-  },
-  shineClip: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: MEDALLION / 2,
-    overflow: 'hidden',
-  },
-  shine: {
-    position: 'absolute',
-    top: -SIZES.space.xxl,
-    bottom: -SIZES.space.xxl,
-    width: SIZES.space.xxxl,
   },
   textBlock: {
     alignItems: 'center',

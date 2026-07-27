@@ -91,7 +91,7 @@ const NextButton: React.FC<NextButtonProps> = ({
             <MaterialCommunityIcons
               name="arrow-right"
               size={20}
-              color={COLORS.contentOnAccent}
+              color={COLORS.white}
               style={styles.arrow}
             />
           )}
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     fontFamily: theme.FONTS.family.bold,
     fontSize: 16,
     letterSpacing: 0.5,
-    color: COLORS.contentOnAccent,
+    color: COLORS.white,
   },
   arrow: {
     marginLeft: 8,

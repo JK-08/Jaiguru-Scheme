@@ -43,7 +43,7 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
       <CommonHeader title="Forgot Password" transparent borderBottom={false} shadow={false} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} bounces={false}>
-        <View style={styles.goldAccent} />
+        {/* <View style={styles.goldAccent} /> */}
 
         <View style={styles.iconContainer}>
           <View style={styles.iconWrapper}>

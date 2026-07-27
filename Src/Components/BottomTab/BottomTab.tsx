@@ -120,7 +120,7 @@ const AnimatedTab = ({ tab, isActive, onPress, badgeCount = 0 }: AnimatedTabProp
 
   const scale = progress.interpolate({ inputRange: [0, 1], outputRange: [1, 1.12] });
   const lift = progress.interpolate({ inputRange: [0, 1], outputRange: [0, -2] });
-  const color = isActive ? COLORS.accent : COLORS.contentSecondary;
+  const color = isActive ? COLORS.brand : COLORS.contentSecondary;
 
   return (
     <TouchableOpacity style={styles.footerBtnContainer} onPress={onPress} activeOpacity={0.7}>

@@ -287,7 +287,7 @@ export default function SchemeDetails() {
               {instalment}
             </Text>
           </View>
-          <AnimatedProgressBar percentage={progressPercentage} color={isClosed ? '#43A047' : isPaymentDue ? '#E53935' : COLORS.accent} />
+          <AnimatedProgressBar percentage={progressPercentage} color={isClosed ? COLORS.success : isPaymentDue ? COLORS.danger : COLORS.brand} />
           <Text style={styles.progressPct}>{Math.round(progressPercentage)}% complete</Text>
 
           <View style={styles.statsRow}>

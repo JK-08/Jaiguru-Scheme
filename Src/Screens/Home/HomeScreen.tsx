@@ -215,7 +215,7 @@ const HomeScreen = () => {
           onScanPress={() => {}}
         />
 
-        {renderNotificationBanner()}
+        {/* {renderNotificationBanner()} */}
 
         <View style={styles.sliderWrap}>
           <SliderComponent />

@@ -5,7 +5,6 @@
 
 import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, {
   Easing,
   interpolate,
@@ -38,14 +37,7 @@ const GreetingSection: React.FC<GreetingSectionProps> = ({ greeting, name,  }) =
   return (
     <Animated.View style={style}>
       <Text style={styles.greeting}>{greeting} 👋</Text>
-      <Text style={styles.welcome}>Welcome back,</Text>
-      <Text style={styles.name} numberOfLines={1}>
-        {name}
-      </Text>
-      {/* <View style={styles.memberRow}>
-        <MaterialCommunityIcons name="shield-check" size={SIZES.icon.xs} color={COLORS.contentOnAccent} />
-        <Text style={styles.memberId}>Member ID : {memberId}</Text>
-      </View> */}
+      <Text style={styles.welcome}>Welcome back, <Text style={styles.name}>{name}</Text></Text>
     </Animated.View>
   );
 };
@@ -53,22 +45,20 @@ const GreetingSection: React.FC<GreetingSectionProps> = ({ greeting, name,  }) =
 const styles = StyleSheet.create({
   greeting: {
     fontFamily: FONTS.family.medium,
-    fontSize: SIZES.text.sm,
-    color: COLORS.contentOnAccent,
-    opacity: 0.9,
+    fontSize: SIZES.text.md,
+    color: COLORS.contentOnBrand,
+    opacity: 0.85,
   },
   welcome: {
     fontFamily: FONTS.family.regular,
-    fontSize: SIZES.text.xxs,
-    color: COLORS.contentOnAccent,
-    opacity: 0.8,
+    fontSize: SIZES.text.lg,
+    color: COLORS.contentOnBrand,
     marginTop: SIZES.space.xs,
   },
   name: {
     fontFamily: FONTS.family.bold,
-    fontSize: SIZES.text.xxl,
-    color: COLORS.contentOnAccent,
-    marginTop: 2,
+    fontSize: SIZES.text.xl,
+    color: COLORS.contentOnBrand,
   },
   memberRow: {
     flexDirection: 'row',
@@ -78,7 +68,7 @@ const styles = StyleSheet.create({
   memberId: {
     fontFamily: FONTS.family.medium,
     fontSize: SIZES.text.xxs,
-    color: COLORS.contentOnAccent,
+    color: COLORS.contentOnBrand,
     opacity: 0.85,
     marginLeft: SIZES.space.xs,
     letterSpacing: 0.3,

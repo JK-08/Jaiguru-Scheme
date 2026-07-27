@@ -68,13 +68,13 @@ const HomeHeaderRedesigned = ({ onLogoPress }: HomeHeaderRedesignedProps) => {
 
   return (
     <LinearGradient colors={GOLD_HEADER_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.container}>
-      <StatusBar backgroundColor="transparent" barStyle="dark-content" translucent />
+      <StatusBar backgroundColor="transparent" barStyle="light-content" translucent />
 
       {/* Top Row: Menu Icon, Logo & Company Name, Notification */}
       <View style={styles.topRow}>
         {/* Right: Notification Icon */}
         <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('NotificationScreen')} activeOpacity={0.7}>
-          <Icon name="notifications-none" size={SIZES.icon.lg} color={COLORS.contentOnAccent} />
+          <Icon name="notifications-none" size={SIZES.icon.lg} color={COLORS.contentOnBrand} />
 
           {unreadCount > 0 && (
             <View style={styles.notificationBadge}>
@@ -110,7 +110,7 @@ const HomeHeaderRedesigned = ({ onLogoPress }: HomeHeaderRedesignedProps) => {
         </TouchableOpacity>
         {/* Left: Menu Icon */}
         <TouchableOpacity style={styles.iconButton} onPress={handleMenuPress} activeOpacity={0.7}>
-          <Icon name="menu" size={SIZES.icon.lg} color={COLORS.contentOnAccent} />
+          <Icon name="menu" size={SIZES.icon.lg} color={COLORS.contentOnBrand} />
         </TouchableOpacity>
       </View>
 
@@ -119,7 +119,7 @@ const HomeHeaderRedesigned = ({ onLogoPress }: HomeHeaderRedesignedProps) => {
         {/* Gold Rate Card */}
         <View style={styles.rateCard}>
           <View style={styles.rateHeader}>
-            <Icon name="trending-up" size={SIZES.icon.md} color={COLORS.contentBrand} />
+            <Icon name="trending-up" size={SIZES.icon.md} color={COLORS.brand} />
             <Text style={styles.rateLabel}>GOLD</Text>
           </View>
           {ratesLoading ? (
@@ -138,7 +138,7 @@ const HomeHeaderRedesigned = ({ onLogoPress }: HomeHeaderRedesignedProps) => {
         {/* Silver Rate Card */}
         <View style={styles.rateCard}>
           <View style={styles.rateHeader}>
-            <Icon name="trending-up" size={SIZES.icon.md} color={COLORS.borderStrong} />
+            <Icon name="trending-up" size={SIZES.icon.md} color={COLORS.contentSecondary} />
             <Text style={styles.rateLabel}>SILVER</Text>
           </View>
           {ratesLoading ? (
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   },
   companyName: {
     ...FONTS.subheading,
-    color: COLORS.contentOnAccent,
+    color: COLORS.contentOnBrand,
     marginBottom: moderateScale(2),
   },
   companyAddress: {
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
   },
   rateValue: {
     ...FONTS.heading,
-    color: COLORS.contentBrand,
+    color: COLORS.brand,
     fontWeight: FONTS.weight.bold,
     marginTop: moderateScale(2),
   },

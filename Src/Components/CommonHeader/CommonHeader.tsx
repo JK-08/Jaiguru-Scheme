@@ -91,9 +91,9 @@ const Header = ({
   const insets = useSafeAreaInsets();
 
   // On a filled gold gradient bar we use dark "ink on gold"; otherwise gold accents.
-  const accentColor = gradient ? COLORS.contentOnAccent : COLORS.accent;
+  const accentColor = gradient ? COLORS.contentOnAccent : COLORS.white;
   const titleColor = gradient ? COLORS.contentOnAccent : COLORS.contentPrimary;
-  const iconBg = gradient ? COLORS.whiteAlpha50 : COLORS.brandAlpha16;
+  const iconBg = gradient ? COLORS.whiteAlpha50 : COLORS.brand;
 
   const resolvedLeftIconName = leftIconName || backIconName || 'arrow-back';
   const resolvedLeftIconColor = leftIconColor || backIconColor || accentColor;

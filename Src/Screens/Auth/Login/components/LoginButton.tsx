@@ -64,7 +64,7 @@ const LoginButton: React.FC<LoginButtonProps> = ({
             <ActivityIndicator color={COLORS.contentOnAccent} />
           ) : (
             <View style={styles.content}>
-              <MaterialCommunityIcons name={icon} size={SIZES.icon.md} color={COLORS.contentOnAccent} />
+              <MaterialCommunityIcons name={icon} size={SIZES.icon.md} color={COLORS.white} />
               <Text style={styles.label}>{label}</Text>
             </View>
           )}
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.family.bold,
     fontSize: SIZES.text.lg,
     letterSpacing: 0.4,
-    color: COLORS.contentOnAccent,
+    color: COLORS.white,
     marginLeft: SIZES.space.sm,
   },
 });

@@ -75,7 +75,7 @@ const RegisterButton: React.FC<RegisterButtonProps> = ({
             <>
               <Animated.View style={[styles.center, labelStyle]}>
                 <View style={styles.content}>
-                  <MaterialCommunityIcons name="shield-check" size={SIZES.icon.md} color={COLORS.contentOnAccent} />
+                  <MaterialCommunityIcons name="shield-check" size={SIZES.icon.md} color={COLORS.white} />
                   <Text style={styles.label}>{label}</Text>
                 </View>
               </Animated.View>
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.family.bold,
     fontSize: SIZES.text.lg,
     letterSpacing: 0.4,
-    color: COLORS.contentOnAccent,
+    color: COLORS.white,
     marginLeft: SIZES.space.sm,
   },
   checkOverlay: {

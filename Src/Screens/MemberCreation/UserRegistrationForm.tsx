@@ -108,6 +108,8 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
     const [errors, setErrors] = useState<FormErrors>({});
     const [hasPreviousData, setHasPreviousData] = useState(false);
     const [isFetchingLocation, setIsFetchingLocation] = useState(false);
+    const [postOffices, setPostOffices] = useState<any[]>([]);
+    const [showAreaDropdown, setShowAreaDropdown] = useState(false);
 
     // Date picker states
     const [showDatePicker, setShowDatePicker] = useState<string | null>(null);
@@ -236,43 +238,38 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
       if (!pincode || pincode.length !== 6) return;
 
       setIsFetchingLocation(true);
+      setPostOffices([]);
+      setShowAreaDropdown(false);
       try {
         const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
         const data = await response.json();
 
         if (data[0]?.Status === 'Success') {
-          const postOffice = data[0].PostOffice[0];
-          const district = postOffice.District || '';
-          const state = postOffice.State || '';
-
-          setFormData((prev) => ({
-            ...prev,
-            city: district,
-            state: state,
-          }));
-
-          // Clear any city/state errors if they existed
-          setErrors((prev) => ({
-            ...prev,
-            city: null,
-            state: null,
-            pincode: null,
-          }));
+          const offices = data[0].PostOffice;
+          setPostOffices(offices);
+          setShowAreaDropdown(true);
+          // Clear area/city/state so user picks fresh
+          setFormData((prev) => ({ ...prev, area: '', city: '', state: '' }));
+          setErrors((prev) => ({ ...prev, pincode: null, area: null, city: null, state: null }));
         } else {
-          setErrors((prev) => ({
-            ...prev,
-            pincode: 'Invalid pincode. Please check and try again.',
-          }));
+          setErrors((prev) => ({ ...prev, pincode: 'Invalid pincode. Please check and try again.' }));
         }
       } catch (error) {
-        console.error('Error fetching pincode data:', error);
-        setErrors((prev) => ({
-          ...prev,
-          pincode: 'Failed to fetch location data. Please enter manually.',
-        }));
+        setErrors((prev) => ({ ...prev, pincode: 'Failed to fetch location data. Please enter manually.' }));
       } finally {
         setIsFetchingLocation(false);
       }
+    };
+
+    const handleAreaSelect = (office: any) => {
+      setFormData((prev) => ({
+        ...prev,
+        area: office.Name,
+        city: office.Block || office.District || '',
+        state: office.State || '',
+      }));
+      setShowAreaDropdown(false);
+      setErrors((prev) => ({ ...prev, area: null, city: null, state: null }));
     };
 
     // Save form data to AsyncStorage
@@ -930,20 +927,12 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
 
             <View style={styles.row}>
               <View style={styles.halfWidth}>
-                {renderInput('Door No', 'doorNo', 'Door No.', {
-                  mandatory: true,
-                })}
+                {renderInput('Door No', 'doorNo', 'Door No.', { mandatory: true })}
               </View>
               <View style={styles.halfWidth}>
-                {renderInput('Street', 'street', 'Street name', {
-                  mandatory: true,
-                })}
+                {renderInput('Street', 'street', 'Street name', { mandatory: true })}
               </View>
             </View>
-
-            {renderInput('Area', 'area', 'Area/Locality', {
-              mandatory: true,
-            })}
 
             <View style={styles.row}>
               <View style={styles.halfWidth}>
@@ -964,6 +953,47 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
                   editable: false,
                 })}
               </View>
+            </View>
+
+            {/* Area dropdown */}
+            <View style={styles.inputContainer}>
+              <View style={styles.labelRow}>
+                <Text style={styles.label}>Area / Locality<Text style={styles.mandatory}> *</Text></Text>
+                {formData.area ? (
+                  <TouchableOpacity onPress={() => clearField('area')} style={styles.clearFieldButton}>
+                    <Text style={styles.clearFieldText}>Clear</Text>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+              <TouchableOpacity
+                style={[styles.input, styles.dateInput, !!errors.area && styles.inputError]}
+                onPress={() => postOffices.length > 0 && setShowAreaDropdown((v) => !v)}
+                activeOpacity={0.8}
+              >
+                <Text style={formData.area ? styles.dateText : styles.placeholderText}>
+                  {formData.area || (postOffices.length > 0 ? 'Select area from list' : 'Enter pincode first')}
+                </Text>
+                {postOffices.length > 0 && <Text style={styles.dateIcon}>{showAreaDropdown ? '▲' : '▼'}</Text>}
+              </TouchableOpacity>
+              {!!errors.area && <Text style={styles.errorText}>{errors.area}</Text>}
+              {showAreaDropdown && postOffices.length > 0 && (
+                <View style={styles.dropdown}>
+                  <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled" style={{ maxHeight: 200 }}>
+                    {postOffices.map((office, i) => (
+                      <TouchableOpacity
+                        key={i}
+                        style={[styles.dropdownItem, formData.area === office.Name && styles.dropdownItemActive]}
+                        onPress={() => handleAreaSelect(office)}
+                      >
+                        <Text style={[styles.dropdownItemText, formData.area === office.Name && styles.dropdownItemTextActive]}>
+                          {office.Name}
+                        </Text>
+                        <Text style={styles.dropdownItemSub}>{office.BranchType}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
             </View>
 
             {renderInput('State', 'state', 'State', {
@@ -1171,8 +1201,8 @@ const styles = StyleSheet.create({
     color: COLORS.contentSecondary,
   },
   maritalStatusTextActive: {
-    color: COLORS.contentOnBrand,
     ...FONTS.bodyEmphasis,
+    color: COLORS.white,
   },
   row: {
     flexDirection: 'row',
@@ -1208,6 +1238,37 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: SIZES.space.xxxl,
+  },
+  dropdown: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: SIZES.radius.field,
+    backgroundColor: COLORS.surface,
+    marginTop: SIZES.space.xs,
+    ...ELEVATION.floating,
+    zIndex: 99,
+  },
+  dropdownItem: {
+    paddingHorizontal: SIZES.space.md,
+    paddingVertical: SIZES.space.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.borderSubtle,
+  },
+  dropdownItemActive: {
+    backgroundColor: COLORS.brandSubtle,
+  },
+  dropdownItemText: {
+    ...FONTS.body,
+    color: COLORS.contentPrimary,
+  },
+  dropdownItemTextActive: {
+    color: COLORS.brand,
+    fontFamily: FONTS.family.semiBold,
+  },
+  dropdownItemSub: {
+    ...FONTS.caption,
+    color: COLORS.contentMuted,
+    marginTop: 2,
   },
 
   // Modal Styles
