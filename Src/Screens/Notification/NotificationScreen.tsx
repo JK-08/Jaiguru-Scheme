@@ -1,6 +1,6 @@
 // Src/Screens/Notification/NotificationScreen.tsx
 import React, { useRef, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, SectionList, TouchableOpacity, ActivityIndicator, RefreshControl, Alert, Animated, Platform } from 'react-native';
+import { View, Text, StyleSheet, SectionList, TouchableOpacity, ActivityIndicator, RefreshControl, Alert, Animated, Platform, Image } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
@@ -96,6 +96,7 @@ const NotificationScreen = () => {
   }
 
   const NotificationItem = ({ item, index }: NotificationItemProps) => {
+    console.log("notification item",item)
     const scaleAnim = useRef(new Animated.Value(1)).current;
     const isFirstMount = !animatedIds.current.has(item.id);
     const entrance = useRef(new Animated.Value(isFirstMount ? 0 : 1)).current;
@@ -152,8 +153,12 @@ const NotificationScreen = () => {
             <View style={styles.card}>
               {!isRead && <View style={styles.accentBar} />}
               <View style={styles.cardContent}>
-                <View style={[styles.iconContainer, { backgroundColor: icon.bg }]}>
-                  <MaterialCommunityIcons name={icon.name as any} size={22} color={icon.color} />
+                <View style={[styles.iconContainer, { backgroundColor: item.imageUrl ? 'transparent' : icon.bg }]}>
+                  {item.imageUrl ? (
+                    <Image source={{ uri: item.imageUrl as string }} style={styles.notifImage} resizeMode="cover" />
+                  ) : (
+                    <MaterialCommunityIcons name={icon.name as any} size={22} color={icon.color} />
+                  )}
                   {!isRead && <View style={styles.iconDot} />}
                 </View>
 
@@ -305,7 +310,9 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
   },
+  notifImage: { width: 44, height: 44, borderRadius: 22 },
   iconDot: {
     position: 'absolute',
     top: -1,

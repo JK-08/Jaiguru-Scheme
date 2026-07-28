@@ -12,8 +12,8 @@ import { COLORS, SIZES, FONTS, ELEVATION, moderateScale } from '../../Utills/App
 const SLIDE_LINKS: Array<{ type: 'screen'; screen: string } | { type: 'web'; url: string; title: string }> = [
   { type: 'screen', screen: 'MemberCreation' },
   { type: 'web', url: 'https://jaigurujewellers.com/', title: 'Jaiguru Jewellers' },
-  { type: 'web', url: 'https://jaigurujewellers.com/why-us', title: 'Why Us' },
-  { type: 'web', url: 'https://jaigurujewellers.com/privacy-policy', title: 'Privacy Policy' },
+  { type: 'web', url: 'https://jaigurujewellers.com/', title: 'Jaiguru Jewellers' },
+  { type: 'web', url: 'https://jaigurujewellers.com/', title: 'Jaiguru Jewellers' },
 ];
 
 const { width } = Dimensions.get('window');

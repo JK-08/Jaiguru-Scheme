@@ -113,12 +113,12 @@ const GoldRateCard: React.FC<GoldRateCardProps> = ({
           </View>
         </View>
 
-        {!!lastUpdated && !error && (
+         {/* {!!lastUpdated && !error && (
           <View style={styles.footer}>
             <MaterialCommunityIcons name="clock-outline" size={SIZES.icon.xs} color={COLORS.contentMuted} />
             <Text style={styles.updated}>Updated {lastUpdated}</Text>
           </View>
-        )}
+        )} */}
       </View>
     </View>
   );
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   unit: {
     fontFamily: FONTS.family.regular,
     fontSize: SIZES.text.xxs,
-    color: COLORS.contentMuted,
+    color: COLORS.contentSecondary,
   },
   vDivider: {
     width: 1,
