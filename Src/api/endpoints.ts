@@ -20,6 +20,7 @@ export const AUTH = {
   // resetPassword(). Kept as its own key for clarity at call sites.
   RESET_PASSWORD: '/user/verify-otp',
   GOOGLE_LOGIN: '/google-login',
+  APPLE_LOGIN: '/apple-login',
   GOOGLE_CONTACT_UPDATE: '/request-google-contact-update',
   GOOGLE_CONTACT_VERIFY_OTP: '/verify-google-contact-otp',
 };

@@ -129,8 +129,10 @@ const LoginScreen: React.FC = () => {
                 <SocialActions
                   onCreateAccount={form.goToRegister}
                   onGoogle={form.signInWithGoogle}
+                  onApple={form.signInWithApple}
                   onGuest={form.continueAsGuest}
                   googleLoading={form.googleLoading}
+                  appleLoading={form.appleLoading}
                   disabled={form.isBusy}
                 />
 

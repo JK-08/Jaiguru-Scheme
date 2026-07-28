@@ -59,6 +59,11 @@ const useAuth = () => {
       if (!(result as any)?.needsContactVerification && result?.token) applyAuthResult(result);
     });
 
+  const loginWithApple = (payload: Record<string, unknown>) =>
+    handleApi(() => authService.appleLogin(payload), (result) => {
+      if (!(result as any)?.needsContactVerification && result?.token) applyAuthResult(result);
+    });
+
   const requestGoogleOtp = (payload: Parameters<typeof authService.requestGoogleContactOtp>[0]) =>
     handleApi(() => authService.requestGoogleContactOtp(payload));
 
@@ -80,6 +85,7 @@ const useAuth = () => {
     verifyNormalOtp,
     login,
     loginWithGoogle,
+    loginWithApple,
     requestGoogleOtp,
     verifyGoogleOtp,
     sendForgotPassword,

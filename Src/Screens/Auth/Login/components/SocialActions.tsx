@@ -5,7 +5,7 @@
 // -----------------------------------------------------------------------------
 
 import React from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import theme from '../../../../Utills/AppTheme';
@@ -15,8 +15,10 @@ const { COLORS, SIZES, FONTS, ELEVATION, STYLES } = theme;
 export interface SocialActionsProps {
   onCreateAccount: () => void;
   onGoogle: () => void;
+  onApple: () => void;
   onGuest: () => void;
   googleLoading: boolean;
+  appleLoading: boolean;
   disabled: boolean;
   accountLabel?: string;
   accountLinkLabel?: string;
@@ -25,8 +27,10 @@ export interface SocialActionsProps {
 const SocialActions: React.FC<SocialActionsProps> = ({
   onCreateAccount,
   onGoogle,
+  onApple,
   onGuest,
   googleLoading,
+  appleLoading,
   disabled,
   accountLabel = "Don't have an account? ",
   accountLinkLabel = 'Create Account',
@@ -45,22 +49,41 @@ const SocialActions: React.FC<SocialActionsProps> = ({
       <View style={styles.divider} />
     </View>
 
-    <Pressable
-      onPress={onGoogle}
-      disabled={disabled}
-      accessibilityRole="button"
-      accessibilityLabel="Continue with Google"
-      style={({ pressed }) => [styles.googleBtn, pressed && styles.pressed, disabled && styles.btnDisabled]}
-    >
-      {googleLoading ? (
-        <ActivityIndicator size="small" color={COLORS.contentPrimary} />
-      ) : (
-        <>
-          <MaterialCommunityIcons name="google" size={SIZES.icon.md} color={COLORS.danger} />
-          <Text style={styles.googleText}>Continue with Google</Text>
-        </>
-      )}
-    </Pressable>
+    {Platform.OS === 'ios' ? (
+      <Pressable
+        onPress={onApple}
+        disabled={disabled}
+        accessibilityRole="button"
+        accessibilityLabel="Continue with Apple"
+        style={({ pressed }) => [styles.googleBtn, pressed && styles.pressed, disabled && styles.btnDisabled]}
+      >
+        {appleLoading ? (
+          <ActivityIndicator size="small" color={COLORS.contentPrimary} />
+        ) : (
+          <>
+            <MaterialCommunityIcons name="apple" size={SIZES.icon.md} color={COLORS.contentPrimary} />
+            <Text style={styles.googleText}>Continue with Apple</Text>
+          </>
+        )}
+      </Pressable>
+    ) : (
+      <Pressable
+        onPress={onGoogle}
+        disabled={disabled}
+        accessibilityRole="button"
+        accessibilityLabel="Continue with Google"
+        style={({ pressed }) => [styles.googleBtn, pressed && styles.pressed, disabled && styles.btnDisabled]}
+      >
+        {googleLoading ? (
+          <ActivityIndicator size="small" color={COLORS.contentPrimary} />
+        ) : (
+          <>
+            <MaterialCommunityIcons name="google" size={SIZES.icon.md} color={COLORS.danger} />
+            <Text style={styles.googleText}>Continue with Google</Text>
+          </>
+        )}
+      </Pressable>
+    )}
 
     {/* <Pressable
       onPress={onGuest}

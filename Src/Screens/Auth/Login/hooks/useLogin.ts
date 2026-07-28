@@ -10,8 +10,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import * as AppleAuthentication from 'expo-apple-authentication';
 
 import useAuth from '../../../../api/hooks/Auth/useAuth';
 import { saveAuthData, getMpinStatus } from '../../../../Utills/AsynchStorageHelper';
@@ -39,6 +41,7 @@ export interface UseLogin {
   // status
   loading: boolean;
   googleLoading: boolean;
+  appleLoading: boolean;
   isBusy: boolean;
   // change handlers
   onChangeMobile: (v: string) => void;
@@ -49,6 +52,7 @@ export interface UseLogin {
   // actions
   submit: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
   continueAsGuest: () => void;
   goToForgotPassword: () => void;
   goToRegister: () => void;
@@ -58,7 +62,7 @@ export interface UseLogin {
 
 export function useLogin(): UseLogin {
   const navigation = useNavigation<any>();
-  const { login, loginWithGoogle, loading, error, clearError } = useAuth();
+  const { login, loginWithGoogle, loginWithApple, loading, error, clearError } = useAuth();
   const { showToast, Toast } = useToast();
 
   const [mobile, setMobile] = useState('');
@@ -66,10 +70,11 @@ export function useLogin(): UseLogin {
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
   const [errors, setErrors] = useState<LoginErrors>({});
   const [touched, setTouched] = useState<TouchedMap>({ mobile: false, password: false });
 
-  const isBusy = loading || googleLoading;
+  const isBusy = loading || googleLoading || appleLoading;
 
   // ---- One-time setup: Google + restore remembered mobile -------------------
   useEffect(() => {
@@ -288,6 +293,82 @@ export function useLogin(): UseLogin {
     }
   }, [clearError, loginWithGoogle, navigation, routeAfterAuth, showToast]);
 
+  // ---- Apple Sign-In (iOS only) --------------------------------------------
+  const signInWithApple = useCallback(async () => {
+    if (Platform.OS !== 'ios') return;
+    try {
+      setAppleLoading(true);
+      clearError();
+
+      const isAvailable = await AppleAuthentication.isAvailableAsync();
+      if (!isAvailable) {
+        showToast({ message: 'Apple Sign-In is not available on this device.', type: 'warning' });
+        return;
+      }
+
+      showToast({ message: 'Connecting to Apple...', type: 'info' });
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      const { identityToken, fullName, email } = credential;
+      console.log('=== APPLE CREDENTIAL ===');
+      console.log('identityToken length:', identityToken?.length);
+      console.log('identityToken (first 100):', identityToken?.substring(0, 100));
+      console.log('email:', email);
+      console.log('fullName:', JSON.stringify(fullName));
+      console.log('user (sub):', credential.user);
+      if (!identityToken) throw new Error('No identity token received from Apple');
+
+      const payload = { idToken: identityToken };
+      console.log('=== APPLE PAYLOAD TO BACKEND ===', JSON.stringify({ idToken: identityToken.substring(0, 80) + '...' }));
+      showToast({ message: 'Authenticating with server...', type: 'info' });
+      const res: any = await loginWithApple(payload);
+      console.log('=== APPLE BACKEND RESPONSE ===', JSON.stringify(res, null, 2));
+
+      if (res?.success !== false) {
+        const normalized = {
+          ...res,
+          id: res.id || res.userId,
+          userId: res.id || res.userId,
+          email: res.email || email,
+          username: res.username || `${fullName?.givenName ?? ''} ${fullName?.familyName ?? ''}`.trim(),
+          contactNumber: res.contactNumber || res.contact || '',
+          token: res.token,
+          loginType: 'APPLE',
+        };
+        await saveAuthData(normalized);
+        showToast({ message: 'Login successful with Apple!', type: 'success' });
+        if (!normalized.contactNumber?.trim()) {
+          navigation.navigate('GoogleContactVerification', {
+            userId: res.id,
+            email: normalized.email,
+            username: normalized.username,
+            token: res.token,
+            isLogin: true,
+          });
+        } else {
+          if (res.mpinSet === 'Y') await AsyncStorage.setItem('hasMpin', 'true');
+          else await AsyncStorage.setItem('hasMpin', 'false');
+          await routeAfterAuth(res.mpinSet);
+        }
+      } else {
+        showToast({ message: res?.error || 'Apple authentication failed', type: 'error' });
+      }
+    } catch (err: any) {
+      if (err?.code === 'ERR_REQUEST_CANCELED') {
+        showToast({ message: 'Apple sign-in cancelled', type: 'info' });
+      } else {
+        showToast({ message: `Apple sign-in failed: ${err?.message || 'Try again'}`, type: 'error' });
+      }
+    } finally {
+      setAppleLoading(false);
+    }
+  }, [clearError, loginWithGoogle, navigation, routeAfterAuth, showToast]);
+
   // ---- Guest + navigation ---------------------------------------------------
   const continueAsGuest = useCallback(() => {
     navigation.replace('MainDrawer');
@@ -308,6 +389,7 @@ export function useLogin(): UseLogin {
       errors,
       loading,
       googleLoading,
+      appleLoading,
       isBusy,
       onChangeMobile,
       onChangePassword,
@@ -316,6 +398,7 @@ export function useLogin(): UseLogin {
       toggleRemember,
       submit,
       signInWithGoogle,
+      signInWithApple,
       continueAsGuest,
       goToForgotPassword,
       goToRegister,
@@ -329,6 +412,7 @@ export function useLogin(): UseLogin {
       errors,
       loading,
       googleLoading,
+      appleLoading,
       isBusy,
       onChangeMobile,
       onChangePassword,
@@ -337,6 +421,7 @@ export function useLogin(): UseLogin {
       toggleRemember,
       submit,
       signInWithGoogle,
+      signInWithApple,
       continueAsGuest,
       goToForgotPassword,
       goToRegister,

@@ -57,6 +57,14 @@ export const authService = {
       data: payload,
     }),
 
+  /** POST /apple-login */
+  appleLogin: (payload: Record<string, unknown>) =>
+    callApi<Record<string, unknown>, AuthApiResponse>({
+      method: 'post',
+      url: AUTH.APPLE_LOGIN,
+      data: payload,
+    }),
+
   /** POST /request-google-contact-update?userId&newContactNumber&hashKey */
   requestGoogleContactOtp: (payload: { userId: string | number; newContactNumber: string; hashKey?: string }) =>
     callApi<null, AuthApiResponse>({
