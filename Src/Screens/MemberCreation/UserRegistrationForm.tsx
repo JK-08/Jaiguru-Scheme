@@ -9,7 +9,6 @@ import {
   StyleSheet,
   Platform,
   Alert,
-  Modal,
   ActivityIndicator,
   KeyboardTypeOptions,
 } from 'react-native';
@@ -18,17 +17,12 @@ import theme from '../../Utills/AppTheme';
 import authStorage from '../../Utills/AsynchStorageHelper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { AppButton } from '../../Components/ui/appcomponents';
+import CalendarPicker from './CalendarPicker';
 
 const { COLORS, SIZES, FONTS, ELEVATION } = theme;
 
 // Storage key for saving form data
 const FORM_STORAGE_KEY = '@user_registration_form_data';
-
-// Months for date picker
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
 
 export interface UserRegistrationFormData {
   aadharNumber: string;
@@ -85,12 +79,6 @@ const EMPTY_FORM: UserRegistrationFormData = {
   nomineeRelationship: '',
 };
 
-interface SelectedDate {
-  day: string;
-  month: string;
-  year: string;
-}
-
 interface RenderInputOptions {
   mandatory?: boolean;
   keyboardType?: KeyboardTypeOptions;
@@ -113,22 +101,9 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
 
     // Date picker states
     const [showDatePicker, setShowDatePicker] = useState<string | null>(null);
-    const [selectedDate, setSelectedDate] = useState<SelectedDate>({
-      day: '01',
-      month: '01',
-      year: '1990',
-    });
 
     const maritalStatusOptions = ['Single', 'Married'];
     const relationshipOptions = ['Spouse', 'Son', 'Daughter', 'Father', 'Mother', 'Sibling', 'Other'];
-
-    // Generate days, months, years for date picker
-    const currentYear = new Date().getFullYear();
-    const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, '0'));
-    const months = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0'));
-    const maxDobYear = currentYear - 18;
-    const years = Array.from({ length: 100 }, (_, i) => (currentYear - i).toString());
-    const dobYears = Array.from({ length: 100 }, (_, i) => (maxDobYear - i).toString());
 
     // Load user data from AuthStorage on mount
     useEffect(() => {
@@ -146,10 +121,7 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
         setFormData(merged);
         setHasPreviousData(true);
 
-        if (initialData.dob) {
-          const [year, month, day] = initialData.dob.split('-');
-          setSelectedDate({ day, month, year });
-        }
+
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialData]);
@@ -191,10 +163,7 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
           setFormData(parsedData);
           setHasPreviousData(true);
 
-          if (parsedData.dob) {
-            const [year, month, day] = parsedData.dob.split('-');
-            setSelectedDate({ day, month, year });
-          }
+
           return;
         }
 
@@ -561,169 +530,28 @@ const UserRegistrationForm = forwardRef<UserRegistrationFormRef, UserRegistratio
     };
 
     const openDatePicker = (type: any) => {
-      if (type === 'dob' && formData.dob) {
-        const [year, month, day] = formData.dob.split('-');
-        setSelectedDate({ day, month, year });
-      } else if (type === 'anniversaryDate' && formData.anniversaryDate) {
-        const [year, month, day] = formData.anniversaryDate.split('-');
-        setSelectedDate({ day, month, year });
-      } else {
-        const defaultYear = type === 'dob' ? (currentYear - 25).toString() : '1990';
-        setSelectedDate({ day: '01', month: '01', year: defaultYear });
-      }
       setShowDatePicker(type);
     };
 
-    const handleDateConfirm = () => {
-      if (!selectedDate.day || !selectedDate.month || !selectedDate.year) {
-        Alert.alert('Error', 'Please select a valid date');
-        return;
-      }
-
-      const formattedDate = `${selectedDate.year}-${selectedDate.month}-${selectedDate.day}`;
-
-      if (showDatePicker === 'dob') {
-        const dob = new Date(parseInt(selectedDate.year), parseInt(selectedDate.month) - 1, parseInt(selectedDate.day));
-        const minAge = new Date();
-        minAge.setFullYear(minAge.getFullYear() - 18);
-        if (dob > minAge) {
-          Alert.alert('Invalid Date', 'You must be at least 18 years old.');
-          return;
-        }
-        handleInputChange('dob', formattedDate);
-      } else if (showDatePicker === 'anniversaryDate') {
-        handleInputChange('anniversaryDate', formattedDate);
-      }
-
-      setShowDatePicker(null);
+    const renderDatePicker = () => {
+      const maxDate = showDatePicker === 'dob'
+        ? (() => { const d = new Date(); d.setFullYear(d.getFullYear() - 18); return d; })()
+        : undefined;
+      const currentValue = showDatePicker === 'dob' ? formData.dob : formData.anniversaryDate;
+      return (
+        <CalendarPicker
+          visible={!!showDatePicker}
+          title={showDatePicker === 'dob' ? 'Select Date of Birth' : 'Select Anniversary Date'}
+          value={currentValue || undefined}
+          maxDate={maxDate}
+          onConfirm={(date) => {
+            handleInputChange(showDatePicker as keyof UserRegistrationFormData, date);
+            setShowDatePicker(null);
+          }}
+          onCancel={() => setShowDatePicker(null)}
+        />
+      );
     };
-
-    const ITEM_HEIGHT = 44;
-    const VISIBLE_ITEMS = 5;
-    const SCROLL_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
-
-    const dayScrollRef = useRef<ScrollView>(null);
-    const monthScrollRef = useRef<ScrollView>(null);
-    const yearScrollRef = useRef<ScrollView>(null);
-
-    const scrollToIndex = (scrollRef: React.RefObject<ScrollView | null>, index: number) => {
-      scrollRef.current?.scrollTo({ y: index * ITEM_HEIGHT, animated: true });
-    };
-
-    const handleDaySelect = (day: string) => {
-      setSelectedDate((prev) => ({ ...prev, day }));
-      scrollToIndex(dayScrollRef, days.indexOf(day));
-    };
-
-    const handleMonthSelect = (month: string) => {
-      setSelectedDate((prev) => ({ ...prev, month }));
-      scrollToIndex(monthScrollRef, months.indexOf(month));
-    };
-
-    const handleYearSelect = (year: string) => {
-      setSelectedDate((prev) => ({ ...prev, year }));
-      scrollToIndex(yearScrollRef, years.indexOf(year));
-    };
-
-    const initScroll = () => {
-      setTimeout(() => {
-        scrollToIndex(dayScrollRef, days.indexOf(selectedDate.day));
-        scrollToIndex(monthScrollRef, months.indexOf(selectedDate.month));
-        scrollToIndex(yearScrollRef, years.indexOf(selectedDate.year));
-      }, 100);
-    };
-
-    const renderPickerColumn = (
-      label: string,
-      items: string[],
-      selectedValue: string,
-      onSelect: (item: string) => void,
-      scrollRef: React.RefObject<ScrollView | null>,
-      displayFn: ((item: string, index: number) => string) | null
-    ) => (
-      <View style={styles.pickerColumn}>
-        <Text style={styles.pickerLabel}>{label}</Text>
-        <View style={{ height: SCROLL_HEIGHT }}>
-          {/* Center highlight */}
-          <View style={styles.pickerHighlight} pointerEvents="none" />
-          <ScrollView
-            ref={scrollRef}
-            style={styles.pickerScrollView}
-            showsVerticalScrollIndicator={false}
-            snapToInterval={ITEM_HEIGHT}
-            decelerationRate="fast"
-          >
-            {/* Top padding */}
-            <View style={{ height: ITEM_HEIGHT * Math.floor(VISIBLE_ITEMS / 2) }} />
-            {items.map((item, index) => (
-              <TouchableOpacity
-                key={item}
-                style={[styles.pickerItem, { height: ITEM_HEIGHT }]}
-                onPress={() => onSelect(item)}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.pickerItemText, selectedValue === item && styles.pickerItemTextSelected]}>
-                  {displayFn ? displayFn(item, index) : item}
-                </Text>
-              </TouchableOpacity>
-            ))}
-            {/* Bottom padding */}
-            <View style={{ height: ITEM_HEIGHT * Math.floor(VISIBLE_ITEMS / 2) }} />
-          </ScrollView>
-        </View>
-      </View>
-    );
-
-    const renderDatePicker = () => (
-      <Modal visible={!!showDatePicker} transparent animationType="fade" onShow={initScroll}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {showDatePicker === 'dob' ? 'Select Date of Birth' : 'Select Anniversary Date'}
-              </Text>
-              <TouchableOpacity onPress={() => setShowDatePicker(null)}>
-                <Text style={styles.closeButton}>✕</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.selectedDatePreview}>
-              Selected: {selectedDate.day}/{selectedDate.month}/{selectedDate.year}
-            </Text>
-
-            <View style={styles.pickerContainer}>
-              {renderPickerColumn('Day', days, selectedDate.day, handleDaySelect, dayScrollRef, null)}
-              {renderPickerColumn(
-                'Month',
-                months,
-                selectedDate.month,
-                handleMonthSelect,
-                monthScrollRef,
-                (m, i) => MONTHS[i]
-              )}
-              {renderPickerColumn('Year', showDatePicker === 'dob' ? dobYears : years, selectedDate.year, handleYearSelect, yearScrollRef, null)}
-            </View>
-
-            <View style={styles.modalButtons}>
-              <AppButton
-                label="Cancel"
-                variant="outline"
-                onPress={() => setShowDatePicker(null)}
-                fullWidth={false}
-                style={styles.navButtonFlex}
-              />
-              <AppButton
-                label="Confirm"
-                variant="primary"
-                onPress={handleDateConfirm}
-                fullWidth={false}
-                style={styles.navButtonFlex}
-              />
-            </View>
-          </View>
-        </View>
-      </Modal>
-    );
 
     const renderInput = (
       label: string,

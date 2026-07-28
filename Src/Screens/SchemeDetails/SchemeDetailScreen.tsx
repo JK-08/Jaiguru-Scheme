@@ -34,8 +34,7 @@ export default function AllSchemesScreen() {
   const [filter, setFilter] = useState<FilterValue>('all');
 
   const handleBackPress = () => {
-    if (navigation.canGoBack()) navigation.goBack();
-    else navigation.navigate('MainDrawer');
+    navigation.navigate('MainDrawer');
   };
 
   return (

@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
-  StatusBar,
   Dimensions,
   FlatList,
   Animated,
@@ -138,12 +137,13 @@ const formatCurrency = (val: string | number | undefined) => {
 
 interface RouteParams {
   schemeData: Account | Account[];
+  fromScreen?: string;
 }
 
 export default function SchemeDetails() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { schemeData } = (route.params as RouteParams) || {};
+  const { schemeData, fromScreen } = (route.params as RouteParams) || {};
   const [expandAddress, setExpandAddress] = useState(false);
 
   if (!schemeData) {
@@ -410,8 +410,15 @@ export default function SchemeDetails() {
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor="transparent" barStyle="dark-content" translucent />
-      <CommonHeader title="Scheme Details" />
+      <CommonHeader
+        title="Scheme Details"
+        subtitle={`${schemeSName} • ${groupCode}-${regNo}`}
+        onBackPress={() =>
+          fromScreen === 'payment'
+            ? navigation.navigate('AllSchemes')
+            : navigation.goBack()
+        }
+      />
 
       <FlatList
         data={paymentHistoryList}
