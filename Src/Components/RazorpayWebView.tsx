@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import {
   Modal, View, StyleSheet, ActivityIndicator,
-  TouchableOpacity, Text, Linking, AppState, StatusBar, Platform,
+  TouchableOpacity, Text, Linking, AppState, StatusBar, Platform, SafeAreaView,
 } from "react-native";
 import { WebView, WebViewNavigation } from "react-native-webview";
 import { COLORS, SIZES, FONTS } from "../Utills/AppTheme";
@@ -312,7 +312,7 @@ const RazorpayWebView = ({ visible, options, onSuccess, onDismiss }: RazorpayWeb
     <Modal
       visible={visible}
       animationType="slide"
-      presentationStyle="pageSheet"
+      presentationStyle="fullScreen"
       onRequestClose={() => {
         if (!paymentDone.current && !dismissed.current) {
           dismissed.current = true;
@@ -321,7 +321,7 @@ const RazorpayWebView = ({ visible, options, onSuccess, onDismiss }: RazorpayWeb
       }}
     >
       <StatusBar barStyle="light-content" backgroundColor={THEME.bg} />
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
 
         {/* Bank WebView (3DS / NetBanking) */}
         {bankUrl ? (
@@ -347,7 +347,7 @@ const RazorpayWebView = ({ visible, options, onSuccess, onDismiss }: RazorpayWeb
           <View style={styles.flex}>
             <WebView
               ref={mainWebViewRef}
-              source={{ html: htmlContent }}
+              source={{ html: htmlContent, baseUrl: 'https://checkout.razorpay.com' }}
               onMessage={handleMessage}
               onShouldStartLoadWithRequest={shouldStartLoad}
               onRenderProcessGone={handleRenderProcessGone}
@@ -365,7 +365,7 @@ const RazorpayWebView = ({ visible, options, onSuccess, onDismiss }: RazorpayWeb
             {mainLoading && <LoadingOverlay />}
           </View>
         )}
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 };
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.surfaceMuted,
-    paddingTop: Platform.OS === "ios" ? 0 : StatusBar.currentHeight || 0,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight || 0 : 0,
   },
   flex: { flex: 1 },
 });

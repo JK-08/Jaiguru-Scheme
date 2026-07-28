@@ -2,7 +2,7 @@
   "expo": {
     "name": "Jaiguru-DigiGold",
     "slug": "jaiguruscheme",
-    "version": "1.3.8",
+    "version": "1.0.1",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
@@ -14,8 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "buildNumber": "1",
-      "bundleIdentifier": "com.brightechsoftware.jaiguruscheme2",
+      "bundleIdentifier": "com.brightechsoftware.jaigurudigigold",
       "googleServicesFile": "./GoogleService-Info.plist",
       "entitlements": {
         "com.apple.developer.applesignin": [
@@ -27,9 +26,11 @@
         "UIBackgroundModes": [
           "remote-notification",
           "fetch"
-        ]
+        ],
+        "ITSAppUsesNonExemptEncryption": false
       },
-      "appleTeamId": "236BJUX2XU"
+      "appleTeamId": "236BJUX2XU",
+      "buildNumber": "2"
     },
     "android": {
       "package": "com.brightechsoftware.jaiguruscheme2",

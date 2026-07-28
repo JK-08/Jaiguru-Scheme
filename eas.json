@@ -43,6 +43,11 @@
     "production": {
       "android": {
         "track": "production"
+      },
+      "ios": {
+        "appleId": "brightechsoftwares@gmail.com",
+        "ascAppId": "6752599012",
+        "appleTeamId": "236BJUX2XU"
       }
     }
   }
