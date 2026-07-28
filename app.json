@@ -16,13 +16,20 @@
       "supportsTablet": true,
       "buildNumber": "1",
       "bundleIdentifier": "com.brightechsoftware.jaiguruscheme2",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "entitlements": {
+        "com.apple.developer.applesignin": [
+          "Default"
+        ]
+      },
       "infoPlist": {
         "NSUserTrackingUsageDescription": "Tracking permission is required for personalized content.",
         "UIBackgroundModes": [
           "remote-notification",
           "fetch"
         ]
-      }
+      },
+      "appleTeamId": "236BJUX2XU"
     },
     "android": {
       "package": "com.brightechsoftware.jaiguruscheme2",

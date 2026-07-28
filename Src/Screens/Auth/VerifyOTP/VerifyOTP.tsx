@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { getHash, useOtpVerify, removeListener } from 'react-native-otp-verify';
+import { getHash, useOtpVerify, removeListener } from '../../../Utills/otpVerifyShim';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, {
   Easing,

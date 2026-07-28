@@ -10,7 +10,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { getHash, useOtpVerify, removeListener } from 'react-native-otp-verify';
+import { getHash, useOtpVerify, removeListener } from '../../../Utills/otpVerifyShim';
 
 import { useMpin } from '../../../api/hooks/Mpin/useMpin';
 import theme from '../../../Utills/AppTheme';

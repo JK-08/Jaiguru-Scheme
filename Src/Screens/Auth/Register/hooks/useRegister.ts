@@ -9,7 +9,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigation } from '@react-navigation/native';
-import { getHash } from 'react-native-otp-verify';
+import { getHash } from '../../../../Utills/otpVerifyShim';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
 import useAuth from '../../../../api/hooks/Auth/useAuth';

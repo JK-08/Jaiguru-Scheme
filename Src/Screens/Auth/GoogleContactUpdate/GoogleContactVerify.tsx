@@ -20,7 +20,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { getHash, useOtpVerify, removeListener } from 'react-native-otp-verify';
+import { getHash, useOtpVerify, removeListener } from '../../../Utills/otpVerifyShim';
 import Animated, {
   Easing,
   interpolate,
