@@ -264,13 +264,7 @@ const HelpCentreScreen = () => {
 
         {/* ── Company Card ── */}
         <FadeInUp delay={60} style={styles.companyCard}>
-          {company.CompanyLogoUrl ? (
-            <Image source={{ uri: company.CompanyLogoUrl }} style={styles.logo} resizeMode="contain" />
-          ) : (
-            <View style={styles.logoPlaceholder}>
-              <Icon name="business" size={44} color={COLORS.contentBrand} />
-            </View>
-          )}
+          <Image source={require('../../../assets/icon.png')} style={styles.logo} resizeMode="contain" />
 
           {company.COMPANYNAME ? <Text style={styles.companyName}>{company.COMPANYNAME}</Text> : null}
 

@@ -7,7 +7,7 @@
 // -----------------------------------------------------------------------------
 
 import React, { useEffect } from 'react';
-import { ActivityIndicator, Dimensions, Image, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Image, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
@@ -25,6 +25,7 @@ import GreetingSection from './GreetingSection';
 import ProfileAvatar from './ProfileAvatar';
 import GoldRateCard from './GoldRateCard';
 import { useCompany } from '../../../api/hooks/Company/useCompany';
+const LOCAL_LOGO = require('../../../../assets/icon.png');
 
 import {
   getGreeting,
@@ -113,20 +114,10 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({
         {/* Single row: logo + company name (left) | avatar (right) */}
         <View style={styles.topRow}>
           <View style={styles.brandRow}>
-            {companyLoading ? (
-              <ActivityIndicator size="small" color={COLORS.contentOnBrand} />
-            ) : company ? (
-              <>
-                {company.CompanyLogoUrl ? (
-                  <Image source={{ uri: company.CompanyLogoUrl }} style={styles.logo} resizeMode="contain" />
-                ) : null}
-                <Text style={styles.companyName} numberOfLines={1}>
-                  {company.COMPANYNAME || company.COMPANYID || 'Jaiguru Jewellers'}
-                </Text>
-              </>
-            ) : (
-              <Text style={styles.companyName}>Jaiguru Jewellers</Text>
-            )}
+            <Image source={LOCAL_LOGO} style={styles.logo} resizeMode="contain" />
+            <Text style={styles.companyName} numberOfLines={1}>
+              {company?.COMPANYNAME || company?.COMPANYID || 'Jaiguru Jewellers'}
+            </Text>
           </View>
           <ProfileAvatar name={profile.name} imageUrl={profile.avatarUrl} onPress={onProfilePress} />
         </View>
@@ -185,9 +176,9 @@ const styles = StyleSheet.create({
     marginRight: SIZES.space.md,
   },
   logo: {
-    width: theme.moderateScale(36),
-    height: theme.moderateScale(36),
-    borderRadius: SIZES.radius.sm,
+    width: theme.moderateScale(66),
+    height: theme.moderateScale(66),
+    borderRadius: theme.moderateScale(33),
     marginRight: SIZES.space.sm,
   },
   companyName: {

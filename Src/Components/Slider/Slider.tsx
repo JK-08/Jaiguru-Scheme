@@ -110,7 +110,7 @@ const SliderComponentSimple = () => {
     <View style={styles.container}>
       <FlatList
         ref={flatListRef}
-        data={sliders}
+        data={[...sliders].reverse()}
         keyExtractor={(item, index) => (item as any).SliderId?.toString() ?? `slider-${index}`}
         horizontal
         pagingEnabled
@@ -123,7 +123,7 @@ const SliderComponentSimple = () => {
       {/* Pagination Dots */}
       {sliders.length > 1 && (
         <View style={styles.pagination}>
-          {sliders.map((_, index) => (
+          {[...sliders].reverse().map((_, index) => (
             <TouchableOpacity key={index} onPress={() => handleDotPress(index)} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <View style={[styles.dot, index === currentIndex && styles.activeDot]} />
             </TouchableOpacity>

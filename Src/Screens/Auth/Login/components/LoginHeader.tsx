@@ -6,7 +6,6 @@
 
 import React, { useEffect } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, {
   Easing,
   interpolate,
@@ -19,6 +18,7 @@ import theme from '../../../../Utills/AppTheme';
 
 const { COLORS, SIZES, FONTS } = theme;
 const MEDALLION = SIZES.icon.avatarLg + SIZES.space.xxxl;
+const LOCAL_LOGO = require('../../../../../assets/icon.png');
 
 export interface LoginHeaderProps {
   brand?: string;
@@ -54,11 +54,7 @@ const LoginHeader: React.FC<LoginHeaderProps> = ({
   return (
     <View style={styles.wrap}>
       <Animated.View style={[styles.logoWrap, medallionStyle]}>
-        {logoUrl ? (
-          <Image source={{ uri: logoUrl }} style={styles.logoImg} resizeMode="contain" />
-        ) : (
-          <MaterialCommunityIcons name="gold" size={SIZES.icon.avatar} color={COLORS.contentBrand} />
-        )}
+        <Image source={LOCAL_LOGO} style={styles.logoImg} resizeMode="contain" />
       </Animated.View>
 
       <Animated.View style={[styles.textBlock, textStyle]}>

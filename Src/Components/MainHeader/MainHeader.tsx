@@ -1,9 +1,10 @@
 // Src/Components/MainHeader/MainHeader.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, StatusBar, ActivityIndicator } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useCompany } from '../../api/hooks/Company/useCompany';
+const LOCAL_LOGO = require('../../../../assets/icon.png');
 import { useTodayRate } from '../../api/hooks/Rates/useTodayRate';
 import useNotifications from '../../api/hooks/Notifications/useNotifications';
 import { notificationEmitter } from '../NotificationBanner/NotificationBanner';
@@ -83,30 +84,15 @@ const HomeHeaderRedesigned = ({ onLogoPress }: HomeHeaderRedesignedProps) => {
           )}
         </TouchableOpacity>
         {/* Center: Logo and Company Name */}
-        <TouchableOpacity style={styles.centerContainer} onPress={onLogoPress} activeOpacity={0.7} disabled={companyLoading}>
-          {companyLoading ? (
-            <ActivityIndicator size="small" color={COLORS.contentOnBrand} />
-          ) : company ? (
-            <View style={styles.logoWrapper}>
-              {company.CompanyLogoUrl ? (
-                <Image source={{ uri: company.CompanyLogoUrl }} style={styles.logo} resizeMode="contain" />
-              ) : (
-                <View style={[styles.logo, styles.defaultLogo]}>
-                  <Icon name="business" size={SIZES.icon.lg} color={COLORS.contentBrand} />
-                </View>
-              )}
-              <View style={styles.companyTextContainer}>
-                <Text style={styles.companyName} numberOfLines={1}>
-                  {company.COMPANYNAME || company.COMPANYID || 'Jaiguru Jewellers'}
-                </Text>
-              </View>
+        <TouchableOpacity style={styles.centerContainer} onPress={onLogoPress} activeOpacity={0.7}>
+          <View style={styles.logoWrapper}>
+            <Image source={LOCAL_LOGO} style={styles.logo} resizeMode="contain" />
+            <View style={styles.companyTextContainer}>
+              <Text style={styles.companyName} numberOfLines={1}>
+                {company?.COMPANYNAME || company?.COMPANYID || 'Jaiguru Jewellers'}
+              </Text>
             </View>
-          ) : companyError ? (
-            <View style={styles.errorContainer}>
-              <Icon name="error-outline" size={SIZES.icon.md} color={COLORS.danger} />
-              <Text style={styles.errorText}>Failed to load</Text>
-            </View>
-          ) : null}
+          </View>
         </TouchableOpacity>
         {/* Left: Menu Icon */}
         <TouchableOpacity style={styles.iconButton} onPress={handleMenuPress} activeOpacity={0.7}>

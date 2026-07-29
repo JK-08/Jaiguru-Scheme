@@ -142,13 +142,7 @@ export default function PaymentReceiptPage() {
             {/* Company Header */}
             <View style={styles.header}>
               <View style={styles.headerContent}>
-                {companyData?.CompanyLogoUrl ? (
-                  <Image source={{ uri: companyData.CompanyLogoUrl }} style={styles.logo} resizeMode="contain" />
-                ) : (
-                  <View style={styles.logoPlaceholder}>
-                    <Text style={styles.logoPlaceholderText}>jaigurujewellers</Text>
-                  </View>
-                )}
+                <Image source={require('../../../assets/icon.png')} style={styles.logo} resizeMode="contain" />
                 <View style={styles.companyInfo}>
                   <Text style={styles.companyName}>{companyData?.COMPANYNAME || 'Jaiguru Jewellers'}</Text>
                 </View>
