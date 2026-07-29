@@ -2,7 +2,7 @@
   "expo": {
     "name": "Jaiguru-DigiGold",
     "slug": "jaiguruscheme",
-    "version": "1.0.1",
+    "version": "1.0.5",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
@@ -22,15 +22,27 @@
         ]
       },
       "infoPlist": {
-        "NSUserTrackingUsageDescription": "Tracking permission is required for personalized content.",
         "UIBackgroundModes": [
           "remote-notification",
           "fetch"
         ],
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        },
+        "LSApplicationQueriesSchemes": [
+          "gpay",
+          "phonepe",
+          "paytmmp",
+          "upi",
+          "bhim",
+          "tez",
+          "credpay",
+          "mobikwik"
+        ]
       },
       "appleTeamId": "236BJUX2XU",
-      "buildNumber": "2"
+      "buildNumber": "5"
     },
     "android": {
       "package": "com.brightechsoftware.jaiguruscheme2",

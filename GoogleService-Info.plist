@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>985006297869-2j8i3aruh9betl041uc8oa97orbqkrcr.apps.googleusercontent.com</string>
+	<string>985006297869-81p1u95ujbtv8ekk9l1j7m1dj2u1t0co.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.985006297869-2j8i3aruh9betl041uc8oa97orbqkrcr</string>
+	<string>com.googleusercontent.apps.985006297869-81p1u95ujbtv8ekk9l1j7m1dj2u1t0co</string>
 	<key>ANDROID_CLIENT_ID</key>
 	<string>985006297869-u97t4df3b1fvg1vmps5cihulbbbei50g.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
@@ -15,7 +15,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.brightechsoftware.jaiguruscheme2</string>
+	<string>com.brightechsoftware.jaigurudigigold</string>
 	<key>PROJECT_ID</key>
 	<string>jaiguru-scheme-e9ee9</string>
 	<key>STORAGE_BUCKET</key>
@@ -31,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:985006297869:ios:92a02f1c245e7f1ba69644</string>
+	<string>1:985006297869:ios:02c35facba2687b0a69644</string>
 </dict>
 </plist>
