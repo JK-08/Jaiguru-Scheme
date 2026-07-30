@@ -13,7 +13,7 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 
-import { GOLD, GOLD_DEEP, GOLD_LIGHT } from '../data';
+import { COLORS } from '../../../Utills/AppTheme';
 
 interface DotProps {
   index: number;
@@ -51,7 +51,7 @@ const Dot: React.FC<DotProps> = ({ index, scrollX, width }) => {
       [0, 1, 0],
       Extrapolation.CLAMP,
     );
-    return { backgroundColor: active > 0.5 ? GOLD : GOLD_DEEP };
+    return { backgroundColor: active > 0.5 ? COLORS.brand : COLORS.white };
   });
 
   return <Animated.View style={[styles.dot, animatedStyle, colorStyle]} />;

@@ -1,6 +1,5 @@
 // Src/Navigations/StackNavigator.tsx
 import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -33,6 +32,7 @@ import GoogleContactOtpScreen from '../Screens/Auth/GoogleContactUpdate/GoogleCo
 import HelpCentre from '../Screens/HelpCenter/HelpCenter';
 import KnowMore from '../Screens/KnowMore/KnowMore'
 import ProfileScreen from '../Screens/Profile/Profile';
+import SplashScreen from '../Screens/Splash/SplashScreen';
 import { navigationRef } from './navigationRef';
 
 const Stack = createNativeStackNavigator();
@@ -84,11 +84,7 @@ export default function StackNavigator() {
   }, []);
 
   if (loading || !initialRoute) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <SplashScreen />;
   }
 
   return (

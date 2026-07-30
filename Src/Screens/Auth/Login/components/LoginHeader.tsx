@@ -18,7 +18,7 @@ import theme from '../../../../Utills/AppTheme';
 
 const { COLORS, SIZES, FONTS } = theme;
 const MEDALLION = SIZES.icon.avatarLg + SIZES.space.xxxl;
-const LOCAL_LOGO = require('../../../../../assets/icon.png');
+const LOCAL_LOGO = require("../../../../Assets/Company/headerlogo.webp");
 
 export interface LoginHeaderProps {
   brand?: string;
@@ -58,9 +58,9 @@ const LoginHeader: React.FC<LoginHeaderProps> = ({
       </Animated.View>
 
       <Animated.View style={[styles.textBlock, textStyle]}>
-        <Text style={styles.brand} accessibilityRole="header">
+        {/* <Text style={styles.brand} accessibilityRole="header">
           {brand}
-        </Text>
+        </Text> */}
         {/* <View style={styles.subtitleRow}>
           <MaterialCommunityIcons name="shield-check" size={SIZES.icon.xs} color={COLORS.contentBrand} />
           <Text style={styles.subtitle}>{subtitle}</Text>
@@ -72,20 +72,18 @@ const LoginHeader: React.FC<LoginHeaderProps> = ({
 
 const styles = StyleSheet.create({
   wrap: {
+    width: '100%',
     alignItems: 'center',
-    flexDirection: 'row',
-    gap:10
   },
   logoWrap: {
-    width: MEDALLION,
-    height: MEDALLION,
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
   logoImg: {
-    width: MEDALLION,
-    height: MEDALLION,
-    borderRadius: MEDALLION / 2,
+    width: '100%',
+    height: undefined,
+    aspectRatio: 1600 / 500,
   },
   textBlock: {
     alignItems: 'center',

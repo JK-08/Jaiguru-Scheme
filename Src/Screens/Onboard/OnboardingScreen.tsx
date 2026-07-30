@@ -1,111 +1,43 @@
 // Src/Screens/Onboard/OnboardingScreen.tsx
-// -----------------------------------------------------------------------------
-// Jaiguru Jewellers — premium 4-screen onboarding.
-// Horizontal swipe (Reanimated-driven), animated luxury background, glass cards,
-// gold-gradient CTA, smooth page indicator and parallax hero illustrations.
-//
-// Composed from:
-//   • data.ts                     – typed slide content
-//   • components/OnboardingItem    – single parallax page
-//   • components/Illustrations     – animated vector jewellery art
-//   • components/Pagination        – scroll-linked dots
-//   • components/NextButton        – gold gradient CTA
-//   • components/FloatingElement   – floating ornament primitive
-// -----------------------------------------------------------------------------
-
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Dimensions,
   FlatList,
-  Platform,
+  Image,
   Pressable,
   StatusBar,
   StyleSheet,
   Text,
   View,
-  type NativeScrollEvent,
   type NativeSyntheticEvent,
-  type ViewToken,
+  type NativeScrollEvent,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Animated, {
-  Easing,
-  useAnimatedScrollHandler,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated';
 
-import theme from '../../Utills/AppTheme';
-import { CHAMPAGNE, GOLD_DEEP, INK_SOFT, ONBOARDING_DATA, type OnboardingSlide } from './data';
-import OnboardingItem from './components/OnboardingItem';
-import Pagination from './components/Pagination';
+import { IMAGE_BASE_URL } from '../../Config/BaseUrl';
+import { useOnboardBanners } from '../../api/hooks/Onboard/useOnboardingBanners';
 import NextButton from './components/NextButton';
+import Pagination from './components/Pagination';
+import { useSharedValue } from 'react-native-reanimated';
+import { COLORS, FONTS } from '../../Utills/AppTheme';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const AnimatedFlatList = Animated.createAnimatedComponent(FlatList<OnboardingSlide>);
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const OnboardingScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  // App.tsx renders full-bleed (no app-level SafeAreaView), so this screen owns
-  // its own safe-area spacing: the background fills edge-to-edge (incl. behind
-  // the status bar) while content is padded by the insets below.
   const insets = useSafeAreaInsets();
-
-  const listRef = useRef<FlatList<OnboardingSlide>>(null);
+  const { banners, loading } = useOnboardBanners();
+  const listRef = useRef<FlatList>(null);
   const scrollX = useSharedValue(0);
-  const drift = useSharedValue(0);
   const [index, setIndex] = useState(0);
 
-  const isLast = index === ONBOARDING_DATA.length - 1;
+  const isLast = index === (banners.length || 1) - 1;
 
-  // ---- Slow, looping background gradient drift -----------------------------
-  useEffect(() => {
-    drift.value = withRepeat(
-      withTiming(1, { duration: 9000, easing: Easing.inOut(Easing.quad) }),
-      -1,
-      true,
-    );
-  }, [drift]);
-
-  const blobA = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: -40 + 30 * drift.value },
-      { translateY: -30 + 25 * drift.value },
-      { scale: 1 + 0.08 * drift.value },
-    ],
-  }));
-  const blobB = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: 30 - 30 * drift.value },
-      { translateY: 20 - 20 * drift.value },
-      { scale: 1.1 - 0.08 * drift.value },
-    ],
-  }));
-
-  // ---- Scroll tracking ------------------------------------------------------
-  const scrollHandler = useAnimatedScrollHandler((e) => {
-    scrollX.value = e.contentOffset.x;
-  });
-
-  const onViewableItemsChanged = useRef(
-    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
-      if (viewableItems[0]?.index != null) setIndex(viewableItems[0].index);
-    },
-  ).current;
-
-  const viewabilityConfig = useMemo(() => ({ viewAreaCoveragePercentThreshold: 55 }), []);
-
-  // Fallback index tracking for platforms/timings where viewability lags.
-  const onMomentumEnd = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    setIndex(Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH));
-  }, []);
-
-  // ---- Skip on mount if already authenticated ------------------------------
+  // Skip if already authenticated
   useEffect(() => {
     (async () => {
       try {
@@ -115,23 +47,16 @@ const OnboardingScreen: React.FC = () => {
           const userData = JSON.parse(userDataStr);
           if (userData?.id) navigation.replace('MainDrawer');
         }
-      } catch (err) {
-        // Non-fatal: just continue showing onboarding.
-        console.log('Onboarding auth check failed', err);
-      }
+      } catch (_) { }
     })();
   }, [navigation]);
 
-  // ---- Completion + navigation ---------------------------------------------
   const finish = useCallback(
     async (route: 'Login' | 'Register') => {
       try {
         await AsyncStorage.setItem('hasSeenOnboarding', 'true');
-      } catch (err) {
-        console.log('Failed to persist onboarding flag', err);
-      } finally {
-        navigation.replace(route);
-      }
+      } catch (_) { }
+      navigation.replace(route);
     },
     [navigation],
   );
@@ -144,195 +69,141 @@ const OnboardingScreen: React.FC = () => {
     listRef.current?.scrollToOffset({ offset: (index + 1) * SCREEN_WIDTH, animated: true });
   }, [finish, index, isLast]);
 
-  const skip = useCallback(() => finish('Login'), [finish]);
+  const onMomentumEnd = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const newIndex = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+    setIndex(newIndex);
+    scrollX.value = e.nativeEvent.contentOffset.x;
+  }, [scrollX]);
 
-  const renderItem = useCallback(
-    ({ item, index: i }: { item: OnboardingSlide; index: number }) => (
-      <OnboardingItem slide={item} index={i} scrollX={scrollX} width={SCREEN_WIDTH} />
-    ),
-    [scrollX],
-  );
+  const onScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    scrollX.value = e.nativeEvent.contentOffset.x;
+  }, [scrollX]);
 
-  const lastSlide = ONBOARDING_DATA[ONBOARDING_DATA.length - 1];
+  if (loading) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color={COLORS.brand} />
+      </View>
+    );
+  }
+
+  if (!banners.length) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color={COLORS.brand} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      {/* Animated luxury background — fills edge-to-edge, including behind the
-          status bar, so there is no white band above the app content. */}
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <LinearGradient colors={['#FFFFFF', '#FFFDF7', '#FBF4E6']} style={StyleSheet.absoluteFill} />
-        <Animated.View style={[styles.blob, styles.blobTop, blobA]}>
-          <LinearGradient
-            colors={[CHAMPAGNE, 'rgba(255,255,255,0)']}
-            style={styles.blobFill}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-          />
-        </Animated.View>
-        <Animated.View style={[styles.blob, styles.blobBottom, blobB]}>
-          <LinearGradient
-            colors={['rgba(212,175,55,0.16)', 'rgba(255,255,255,0)']}
-            style={styles.blobFill}
-            start={{ x: 0.5, y: 1 }}
-            end={{ x: 0.5, y: 0 }}
-          />
-        </Animated.View>
-      </View>
-
-      {/* Top bar: brand + skip */}
-      <View style={[styles.topBar, { paddingTop: insets.top + 10 }]}>
-        <Text style={styles.brand}>
-          Jaiguru <Text style={styles.brandAccent}>Jewellers</Text>
-        </Text>
-        {!isLast && (
-          <Pressable
-            onPress={skip}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel="Skip onboarding"
-            style={({ pressed }) => [styles.skipBtn, pressed && styles.skipPressed]}
-          >
-            <Text style={styles.skipText}>Skip</Text>
-          </Pressable>
-        )}
-      </View>
-
-      {/* Pages */}
-      <AnimatedFlatList
+      <FlatList
+        style={styles.list}
         ref={listRef}
-        data={ONBOARDING_DATA}
-        keyExtractor={(item) => (item as OnboardingSlide).id}
-        renderItem={renderItem as any}
+        data={banners}
+        keyExtractor={(item) => String(item.BannerId)}
         horizontal
         pagingEnabled
         bounces={false}
         showsHorizontalScrollIndicator={false}
-        onScroll={scrollHandler}
         scrollEventThrottle={16}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={viewabilityConfig}
+        onScroll={onScroll}
         onMomentumScrollEnd={onMomentumEnd}
         decelerationRate="fast"
-        style={styles.list}
+        renderItem={({ item }) => (
+          <Image
+            source={{ uri: `${IMAGE_BASE_URL}${item.image_path}` }}
+            style={styles.bannerImage}
+            resizeMode="cover"
+          />
+        )}
       />
 
-      {/* Bottom controls */}
-      <View style={[styles.footer, { paddingBottom: insets.bottom + 18 }]}>
-        <Pagination count={ONBOARDING_DATA.length} scrollX={scrollX} width={SCREEN_WIDTH} />
+      {/* Bottom overlay */}
+      <LinearGradient
+        colors={[COLORS.transparent, COLORS.scrimHeavy]}
+        style={[styles.overlay, { paddingBottom: insets.bottom + 24 }]}
+        pointerEvents="box-none"
+      >
+        <Pagination count={banners.length} scrollX={scrollX} width={SCREEN_WIDTH} />
 
         <View style={styles.ctaWrap}>
-          <NextButton
-            label={ONBOARDING_DATA[index]?.primaryLabel ?? 'Continue'}
-            onPress={goNext}
-            showArrow={!isLast}
-            accessibilityHint={isLast ? 'Completes onboarding' : 'Goes to the next screen'}
-          />
 
-          {isLast && lastSlide.secondaryLabel && (
+
+
+
+          {isLast && (
             <Pressable
               onPress={() => finish('Login')}
-              hitSlop={10}
-              accessibilityRole="button"
-              accessibilityLabel={lastSlide.secondaryLabel}
-              style={({ pressed }) => [styles.loginBtn, pressed && styles.loginPressed]}
+              hitSlop={12}
+              style={({ pressed }) => [styles.loginBtn, pressed && { opacity: 0.7 }]}
             >
-              <Text style={styles.loginText}>
-                Already a member?{' '}
-                <Text style={styles.loginLink}>{lastSlide.secondaryLabel}</Text>
-              </Text>
+              <Text style={styles.loginBtnText}> Sign In</Text>
             </Pressable>
           )}
+
+          {!isLast && (
+            <Pressable
+              onPress={() => finish('Login')}
+              hitSlop={12}
+              style={({ pressed }) => [styles.skipBtn, pressed && { opacity: 0.7 }]}
+            >
+              <Text style={styles.skipText}>Skip</Text>
+            </Pressable>
+          )}
+          <NextButton
+            label={isLast ? 'Sign Up' : 'Next'}
+            onPress={goNext}
+            showArrow={!isLast}
+          />
         </View>
-      </View>
+      </LinearGradient>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: theme.COLORS.surface,
-
-  },
-  blob: {
+  root: { flex: 1, backgroundColor: COLORS.black },
+  loader: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.white },
+  list: { width: SCREEN_WIDTH, height: SCREEN_HEIGHT },
+  bannerImage: { width: SCREEN_WIDTH, height: SCREEN_HEIGHT },
+  overlay: {
     position: 'absolute',
-    width: SCREEN_WIDTH * 1.3,
-    height: SCREEN_WIDTH * 1.3,
-    borderRadius: SCREEN_WIDTH * 0.65,
-    overflow: 'hidden',
-  },
-  blobFill: { flex: 1 },
-  blobTop: {
-    top: -SCREEN_WIDTH * 0.45,
-    left: -SCREEN_WIDTH * 0.2,
-  },
-  blobBottom: {
-    bottom: -SCREEN_WIDTH * 0.5,
-    right: -SCREEN_WIDTH * 0.25,
-  },
-  topBar: {
-    flexDirection: 'row',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingTop: 40,
+    paddingHorizontal: 28,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingBottom: 6,
-    zIndex: 5,
-    
   },
-  brand: {
-    fontFamily: theme.FONTS.family.bold,
-    fontSize: 16,
-    letterSpacing: 0.5,
-    color: theme.COLORS.contentPrimary,
-  },
-  brandAccent: {
-    color: GOLD_DEEP,
-  },
+  ctaWrap: { marginTop: 10, width: '100%', flexDirection: 'row', alignItems: 'center', gap: 12 },
   skipBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    backgroundColor: 'rgba(212,175,55,0.12)',
-  },
-  skipPressed: {
-    opacity: 0.6,
+    flex: 1,
+    height: 50,
+    borderRadius: 26,
+    backgroundColor: COLORS.brandStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   skipText: {
-    fontFamily: theme.FONTS.family.semiBold,
-    fontSize: 13,
-    color: GOLD_DEEP,
-    letterSpacing: 0.3,
-  },
-  list: {
-    flex: 1,
-  },
-  footer: {
-    paddingHorizontal: 28,
-    paddingTop: 8,
-    paddingBottom: 44,
-  },
-  ctaWrap: {
-    marginTop: 22,
-    alignItems: 'center',
-    // marginBottom:75
+    fontSize: 16,
+    color: COLORS.contentOnBrand,
+    fontFamily: FONTS.family.semiBold,
   },
   loginBtn: {
-    marginTop: 16,
-    paddingVertical: 6,
+    flex: 1,
+    height: 50,
+    borderRadius: 26,
+    backgroundColor: COLORS.brandStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  loginPressed: {
-    opacity: 0.6,
-  },
-  loginText: {
-    fontFamily: theme.FONTS.family.regular,
-    fontSize: 14,
-    color: INK_SOFT,
-  },
-  loginLink: {
-    fontFamily: theme.FONTS.family.bold,
-    color: GOLD_DEEP,
+  loginBtnText: {
+    fontSize: 16,
+    color: COLORS.contentOnBrand,
+    fontFamily: FONTS.family.semiBold,
   },
 });
 

@@ -18,10 +18,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import theme from '../../../Utills/AppTheme';
-import { GOLD, GOLD_DEEP, GOLD_LIGHT } from '../data';
-
-const { COLORS } = theme;
+import { COLORS, FONTS } from '../../../Utills/AppTheme';
 
 const AnimatedGradient = Animated.createAnimatedComponent(LinearGradient);
 
@@ -71,7 +68,7 @@ const NextButton: React.FC<NextButtonProps> = ({
         style={styles.pressable}
       >
         <LinearGradient
-          colors={[GOLD_LIGHT, GOLD, GOLD_DEEP]}
+          colors={[COLORS.brandMuted, COLORS.brand, COLORS.brandStrong]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.gradient}
@@ -103,17 +100,21 @@ const NextButton: React.FC<NextButtonProps> = ({
 
 const styles = StyleSheet.create({
   wrap: {
-    width: '100%',
+    flex: 1,
     borderRadius: 26,
-    ...theme.ELEVATION.brandGlow,
-    shadowColor: GOLD,
+    shadowColor: COLORS.brand,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.28,
+    shadowRadius: 12,
+    elevation: 6,
   },
   pressable: {
     borderRadius: 26,
     overflow: 'hidden',
   },
   gradient: {
-    height: 58,
+    height: 50,
+    paddingHorizontal: 28,
     borderRadius: 26,
     flexDirection: 'row',
     alignItems: 'center',
@@ -131,7 +132,7 @@ const styles = StyleSheet.create({
     width: 90,
   },
   label: {
-    fontFamily: theme.FONTS.family.bold,
+    fontFamily: FONTS.family.bold,
     fontSize: 16,
     letterSpacing: 0.5,
     color: COLORS.white,

@@ -66,9 +66,6 @@ const LoginScreen: React.FC = () => {
     transform: [{ translateY: interpolate(enter.value, [0, 1], [34, 0]) }],
   }));
 
-  const goToPrivacy = () => navigation.navigate('PrivacyPolicy');
-  const goToTerms = () => navigation.navigate('TermsAndConditions');
-
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />

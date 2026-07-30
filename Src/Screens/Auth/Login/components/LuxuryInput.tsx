@@ -46,7 +46,7 @@ const LuxuryInput: React.FC<LuxuryInputProps> = ({
   const containerStyle = useAnimatedStyle(() => ({
     borderColor: hasError
       ? COLORS.danger
-      : interpolateColor(focus.value, [0, 1], [COLORS.accentSubtle, COLORS.accent]),
+      : interpolateColor(focus.value, [0, 1], [COLORS.border, COLORS.brand]),
     shadowOpacity: 0.18 * focus.value,
     shadowRadius: 10 * focus.value,
     elevation: hasError ? 0 : 4 * focus.value,
@@ -58,7 +58,7 @@ const LuxuryInput: React.FC<LuxuryInputProps> = ({
         <MaterialCommunityIcons
           name={icon}
           size={SIZES.icon.md}
-          color={focused && !hasError ? COLORS.accent : COLORS.contentSecondary}
+          color={focused && !hasError ? COLORS.brand : COLORS.contentMuted}
           style={styles.leadingIcon}
         />
         <TextInput
@@ -84,7 +84,7 @@ const LuxuryInput: React.FC<LuxuryInputProps> = ({
             accessibilityLabel={trailingAccessibilityLabel}
             style={styles.trailingBtn}
           >
-            <MaterialCommunityIcons name={trailingIcon} size={SIZES.icon.md} color={COLORS.contentSecondary} />
+            <MaterialCommunityIcons name={trailingIcon} size={SIZES.icon.md} color={focused ? COLORS.brand : COLORS.contentMuted} />
           </Pressable>
         )}
       </Animated.View>

@@ -1,6 +1,7 @@
 // PaymentReceiptPDF.ts - Updated for Expo SDK 54 with new FileSystem API
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import * as IntentLauncher from 'expo-intent-launcher';
 import { Asset } from 'expo-asset';
 import { Alert, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -793,13 +794,18 @@ class PaymentReceiptPDF {
 
         console.log('✅ PDF saved to:', newUri);
 
-        Alert.alert('Success ✓', `Receipt saved successfully!\n\n${fileName}`);
+        // Auto-open via ACTION_VIEW intent
+        try {
+          await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
+            data: newUri,
+            flags: 1,
+            type: 'application/pdf',
+          });
+        } catch {
+          Alert.alert('Success ✓', `Receipt saved!\n\n${fileName}`);
+        }
 
-        return {
-          success: true,
-          fileName,
-          uri: newUri,
-        };
+        return { success: true, fileName, uri: newUri };
       }
 
       // ============================
@@ -808,18 +814,25 @@ class PaymentReceiptPDF {
       else {
         const newPath = FileSystem.documentDirectory + fileName;
 
-        await FileSystem.moveAsync({
-          from: uri,
-          to: newPath,
-        });
+        await FileSystem.moveAsync({ from: uri, to: newPath });
 
-        Alert.alert('Success ✓', `Receipt saved successfully!`);
+        // Auto-open via native share/preview sheet on iOS
+        try {
+          const isSharingAvailable = await Sharing.isAvailableAsync();
+          if (isSharingAvailable) {
+            await Sharing.shareAsync(newPath, {
+              mimeType: 'application/pdf',
+              dialogTitle: 'Open Receipt',
+              UTI: 'com.adobe.pdf',
+            });
+          } else {
+            Alert.alert('Success ✓', 'Receipt saved successfully!');
+          }
+        } catch {
+          Alert.alert('Success ✓', 'Receipt saved successfully!');
+        }
 
-        return {
-          success: true,
-          fileName,
-          uri: newPath,
-        };
+        return { success: true, fileName, uri: newPath };
       }
     } catch (error: any) {
       console.error('❌ PDF Generation Error:', error);

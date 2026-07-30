@@ -1,6 +1,6 @@
 // Src/Screens/PaymentReceipt/PaymentReceipt.tsx
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, StatusBar, Alert, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity,  StatusBar, Alert, Image, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
 import PremiumBackground from '../../Components/PremiumBackground/PremiumBackground';
@@ -9,6 +9,7 @@ import { COLORS } from '../../Utills/AppTheme';
 import { useCompany } from '../../api/hooks/Company/useCompany';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { AppButton, AppText } from '../../Components/ui/appcomponents';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const moderateScale = (size: number) => size;
 
