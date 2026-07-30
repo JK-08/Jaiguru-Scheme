@@ -113,7 +113,7 @@ export default function PaymentReceiptPage() {
   return (
     <View style={styles.container}>
       <PremiumBackground />
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={styles.safeArea} edges={[]}>
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
         <CommonHeader
           title="Payment Receipt"

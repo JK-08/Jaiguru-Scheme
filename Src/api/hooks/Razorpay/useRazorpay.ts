@@ -11,6 +11,7 @@
 //      race-safe on the backend). Either way, by the time verify-payment
 //      responds, the member/installment has been committed.
 import { useState, useCallback, useRef } from 'react';
+import { Platform } from 'react-native';
 import { razorpayService } from '../../services/razorpayService';
 import { COLORS } from '../../../Utills/AppTheme';
 import { CreateMemberPayload } from '../../../types/Member/Member';
@@ -206,7 +207,9 @@ export const useRazorpayPayment = () => {
             };
 
             setRazorpayOptions(options);
-            setWebViewVisible(true);
+            // iOS cannot present a new modal while another is still dismissing.
+            // A short delay lets the PaymentModal fully unmount first.
+            setTimeout(() => setWebViewVisible(true), Platform.OS === 'ios' ? 400 : 0);
           } catch (err: any) {
             setPaymentStep(PAYMENT_STEPS.FAILED);
             setError(err?.message);

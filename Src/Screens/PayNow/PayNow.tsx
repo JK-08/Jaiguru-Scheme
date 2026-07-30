@@ -209,7 +209,7 @@ const PayNow = () => {
       <PremiumBackground />
       <CommonHeader title="Pay Now" transparent borderBottom={false} shadow={false} />
 
-      <ScreenWrapper scroll backgroundColor="transparent" contentStyle={styles.scrollContent}>
+      {/* <ScreenWrapper scroll backgroundColor="transparent" contentStyle={styles.scrollContent}> */}
         {/* Scheme Card */}
         <AppCard style={styles.card}>
           <View style={styles.badgeRow}>
@@ -304,7 +304,7 @@ const PayNow = () => {
         </AppCard>
 
         <View style={{ height: 100 }} />
-      </ScreenWrapper>
+      {/* </ScreenWrapper> */}
 
       <RazorpayWebView visible={webViewVisible} options={razorpayOptions} onSuccess={handlePaymentSuccess} onDismiss={handlePaymentDismiss} />
 
