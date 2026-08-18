@@ -96,6 +96,7 @@ export function useRegister() {
         };
 
         const result: any = await signUp(payload);
+        console.log('Create Account response:', result);
 
         const otpSent =
           result?.message?.includes('OTP sent') ||

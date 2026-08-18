@@ -16,16 +16,37 @@ import { COLORS } from './Src/Utills/AppTheme';
 import ErrorBoundary from './Src/Components/ErrorBoundary';
 import { AppToastProvider } from './Src/Components/ui/appcomponents';
 import NotificationBanner from './Src/Components/NotificationBanner/NotificationBanner';
+import MaintenanceScreen from './Src/Screens/Maintenance/MaintenanceScreen';
+import { API_BASE_URL } from './Src/Config/BaseUrl';
 
 
 export default function App() {
   const [appReady, setAppReady] = useState(false);
+  const [isMaintenance, setIsMaintenance] = useState(false);
+  const [maintenanceMsg, setMaintenanceMsg] = useState<string | undefined>();
 
   // ✅ LOAD FONTS
   const fontsLoaded = useFonts();
 
   useEffect(() => {
-    checkForAppUpdate();
+    const fetchConfig = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/app-config/all`);
+        if (res.ok) {
+          const data = await res.json();
+          const config = data?.[0];
+          if (config?.IS_MAINTENANCE) {
+            setIsMaintenance(true);
+            setMaintenanceMsg(config.MAINTENANCE_MSG);
+            return;
+          }
+        }
+      } catch (e) {
+        console.log('Config fetch failed:', e);
+      }
+      checkForAppUpdate();
+    };
+    fetchConfig();
   }, []);
 
   useEffect(() => {
@@ -49,6 +70,10 @@ export default function App() {
       cleanupOpenHandlers();
     };
   }, []);
+
+  if (isMaintenance) {
+    return <MaintenanceScreen message={maintenanceMsg} />;
+  }
 
   // Show loading until fonts are loaded and app is ready
   if (!fontsLoaded || !appReady) {

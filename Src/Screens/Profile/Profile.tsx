@@ -226,10 +226,6 @@ const ProfileScreen = () => {
                     )}
                   </View>
                 </LinearGradient>
-                {/* Decorative badge — wire to an "Edit Profile" screen if one is added later */}
-                <View style={styles.avatarBadge}>
-                  <MaterialIcons name="photo-camera" size={13} color={COLORS.contentOnBrand} />
-                </View>
               </View>
 
               <View style={styles.nameRowCenter}>
@@ -391,19 +387,6 @@ const styles = StyleSheet.create({
     borderRadius: 43,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  avatarBadge: {
-    position: 'absolute',
-    right: 0,
-    bottom: 6,
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: COLORS.brand,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: COLORS.surface,
   },
   nameRowCenter: {
     flexDirection: 'row',

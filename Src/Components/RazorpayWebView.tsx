@@ -1,10 +1,11 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import {
   Modal, View, StyleSheet, ActivityIndicator,
-  TouchableOpacity, Text, Linking, AppState, StatusBar, Platform, SafeAreaView,
+  TouchableOpacity, Text, Linking, AppState, StatusBar, Platform, 
 } from "react-native";
 import { WebView, WebViewNavigation } from "react-native-webview";
 import { COLORS, SIZES, FONTS } from "../Utills/AppTheme";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const UPI_SCHEMES = [
@@ -321,7 +322,7 @@ const RazorpayWebView = ({ visible, options, onSuccess, onDismiss }: RazorpayWeb
       }}
     >
       <StatusBar barStyle="light-content" backgroundColor={THEME.bg} />
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView edges={['bottom']} style={styles.container}>
 
         {/* Bank WebView (3DS / NetBanking) */}
         {bankUrl ? (

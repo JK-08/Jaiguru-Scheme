@@ -8,6 +8,7 @@ import CommonHeader from '../../Components/CommonHeader/CommonHeader';
 import PremiumBackground from '../../Components/PremiumBackground/PremiumBackground';
 import { AppCard, AppText, AppButton, AppBadge, AppDivider, ScreenWrapper } from '../../Components/ui/appcomponents';
 import theme from '../../Utills/AppTheme';
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { COLORS, SIZES } = theme;
 
