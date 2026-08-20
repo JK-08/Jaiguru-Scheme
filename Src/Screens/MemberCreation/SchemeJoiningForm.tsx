@@ -172,10 +172,12 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
         <AppCard style={styles.card}>
           <AppSectionHeader title="Selected Scheme Details" />
           <View style={styles.detailRow}>
-            <AppText variant="bodySmall" color={COLORS.contentSecondary}>
+            <AppText variant="bodySmall" color={COLORS.contentSecondary} style={styles.detailLabel}>
               Scheme Name
             </AppText>
-            <AppText variant="bodyBold">{scheme?.schemeName || 'N/A'}</AppText>
+            <AppText variant="bodyBold" style={styles.detailValue} numberOfLines={2}>
+              {scheme?.schemeName || 'N/A'}
+            </AppText>
           </View>
           <View style={styles.detailRow}>
             <AppText variant="bodySmall" color={COLORS.contentSecondary}>
@@ -288,10 +290,10 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
             </AppText>
 
             <View style={styles.summaryRow}>
-              <AppText variant="bodySmall" color={COLORS.contentBrand}>
+              <AppText variant="bodySmall" color={COLORS.contentBrand} style={styles.detailLabel}>
                 Scheme
               </AppText>
-              <AppText variant="bodyBold" color={COLORS.contentBrand}>
+              <AppText variant="bodyBold" color={COLORS.contentBrand} style={styles.detailValue} numberOfLines={2}>
                 {scheme?.schemeName}
               </AppText>
             </View>
@@ -375,8 +377,15 @@ const styles = StyleSheet.create({
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: SIZES.space.sm,
+  },
+  detailLabel: {
+    flex: 1,
+  },
+  detailValue: {
+    flex: 2,
+    textAlign: 'right',
   },
   dropdownField: {
     flexDirection: 'row',
