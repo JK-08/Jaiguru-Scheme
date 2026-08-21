@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Jaiguru-DigiGold",
+    "name": "Jaiguru DigiGold",
     "slug": "jaiguruscheme",
-    "version": "1.4.3",
+    "version": "1.0.8",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
@@ -42,7 +42,7 @@
         ]
       },
       "appleTeamId": "236BJUX2XU",
-      "buildNumber": "6"
+      "buildNumber": "8"
     },
     "android": {
       "package": "com.brightechsoftware.jaiguruscheme2",
