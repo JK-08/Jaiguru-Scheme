@@ -3,6 +3,7 @@ import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'rea
 import { View, StyleSheet, ActivityIndicator, ScrollView, Modal, TouchableOpacity, FlatList } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSchemeGroupOptions } from '../../api/hooks/Schemes/useSchemeGroupOptions';
+import { useTransactionTypes } from '../../api/hooks/Account/useTransactionTypes';
 import { Scheme } from '../../types/Scheme/Scheme';
 import { AppText, AppCard, AppBadge, AppSectionHeader } from '../../Components/ui/appcomponents';
 import theme from '../../Utills/AppTheme';
@@ -31,6 +32,7 @@ export interface SchemeJoiningFormData {
   schemeName?: string;
   selectedScheme: string;
   amount: number | null;
+  regNo: number;
   paymentType: string;
   metalType?: string;
   schemeCode?: string;
@@ -68,9 +70,12 @@ const METAL_TYPE_NAMES: Record<string, string> = {
 
 const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProps>(
   ({ scheme, initialData = null, userData }, ref) => {
-    const { schemes, loading: loadingSchemes, error: errorSchemes, getAmount } = useSchemeGroupOptions(
+    const { schemes, loading: loadingSchemes, error: errorSchemes, getAmount, getRegNo } = useSchemeGroupOptions(
       scheme?.SchemeId
     );
+    const { onlinePayMode, transactionTypes } = useTransactionTypes();
+    const onlineEntry = transactionTypes.find((t) => t.NAME.trim().toUpperCase() === 'ONLINE');
+    const paymentLabel = onlineEntry ? `${onlineEntry.NAME} (${onlineEntry.ACCOUNT})` : (onlinePayMode ? `ONLINE (${onlinePayMode.accCode})` : 'Online');
 
     const [selectedScheme, setSelectedScheme] = useState('');
     const [selectedPayment] = useState('00001');
@@ -97,6 +102,7 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
 
     const prepareSubmissionData = (): SchemeJoiningFormData => {
       const amount = getAmount(selectedScheme);
+      const regNo = getRegNo(selectedScheme);
       const paymentType = 'Online';
 
       return {
@@ -104,6 +110,7 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
         schemeName: scheme?.schemeName,
         selectedScheme,
         amount,
+        regNo,
         paymentType,
         metalType: scheme?.MetalType,
         schemeCode: scheme?.SchemeSName,
@@ -277,7 +284,7 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
               Payment Type
             </AppText>
             <AppText variant="h6" color={COLORS.contentBrand}>
-              Online (00001)
+              {paymentLabel}
             </AppText>
           </View>
         </AppCard>
@@ -318,7 +325,7 @@ const SchemeJoiningForm = forwardRef<SchemeJoiningFormRef, SchemeJoiningFormProp
                 Payment Type
               </AppText>
               <AppText variant="bodyBold" color={COLORS.contentBrand}>
-                Online (00001)
+                {paymentLabel}
               </AppText>
             </View>
             <View style={[styles.summaryRow, { borderBottomWidth: 0 }]}>

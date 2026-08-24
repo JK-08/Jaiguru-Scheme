@@ -37,5 +37,10 @@ export const useSchemeGroupOptions = (schemeId?: number | string) => {
     return scheme ? scheme.AMOUNT : null;
   };
 
-  return { schemes, loading, error, getAmount };
+  const getRegNo = (groupCode: string): number => {
+    const scheme = schemes.find((s) => s.GROUPCODE === groupCode);
+    return scheme ? scheme.CURRENTREGNO : 1; // Default to 1 if not found
+  };
+
+  return { schemes, loading, error, getAmount, getRegNo };
 };

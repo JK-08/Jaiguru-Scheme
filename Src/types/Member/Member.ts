@@ -63,7 +63,7 @@ export interface CreateSchemeSummaryPayload {
 
 export interface SchemeCollectInsertPayload {
   amount: number;
-  modePay: number;
+  modePay: number | string;
   accCode: string;
   chqBankCode: number;
   chqCardNo?: string;

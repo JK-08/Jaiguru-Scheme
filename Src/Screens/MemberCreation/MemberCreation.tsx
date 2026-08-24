@@ -11,10 +11,12 @@ import RazorpayWebView from '../../Components/RazorpayWebView';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
 import PremiumBackground from '../../Components/PremiumBackground/PremiumBackground';
 import { getUserId, getUserField } from '../../Utills/AsynchStorageHelper';
+import { useTransactionTypes } from '../../api/hooks/Account/useTransactionTypes';
 import { Scheme } from '../../types/Scheme/Scheme';
 import { CreateMemberPayload } from '../../types/Member/Member';
 import { AppButton, AppText } from '../../Components/ui/appcomponents';
 import theme from '../../Utills/AppTheme';
+import { PAYMENT_CONSTANTS } from '../../constants/paymentConstants';
 
 const { COLORS, SIZES, FONTS, ELEVATION } = theme;
 
@@ -45,6 +47,8 @@ const MemberCreation = () => {
   const schemeFormRef = useRef<SchemeJoiningFormRef>(null);
 
   // Hooks
+  const { onlinePayMode } = useTransactionTypes();
+
   const {
     loading: paymentLoading,
     startPayment,
@@ -134,7 +138,7 @@ const MemberCreation = () => {
   }, []);
 
   const createMemberPayload = useCallback(
-    (formData: any): CreateMemberPayload => {
+    (formData: any, regNo: number): CreateMemberPayload => {
       const user = userRegistrationData;
       const aadhaar = user.aadharNumber?.replace(/\s/g, '') || '';
       const maskedAadhaar = aadhaar.length >= 4 ? `XXXX-XXXX-${aadhaar.slice(-4)}` : '';
@@ -142,8 +146,8 @@ const MemberCreation = () => {
 
       return {
         newMember: {
-          title: 'Mr',
-          initial: (user.userName?.[0] || 'K').toUpperCase(),
+          title: PAYMENT_CONSTANTS.TITLE,
+          initial: (user.userName?.[0] || PAYMENT_CONSTANTS.INITIAL_FALLBACK).toUpperCase(),
           pName: user.userName || 'NA',
           sName: user.lastName || 'NA',
           doorNo: user.doorNo || '',
@@ -151,8 +155,8 @@ const MemberCreation = () => {
           address2: '',
           area: user.area || '',
           city: user.city || '',
-          state: (user.state || 'Tamil Nadu').replace(/\s+/g, ' '),
-          country: 'India',
+          state: (user.state || PAYMENT_CONSTANTS.DEFAULT_STATE).replace(/\s+/g, ' '),
+          country: PAYMENT_CONSTANTS.DEFAULT_COUNTRY,
           pinCode: user.pincode || '',
           mobile: user.mobileNumber || '',
           mobile2: user.nomineeMobile || '',
@@ -162,10 +166,10 @@ const MemberCreation = () => {
           nomAddr1: user.street || '',
           nomAddr2: '',
           nomCity: user.city || '',
-          nomState: (user.state || 'Tamil Nadu').replace(/\s+/g, ' '),
+          nomState: (user.state || PAYMENT_CONSTANTS.DEFAULT_STATE).replace(/\s+/g, ' '),
           nomPincode: user.pincode || '',
-          nomCountry: 'India',
-          idProof: 'Aadhaar',
+          nomCountry: PAYMENT_CONSTANTS.DEFAULT_COUNTRY,
+          idProof: PAYMENT_CONSTANTS.ID_PROOF,
           idProofNo: aadhaar,
           aadhaarMasked: maskedAadhaar,
           // Backend NewMember model calls this field "panno", not "panNumber" —
@@ -182,38 +186,38 @@ const MemberCreation = () => {
           nomineeMobileVerified: true,
           nomineeAadhaarVerified: false,
           upDateTime: nowDateTime,
-          userId: currentUserId || '0',
-          appVer: 'WEB',
+          userId: PAYMENT_CONSTANTS.USER_ID,
+          appVer: PAYMENT_CONSTANTS.APP_VER,
           anniversaryDate: formatDate(user.anniversaryDate),
         },
         createSchemeSummary: {
           schemeId: formData.schemeId || 0,
           groupCode: formData.selectedScheme || '',
-          regNo: 1,
+          regNo,
           joinDate: nowDateTime,
           // Backend CreateSchemeSummary model calls these "updateTime"/"userId",
           // not "upDateTime2"/"userId2" — same unrecognized-field failure mode.
           updateTime: nowDateTime,
           openingDate: nowDateTime,
-          userId: currentUserId || '0',
+          userId: PAYMENT_CONSTANTS.USER_ID,
         },
         schemeCollectInsert: {
           amount: formData.amount || 0,
-          modePay: 4,
-          accCode: '00001',
-          chqBankCode: 4,
+          modePay: onlinePayMode?.modePay ?? 'R',
+          accCode: onlinePayMode?.accCode ?? '0000018',
+          chqBankCode: onlinePayMode?.chqBankCode ?? 4,
           // Payment/order id aren't known yet — this payload is built and
           // parked server-side BEFORE the Razorpay order (and therefore the
           // payment id) exists.
           chqCardNo: '',
-          chqBranch: 'Online',
-          chkBank: 'Razorpay',
+          chqBranch: PAYMENT_CONSTANTS.CHQ_BRANCH,
+          chkBank: PAYMENT_CONSTANTS.CHK_BANK,
           chqRtnReason: '',
         },
         ...(currentReferralCode ? { referralCode: currentReferralCode } : {}),
       };
     },
-    [userRegistrationData, formatDate, currentUserId, currentReferralCode]
+    [userRegistrationData, formatDate, currentReferralCode]
   );
 
   // The backend returns the parked-payload outcome as a stringified map,
@@ -265,7 +269,7 @@ const MemberCreation = () => {
     if (!isValid) return;
 
     const formData = schemeFormRef.current.getFormData();
-    const regNo = 3;
+    const regNo = formData.regNo;
     const groupCode = formData.selectedScheme || 'MAN';
 
     console.log('[SCHEME JOIN] STEP 2 — Scheme joining form submitted', { scheme: formData.schemeName, groupCode, amount: formData.amount });
@@ -273,7 +277,7 @@ const MemberCreation = () => {
     // Built up front and sent as NMDATA on create-order (NEWJOIN=true) —
     // the backend parks it and creates the member automatically once
     // payment is confirmed. There's no more separate member/create call.
-    const nmData = createMemberPayload(formData);
+    const nmData = createMemberPayload(formData, regNo);
     console.log('[SCHEME JOIN] STEP 2 — Member payload built (NMDATA)', { pName: nmData.newMember.pName, schemeId: nmData.createSchemeSummary.schemeId });
 
     const result = await startPayment(

@@ -3,11 +3,13 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { useRazorpayPayment } from '../../api/hooks/Razorpay/useRazorpay';
+import { useTransactionTypes } from '../../api/hooks/Account/useTransactionTypes';
 import RazorpayWebView from '../../Components/RazorpayWebView';
 import CommonHeader from '../../Components/CommonHeader/CommonHeader';
 import PremiumBackground from '../../Components/PremiumBackground/PremiumBackground';
 import { AppCard, AppText, AppButton, AppBadge, AppDivider, ScreenWrapper } from '../../Components/ui/appcomponents';
 import theme from '../../Utills/AppTheme';
+import { PAYMENT_CONSTANTS } from '../../constants/paymentConstants';
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const { COLORS, SIZES } = theme;
@@ -55,6 +57,8 @@ const PayNow = () => {
   const [status, setStatus] = useState<Status>(STATUS.IDLE);
   const [statusMsg, setStatusMsg] = useState('');
   const [paymentId, setPaymentId] = useState('');
+
+  const { onlinePayMode } = useTransactionTypes();
 
   const {
     loading: paymentLoading,
@@ -114,20 +118,20 @@ const PayNow = () => {
       regNo: parseInt(String(regNo), 10) || 0,
       rDate: today,
       amount: paymentAmount,
-      modePay: 4,
-      accCode: '00001',
+      modePay: onlinePayMode?.modePay ?? 'R',
+      accCode: onlinePayMode?.accCode ?? '0000018',
       updateTime: today,
       installment: nextInstallment,
       weight:
         accountData?.schemeSummary?.weightLedger === 'Y' ? parseFloat(accountData?.schemeSummary?.totalWeight || 0) : 0,
       sWeight:
         accountData?.schemeSummary?.weightLedger === 'Y' ? parseFloat(accountData?.schemeSummary?.lastWeight || 0) : 0,
-      userID: 999,
+      userID: PAYMENT_CONSTANTS.USER_ID,
       schemeId: parseInt(String(schemeId), 10) || 0,
-      chqBankCode: 4,
+      chqBankCode: onlinePayMode?.chqBankCode ?? 4,
       chqCardNo: '',
-      chqBranch: 'Online',
-      chkBank: 'Razorpay',
+      chqBranch: PAYMENT_CONSTANTS.CHQ_BRANCH,
+      chkBank: PAYMENT_CONSTANTS.CHK_BANK,
       chqRtnReason: '',
     };
 
@@ -135,8 +139,8 @@ const PayNow = () => {
       paymentAmount,
       {
         name: memberName || 'Customer',
-        phone: accountData?.personalInfo?.mobile || '9999999999',
-        email: accountData?.personalInfo?.email || 'customer@example.com',
+        phone: accountData?.personalInfo?.mobile || PAYMENT_CONSTANTS.FALLBACK_PHONE,
+        email: accountData?.personalInfo?.email || PAYMENT_CONSTANTS.FALLBACK_EMAIL,
       },
       regNo?.toString() || '1',
       groupCode || 'MAN',

@@ -6,6 +6,7 @@
 export interface SchemeGroupOption {
   GROUPCODE: string;
   AMOUNT: number;
+  CURRENTREGNO: number;
 }
 
 export interface Scheme {
