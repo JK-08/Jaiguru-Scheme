@@ -1,6 +1,6 @@
 // Src/Screens/MemberCreation/MemberCreation.tsx
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { View, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRoute, useNavigation, useFocusEffect, RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import UserRegistrationForm, { UserRegistrationFormData, UserRegistrationFormRef } from './UserRegistrationForm';
@@ -41,6 +41,8 @@ const MemberCreation = () => {
   const [schemeJoiningData] = useState(null);
   const [currentUserId, setCurrentUserId] = useState<string | number | null>(null);
   const [currentReferralCode, setCurrentReferralCode] = useState('');
+
+  const [successDetails, setSuccessDetails] = useState<SuccessDetails | null>(null);
 
   // Refs
   const registrationFormRef = useRef<UserRegistrationFormRef>(null);
@@ -229,16 +231,8 @@ const MemberCreation = () => {
     (formData: any, processResult?: string) => {
       const msgStr = (processResult || '').replace(/^PROCESSED:\s*/, '');
 
-      // processResult can still come back empty in rare cases where the backend's
-      // brief poll (for a webhook that beat us to processing) times out before the
-      // member insert finishes. The payment itself is confirmed either way — don't
-      // show fabricated dashes as if we have real member details when we don't.
       if (!msgStr) {
-        Alert.alert(
-          '✅ Payment Successful',
-          `Your payment for ${formData.schemeName || 'the scheme'} was received. We're finishing up your member record — check "My Schemes" in a moment if the details don't appear immediately.`,
-          [{ text: 'OK', onPress: () => navigation.navigate('MainDrawer') }]
-        );
+        setSuccessDetails({ schemeName: formData.schemeName || 'the scheme' });
         return;
       }
 
@@ -251,13 +245,16 @@ const MemberCreation = () => {
           if (key) parsed[key.trim()] = rest.join('=').trim();
         });
 
-      Alert.alert(
-        '✅ Member Created Successfully',
-        `Personal ID: ${parsed.personalId || '-'}\nReg No: ${parsed.regNo || '-'}\nGroup Code: ${parsed.groupCode || '-'}\nScheme: ${formData.schemeName || '-'}\nAmount: ₹${parsed.amount || formData.amount || 0}\nReceipt No: ${parsed.sno || '-'}`,
-        [{ text: 'OK', onPress: () => navigation.navigate('MainDrawer') }]
-      );
+      setSuccessDetails({
+        personalId: parsed.personalId,
+        regNo: parsed.regNo,
+        groupCode: parsed.groupCode,
+        schemeName: formData.schemeName,
+        amount: parsed.amount || String(formData.amount || 0),
+        sno: parsed.sno,
+      });
     },
-    [navigation]
+    []
   );
 
   const handleSubmit = useCallback(async () => {
@@ -332,9 +329,11 @@ const MemberCreation = () => {
 
       {/* Payment Status Modal */}
       <PaymentModal
-        visible={paymentStep === PAYMENT_STEPS.CREATING_ORDER || paymentStep === PAYMENT_STEPS.VERIFYING}
-        step={paymentStep}
+        visible={paymentStep === PAYMENT_STEPS.CREATING_ORDER || paymentStep === PAYMENT_STEPS.VERIFYING || !!successDetails}
+        step={successDetails ? 'success' : paymentStep}
         error={paymentError}
+        successDetails={successDetails}
+        onSuccessClose={() => { setSuccessDetails(null); navigation.navigate('MainDrawer'); }}
       />
 
       {/* Loading Overlay */}
