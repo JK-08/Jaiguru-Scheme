@@ -1,9 +1,8 @@
 import * as Application from 'expo-application';
 import * as Updates from 'expo-updates';
-import { Alert, Linking, Platform } from 'react-native';
-import { API_BASE_URL } from '../Config/BaseUrl';
+import { Platform } from 'react-native';
 
-const isVersionLower = (current: string, target: string): boolean => {
+export const isVersionLower = (current: string, target: string): boolean => {
   const c = current.split('.').map(Number);
   const t = target.split('.').map(Number);
   for (let i = 0; i < t.length; i++) {
@@ -13,61 +12,55 @@ const isVersionLower = (current: string, target: string): boolean => {
   return false;
 };
 
-export const checkForAppUpdate = async (): Promise<void> => {
-  try {
-    const localVersion = Application.nativeApplicationVersion as string;
-    console.log('Installed version:', localVersion);
+export interface ForceUpdateInfo {
+  required: boolean;
+  currentVersion: string;
+  latestVersion?: string;
+  storeUrl?: string | null;
+}
 
-    // OTA update (production only)
+// Silently applies same-binary JS (OTA) updates in the background. Does not
+// gate rendering — a store-version update is handled separately via
+// getForceUpdateInfo, which blocks the app until the user updates.
+export const applyOTAUpdateIfAvailable = async (): Promise<void> => {
+  try {
     if (!__DEV__ && Updates.isEnabled) {
       const otaUpdate = await Updates.checkForUpdateAsync();
       if (otaUpdate.isAvailable) {
         await Updates.fetchUpdateAsync();
         await Updates.reloadAsync();
-        return;
       }
-    }
-
-    const response = await fetch(`${API_BASE_URL}/app-config/all`);
-    if (!response.ok) throw new Error('Failed to fetch app config');
-
-    const data: any[] = await response.json();
-    const config = data?.[0];
-    if (!config) throw new Error('Empty app config response');
-
-    console.log('App config:', config);
-
-    // Maintenance is handled in App.tsx before the navigator loads.
-    // Only check for version update here.
-    const latestVersion: string = config.VERSION;
-    const storeUrl: string | null =
-      Platform.OS === 'ios' ? config.APPSTORE_URL ?? null : config.STORE_URL ?? null;
-
-    console.log('Latest version:', latestVersion, '| Store URL:', storeUrl);
-
-    if (isVersionLower(localVersion, latestVersion)) {
-      if (!storeUrl) {
-        Alert.alert(
-          'New Version Available ✨',
-          `A new version (${latestVersion}) is available.
-Please update the app from the store.`,
-          [{ text: 'OK' }]
-        );
-        return;
-      }
-      Alert.alert(
-        'New Version Available ✨',
-        `A new version (${latestVersion}) is available.
-You're using ${localVersion}.`,
-        [
-          { text: 'Later', style: 'cancel' },
-          { text: 'Update', onPress: () => Linking.openURL(storeUrl) },
-        ]
-      );
-    } else {
-      console.log('App is up to date. Installed:', localVersion);
     }
   } catch (error: any) {
-    console.log('Version check failed:', error.message || error);
+    console.log('OTA update check failed:', error.message || error);
   }
+};
+
+// Compares the installed native version against the app-config response and
+// reports whether a mandatory update is required. Every available update is
+// treated as compulsory — callers must block the app (e.g. ForceUpdateScreen)
+// until the user updates. Skipped in development builds so local/dev-client
+// builds (which are typically behind the published store version) never get
+// blocked.
+export const getForceUpdateInfo = async (config: any): Promise<ForceUpdateInfo> => {
+  const currentVersion = (Application.nativeApplicationVersion as string) || '0';
+
+  if (__DEV__) {
+    return { required: false, currentVersion };
+  }
+
+  const latestVersion: string | undefined = config?.VERSION;
+  const storeUrl: string | null =
+    Platform.OS === 'ios' ? config?.APPSTORE_URL ?? null : config?.STORE_URL ?? null;
+
+  if (!latestVersion) {
+    return { required: false, currentVersion };
+  }
+
+  return {
+    required: isVersionLower(currentVersion, latestVersion),
+    currentVersion,
+    latestVersion,
+    storeUrl,
+  };
 };

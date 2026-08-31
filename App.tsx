@@ -10,13 +10,14 @@ import {
 } from './Src/Helpers/NotificationHelper';
 import StackNavigator from './Src/Navigations/StackNavigator';
 import useFonts from './Src/Utills/Fonts';
-import { checkForAppUpdate } from './Src/Utills/VersionChecker';
+import { applyOTAUpdateIfAvailable, getForceUpdateInfo, ForceUpdateInfo } from './Src/Utills/VersionChecker';
 import appLogo from './Src/Assets/Company/logo.png';
 import { COLORS } from './Src/Utills/AppTheme';
 import ErrorBoundary from './Src/Components/ErrorBoundary';
 import { AppToastProvider } from './Src/Components/ui/appcomponents';
 import NotificationBanner from './Src/Components/NotificationBanner/NotificationBanner';
 import MaintenanceScreen from './Src/Screens/Maintenance/MaintenanceScreen';
+import ForceUpdateScreen from './Src/Screens/ForceUpdate/ForceUpdateScreen';
 import { API_BASE_URL } from './Src/Config/BaseUrl';
 
 
@@ -24,6 +25,7 @@ export default function App() {
   const [appReady, setAppReady] = useState(false);
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [maintenanceMsg, setMaintenanceMsg] = useState<string | undefined>();
+  const [forceUpdate, setForceUpdate] = useState<ForceUpdateInfo | null>(null);
 
   // ✅ LOAD FONTS
   const fontsLoaded = useFonts();
@@ -40,11 +42,16 @@ export default function App() {
             setMaintenanceMsg(config.MAINTENANCE_MSG);
             return;
           }
+          const updateInfo = await getForceUpdateInfo(config);
+          if (updateInfo.required) {
+            setForceUpdate(updateInfo);
+            return;
+          }
         }
       } catch (e) {
         console.log('Config fetch failed:', e);
       }
-      checkForAppUpdate();
+      applyOTAUpdateIfAvailable();
     };
     fetchConfig();
   }, []);
@@ -73,6 +80,16 @@ export default function App() {
 
   if (isMaintenance) {
     return <MaintenanceScreen message={maintenanceMsg} />;
+  }
+
+  if (forceUpdate) {
+    return (
+      <ForceUpdateScreen
+        currentVersion={forceUpdate.currentVersion}
+        latestVersion={forceUpdate.latestVersion}
+        storeUrl={forceUpdate.storeUrl}
+      />
+    );
   }
 
   // Show loading until fonts are loaded and app is ready
