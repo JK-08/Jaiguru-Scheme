@@ -37,6 +37,7 @@ export default function App() {
         if (res.ok) {
           const data = await res.json();
           const config = data?.[0];
+          console.log('[AppConfig]', JSON.stringify(config, null, 2));
           if (config?.IS_MAINTENANCE) {
             setIsMaintenance(true);
             setMaintenanceMsg(config.MAINTENANCE_MSG);

@@ -4,6 +4,7 @@ import {
   Dimensions,
   Image,
   Linking,
+  Platform,
   StatusBar,
   StyleSheet,
   Text,
@@ -61,10 +62,12 @@ const ForceUpdateScreen: React.FC<Props> = ({ currentVersion, latestVersion, sto
     transform: [{ scale: pulse.value }, { translateY: float.value }],
   }));
 
+  const FALLBACK_STORE_URL = Platform.OS === 'ios'
+    ? 'https://apps.apple.com/app/id6795536260'
+    : 'https://play.google.com/store/apps/details?id=com.brightechsoftware.jaiguruscheme2';
+
   const handleUpdate = () => {
-    if (storeUrl) {
-      Linking.openURL(storeUrl).catch(() => {});
-    }
+    Linking.openURL(storeUrl || FALLBACK_STORE_URL).catch(() => {});
   };
 
   return (
@@ -115,7 +118,6 @@ const ForceUpdateScreen: React.FC<Props> = ({ currentVersion, latestVersion, sto
             style={styles.updateButton}
             activeOpacity={0.85}
             onPress={handleUpdate}
-            disabled={!storeUrl}
           >
             <MaterialCommunityIcons name="download" size={20} color={COLORS.brand} style={styles.updateButtonIcon} />
             <Text style={styles.updateButtonText}>Update Now</Text>

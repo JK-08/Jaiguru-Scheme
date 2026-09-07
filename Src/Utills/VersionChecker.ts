@@ -44,12 +44,14 @@ export const applyOTAUpdateIfAvailable = async (): Promise<void> => {
 // blocked.
 export const getForceUpdateInfo = async (config: any): Promise<ForceUpdateInfo> => {
   const currentVersion = (Application.nativeApplicationVersion as string) || '0';
+  const latestVersion: string | undefined =
+    Platform.OS === 'ios' ? config?.IOS_VERSION ?? config?.VERSION : config?.VERSION;
 
-  if (__DEV__) {
-    return { required: false, currentVersion };
-  }
+  console.log('[VersionChecker] Platform:', Platform.OS);
+  console.log('[VersionChecker] Installed version:', currentVersion);
+  console.log('[VersionChecker] Build number:', Application.nativeBuildVersion);
+  console.log('[VersionChecker] Latest version (from config):', latestVersion ?? 'N/A');
 
-  const latestVersion: string | undefined = config?.VERSION;
   const storeUrl: string | null =
     Platform.OS === 'ios' ? config?.APPSTORE_URL ?? null : config?.STORE_URL ?? null;
 
